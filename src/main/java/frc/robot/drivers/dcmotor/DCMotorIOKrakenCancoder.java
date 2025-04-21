@@ -3,6 +3,8 @@ package frc.robot.drivers.dcmotor;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
+
 import frc.robot.utils.CanDevice;
 import frc.robot.utils.PhoenixHelper;
 
@@ -17,10 +19,6 @@ public class DCMotorIOKrakenCancoder extends DCMotorIOKraken {
       CANcoderConfiguration coderConfig) {
     super(name, device, motorConfig);
     this.cancoder = new CANcoder(coder.id(), coder.bus());
-    withCancoder(coder.id());
-
-    var wrappedName = "[" + name + "]";
-    PhoenixHelper.checkErrorAndRetry(
-        wrappedName + " config cancoder", () -> cancoder.getConfigurator().apply(coderConfig));
+    withCancoder(name, coder.id());
   }
 }

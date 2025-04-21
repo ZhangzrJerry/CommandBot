@@ -10,22 +10,26 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Config;
+import frc.robot.utils.UnitConverter;
 import java.util.function.DoubleSupplier;
 
 public class DCMotorIOSim implements DCMotorIO {
   private final DCMotorSim sim;
-  private final ProfiledPIDController pid =
-      new ProfiledPIDController(
-          0,
-          0,
-          0,
-          new TrapezoidProfile.Constraints(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
+  private final ProfiledPIDController pid = new ProfiledPIDController(
+      0,
+      0,
+      0,
+      new TrapezoidProfile.Constraints(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
   private final SlewRateLimiter voltageLimiter = new SlewRateLimiter(2.5);
+
+  private UnitConverter ratioConverter = UnitConverter.identity();
+  private UnitConverter positionConvertor = UnitConverter.identity();
 
   public DCMotorIOSim(LinearSystem<N2, N1, N2> plant, DCMotor motor) {
     sim = new DCMotorSim(plant, motor);
   }
 
+  @Override
   public void updateInputs(DCMotorIOInputs inputs) {
     if (DriverStation.isDisabled()) {
       stop();
@@ -35,46 +39,68 @@ public class DCMotorIOSim implements DCMotorIO {
 
     inputs.connected = true;
 
-    inputs.rawPositionRad = sim.getAngularPositionRad();
-    inputs.rawVelocityRadPerSec = sim.getAngularVelocityRadPerSec();
-    inputs.rawAccelerationRadPerSecSq = sim.getAngularAccelerationRadPerSecSq();
+    // rotor, radians
+    inputs.angularPosition = sim.getAngularPositionRad();
+    inputs.angularVelocity = sim.getAngularVelocityRadPerSec();
+    inputs.angularAcceleration = sim.getAngularAccelerationRadPerSecSq();
+
+    // mechanism, applied units
+    inputs.position = positionConvertor.applyAsDouble(inputs.angularPosition);
+    inputs.velocity = positionConvertor.applyAsDouble(inputs.angularVelocity);
+    inputs.acceleration = positionConvertor.applyAsDouble(inputs.angularAcceleration);
 
     inputs.outputVoltageVolts = sim.getInputVoltage();
     inputs.supplyCurrentAmps = sim.getCurrentDrawAmps();
     inputs.statorCurrentAmps = sim.getCurrentDrawAmps();
+    inputs.temperatureCelsius = 25.0; // Simulated temperature
   }
 
+  @Override
   public void setPIDF(double kp, double ki, double kd, double ks, double kg) {
     pid.setPID(kp, ki, kd);
+    // Note: ks and kg are not used in this simulation
   }
 
+  @Override
   public void setPID(double kp, double ki, double kd) {
     pid.setPID(kp, ki, kd);
   }
 
-  public void setMotionConstraints(double maxVelocityRadPerSec, double maxAccelerationRadPerSecSq) {
-    pid.setConstraints(
-        new TrapezoidProfile.Constraints(maxVelocityRadPerSec, maxAccelerationRadPerSecSq));
+  @Override
+  public void setMotionConstraints(double maxVelocity, double maxAcceleration) {
+    pid.setConstraints(new TrapezoidProfile.Constraints(maxVelocity, maxAcceleration));
   }
 
+  @Override
+  public void setUnitConvertor(UnitConverter ratioConverter, UnitConverter... offsetConverter) {
+    this.ratioConverter = ratioConverter;
+    if (offsetConverter.length > 0) {
+      this.positionConvertor = ratioConverter.andThen(offsetConverter[0]);
+    } else {
+      this.positionConvertor = ratioConverter;
+    }
+  }
+
+  @Override
   public void setPositionF(
-      double positionRad,
-      double velocityRadPerSec,
-      double accelerationRadPerSecSq,
-      double feedforward) {
-    setVoltage(pid.calculate(sim.getAngularPositionRad(), positionRad));
+      double position, double velocity, double acceleration, double feedforward) {
+    double pidOutput = pid.calculate(sim.getAngularPositionRad(), positionConvertor.convertInverse(position));
+    setVoltage(pidOutput + feedforward);
   }
 
-  public void setVelocityF(
-      double velocityRadPerSec, double accelerationRadPerSecSq, double feedforward) {
-    setVoltage(pid.calculate(sim.getAngularVelocityRadPerSec(), velocityRadPerSec));
+  @Override
+  public void setVelocityF(double velocity, double acceleration, double feedforward) {
+    double pidOutput = pid.calculate(sim.getAngularVelocityRadPerSec(), ratioConverter.convertInverse(velocity));
+    setVoltage(pidOutput + feedforward);
   }
 
+  @Override
   public void setVoltage(double volts) {
-    if (DriverStation.isDisabled()) {
+    if (DriverStation.isEnabled()) {
       sim.setInputVoltage(voltageLimiter.calculate(volts));
     } else {
-      voltageLimiter.reset(volts);
+      voltageLimiter.reset(0);
+      sim.setInputVoltage(0);
     }
   }
 
@@ -82,21 +108,31 @@ public class DCMotorIOSim implements DCMotorIO {
     setVoltage(volts.getAsDouble());
   }
 
+  @Override
   public void setCurrent(double amps) {
-    // TODO
-    setVoltage(amps);
+    double resistance = 0.1; // Simulated motor resistance
+    double kv = 0.01; // Simulated back-EMF constant
+    double voltage = amps * resistance + sim.getAngularVelocityRadPerSec() * kv;
+    setVoltage(voltage);
   }
 
-  public void resetPosition(double positionRad) {
-    sim.setAngle(positionRad);
+  @Override
+  public void resetPosition(double position) {
+    sim.setState(position, sim.getAngularVelocityRadPerSec());
   }
 
+  @Override
   public void follow(DCMotorIO motor, Boolean isInverted) {
-    // TODO
     setVoltage(() -> (isInverted ? -motor.getVoltage() : motor.getVoltage()));
   }
 
+  @Override
   public double getVoltage() {
     return sim.getInputVoltage();
+  }
+
+  @Override
+  public int getDeviceID() {
+    return 0; // Simulation doesn't have device IDs
   }
 }

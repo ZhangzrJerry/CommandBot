@@ -48,7 +48,7 @@ public class SwerveModule extends SubsystemBase {
     driveMotorOfflineAlert = new Alert(this.name + " drive motor offline!", Alert.AlertType.WARNING);
     steerMotorOfflineAlert = new Alert(this.name + " steer motor offline!", Alert.AlertType.WARNING);
 
-    state = new SwerveModuleState(0, Rotation2d.fromRadians(steerInputs.rawPositionRad));
+    state = new SwerveModuleState(0, Rotation2d.fromRadians(steerInputs.position));
   }
 
   @Override
@@ -74,7 +74,8 @@ public class SwerveModule extends SubsystemBase {
     driveMotorOfflineAlert.set(!driveInputs.connected);
     steerMotorOfflineAlert.set(!steerInputs.connected);
 
-    driveIO.setVelocityF(state.speedMetersPerSecond / SwerveConfig.WHEEL_RADIUS_METER,
+    driveIO.setVelocityF(
+        state.speedMetersPerSecond,
         velocityFeedforward / SwerveConfig.DRIVE_FF_KT);
     steerIO.setPosition(state.angle.getRadians());
   }
@@ -90,7 +91,7 @@ public class SwerveModule extends SubsystemBase {
 
   SwerveModuleState getState() {
     return new SwerveModuleState(
-        driveInputs.rawVelocityRadPerSec * SwerveConfig.WHEEL_RADIUS_METER,
-        Rotation2d.fromRadians(steerInputs.rawPositionRad));
+        driveInputs.velocity,
+        Rotation2d.fromRadians(steerInputs.position));
   }
 }

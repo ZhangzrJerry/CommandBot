@@ -25,31 +25,37 @@ public class SwerveConfig {
 
   public static final double WHEELBASE_LENGTH_METER = 0.2967 * 2.0;
   public static final double WHEELBASE_WIDTH_METER = 0.2967 * 2.0;
-  public static final double WHEELBASE_DIAGONAL_METER = Math.hypot(WHEELBASE_LENGTH_METER, WHEELBASE_WIDTH_METER);
+  public static final double WHEELBASE_DIAGONAL_METER =
+      Math.hypot(WHEELBASE_LENGTH_METER, WHEELBASE_WIDTH_METER);
 
   public static final double MAX_TRANSLATION_VEL_METER_PER_SEC = 4.925568; // WCP X3T10
-  public static final double MAX_ANGULAR_VEL_RAD_PER_SEC = MAX_TRANSLATION_VEL_METER_PER_SEC
-      / (WHEELBASE_DIAGONAL_METER / 2.0);
+  public static final double MAX_ANGULAR_VEL_RAD_PER_SEC =
+      MAX_TRANSLATION_VEL_METER_PER_SEC / (WHEELBASE_DIAGONAL_METER / 2.0);
 
-  public static final SwerveDriveKinematics SWERVE_KINEMATICS = new SwerveDriveKinematics(
-      new Translation2d(WHEELBASE_LENGTH_METER / 2.0, WHEELBASE_WIDTH_METER / 2.0),
-      new Translation2d(-WHEELBASE_LENGTH_METER / 2.0, WHEELBASE_WIDTH_METER / 2.0),
-      new Translation2d(-WHEELBASE_LENGTH_METER / 2.0, -WHEELBASE_WIDTH_METER / 2.0),
-      new Translation2d(WHEELBASE_LENGTH_METER / 2.0, -WHEELBASE_WIDTH_METER / 2.0));
+  public static final SwerveDriveKinematics SWERVE_KINEMATICS =
+      new SwerveDriveKinematics(
+          new Translation2d(WHEELBASE_LENGTH_METER / 2.0, WHEELBASE_WIDTH_METER / 2.0),
+          new Translation2d(-WHEELBASE_LENGTH_METER / 2.0, WHEELBASE_WIDTH_METER / 2.0),
+          new Translation2d(-WHEELBASE_LENGTH_METER / 2.0, -WHEELBASE_WIDTH_METER / 2.0),
+          new Translation2d(WHEELBASE_LENGTH_METER / 2.0, -WHEELBASE_WIDTH_METER / 2.0));
 
   static final double WHEEL_RADIUS_METER = 0.0479;
-  static final ModuleConfig FL_MODULE_CONFIG = new ModuleConfig(
-      getX2DriveTalonConfig(), getX2SteerTalonNoEncoderConfig(), getCancoderConfig(0.30859375));
-  static final ModuleConfig BL_MODULE_CONFIG = new ModuleConfig(
-      getX2DriveTalonConfig(),
-      getX2SteerTalonNoEncoderConfig(),
-      getCancoderConfig(-0.367919921875));
-  static final ModuleConfig BR_MODULE_CONFIG = new ModuleConfig(
-      getX2DriveTalonConfig(), getX2SteerTalonNoEncoderConfig(), getCancoderConfig(0.48046875));
-  static final ModuleConfig FR_MODULE_CONFIG = new ModuleConfig(
-      getX2DriveTalonConfig(),
-      getX2SteerTalonNoEncoderConfig(),
-      getCancoderConfig(0.070068359375));
+  static final ModuleConfig FL_MODULE_CONFIG =
+      new ModuleConfig(
+          getX2DriveTalonConfig(), getX2SteerTalonNoEncoderConfig(), getCancoderConfig(0.30859375));
+  static final ModuleConfig BL_MODULE_CONFIG =
+      new ModuleConfig(
+          getX2DriveTalonConfig(),
+          getX2SteerTalonNoEncoderConfig(),
+          getCancoderConfig(-0.367919921875));
+  static final ModuleConfig BR_MODULE_CONFIG =
+      new ModuleConfig(
+          getX2DriveTalonConfig(), getX2SteerTalonNoEncoderConfig(), getCancoderConfig(0.48046875));
+  static final ModuleConfig FR_MODULE_CONFIG =
+      new ModuleConfig(
+          getX2DriveTalonConfig(),
+          getX2SteerTalonNoEncoderConfig(),
+          getCancoderConfig(0.070068359375));
 
   /// WCP X2 Reductions
   /// https://docs.wcproducts.com/wcp-swerve-x2/general-info/ratio-options
@@ -69,16 +75,15 @@ public class SwerveConfig {
   static final double DRIVE_REDUCTION = (54.0 / 10.0) * (16.0 / 40.0) * (45.0 / 15.0);
   static final double STEER_REDUCTION = (88.0 / 16.0) * (22.0 / 27.0) * (27.0 / 10.0);
 
-  static final double DRIVE_FF_KT = DCMotor.getKrakenX60Foc(1).withReduction(DRIVE_REDUCTION).KtNMPerAmp;
+  static final double DRIVE_FF_KT =
+      DCMotor.getKrakenX60Foc(1).withReduction(DRIVE_REDUCTION).KtNMPerAmp;
 
   record ModuleConfig(
       TalonFXConfiguration driveTalonConfig,
       TalonFXConfiguration steerTalonConfig,
-      CANcoderConfiguration cancoderConfig) {
-  }
+      CANcoderConfiguration cancoderConfig) {}
 
-  record Gains(double kp, double kd, double ks) {
-  }
+  record Gains(double kp, double kd, double ks) {}
 
   static TalonFXConfiguration getX2DriveTalonConfig() {
     var config = new TalonFXConfiguration();
@@ -148,25 +153,30 @@ public class SwerveConfig {
   }
 
   private static final double WHEELBASE_HEIGHT_METER = .07;
-  private static final Rotation3d WHEELBASE_ROTATION3D = new Rotation3d(new Quaternion(.5, .5, .5, .5));
-  public static final Transform3d FL_ZEROED_TF = new Transform3d(
-      -WHEELBASE_WIDTH_METER / 2.0,
-      -WHEELBASE_LENGTH_METER / 2.0,
-      WHEELBASE_HEIGHT_METER,
-      WHEELBASE_ROTATION3D);
-  public static final Transform3d BL_ZEROED_TF = new Transform3d(
-      -WHEELBASE_WIDTH_METER / 2.0,
-      WHEELBASE_LENGTH_METER / 2.0,
-      WHEELBASE_HEIGHT_METER,
-      WHEELBASE_ROTATION3D);
-  public static final Transform3d BR_ZEROED_TF = new Transform3d(
-      WHEELBASE_WIDTH_METER / 2.0,
-      WHEELBASE_LENGTH_METER / 2.0,
-      WHEELBASE_HEIGHT_METER,
-      WHEELBASE_ROTATION3D);
-  public static final Transform3d FR_ZEROED_TF = new Transform3d(
-      WHEELBASE_WIDTH_METER / 2.0,
-      -WHEELBASE_LENGTH_METER / 2.0,
-      WHEELBASE_HEIGHT_METER,
-      WHEELBASE_ROTATION3D);
+  private static final Rotation3d WHEELBASE_ROTATION3D =
+      new Rotation3d(new Quaternion(.5, .5, .5, .5));
+  public static final Transform3d FL_ZEROED_TF =
+      new Transform3d(
+          -WHEELBASE_WIDTH_METER / 2.0,
+          -WHEELBASE_LENGTH_METER / 2.0,
+          WHEELBASE_HEIGHT_METER,
+          WHEELBASE_ROTATION3D);
+  public static final Transform3d BL_ZEROED_TF =
+      new Transform3d(
+          -WHEELBASE_WIDTH_METER / 2.0,
+          WHEELBASE_LENGTH_METER / 2.0,
+          WHEELBASE_HEIGHT_METER,
+          WHEELBASE_ROTATION3D);
+  public static final Transform3d BR_ZEROED_TF =
+      new Transform3d(
+          WHEELBASE_WIDTH_METER / 2.0,
+          WHEELBASE_LENGTH_METER / 2.0,
+          WHEELBASE_HEIGHT_METER,
+          WHEELBASE_ROTATION3D);
+  public static final Transform3d FR_ZEROED_TF =
+      new Transform3d(
+          WHEELBASE_WIDTH_METER / 2.0,
+          -WHEELBASE_LENGTH_METER / 2.0,
+          WHEELBASE_HEIGHT_METER,
+          WHEELBASE_ROTATION3D);
 }

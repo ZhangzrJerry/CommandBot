@@ -1,8 +1,7 @@
 package frc.robot.drivers.dcmotor;
 
-import org.littletonrobotics.junction.AutoLog;
-
 import frc.robot.utils.UnitConverter;
+import org.littletonrobotics.junction.AutoLog;
 
 public interface DCMotorIO {
   @AutoLog
@@ -10,10 +9,15 @@ public interface DCMotorIO {
     // Connection status
     public boolean connected = false;
 
-    // Raw sensor data (radians)
-    public double rawPositionRad = 0.0;
-    public double rawVelocityRadPerSec = 0.0;
-    public double rawAccelerationRadPerSecSq = 0.0;
+    // Raw sensor data (angular units)
+    public double angularPosition = 0.0;
+    public double angularVelocity = 0.0;
+    public double angularAcceleration = 0.0;
+
+    // Mechanism data (applied units)
+    public double position = 0.0;
+    public double velocity = 0.0;
+    public double acceleration = 0.0;
 
     // Electrical measurements
     public double outputVoltageVolts = 0.0;
@@ -47,12 +51,17 @@ public interface DCMotorIO {
   /**
    * Sets motion profile constraints for smart motion control.
    *
-   * @param maxVelocityRadPerSec       Maximum velocity in radians per second
-   * @param maxAccelerationRadPerSecSq Maximum acceleration in radians per second
-   *                                   squared
+   * @param maxVelocity     Maximum velocity in radians per second
+   * @param maxAcceleration Maximum acceleration in radians per second squared
    */
-  void setMotionConstraints(double maxVelocityRadPerSec, double maxAccelerationRadPerSecSq);
+  void setMotionConstraints(double maxVelocity, double maxAcceleration);
 
+  /**
+   * Sets the unit conversion for position and velocity.
+   *
+   * @param ratioConverter  Converter for position, velocity, and acceleration
+   * @param offsetConverter Converter for position (optional)
+   */
   void setUnitConvertor(UnitConverter ratioConverter, UnitConverter... offsetConverter);
 
   // ========== Control Methods ==========
@@ -60,88 +69,79 @@ public interface DCMotorIO {
   /**
    * Sets target position with full motion control parameters.
    *
-   * @param positionRad             Target position in radians
-   * @param velocityRadPerSec       Target velocity in radians per second
-   * @param accelerationRadPerSecSq Target acceleration in radians per second
-   *                                squared
-   * @param feedforward             Additional feedforward voltage
+   * @param position     Target position in radians
+   * @param velocity     Target velocity in radians per second
+   * @param acceleration Target acceleration in radians per second squared
+   * @param feedforward  Additional feedforward voltage
    */
-  void setPositionF(
-      double positionRad,
-      double velocityRadPerSec,
-      double accelerationRadPerSecSq,
-      double feedforward);
+  void setPositionF(double position, double velocity, double acceleration, double feedforward);
 
   /**
    * Sets target position with velocity and acceleration parameters.
    *
-   * @param positionRad             Target position in radians
-   * @param velocityRadPerSec       Target velocity in radians per second
-   * @param accelerationRadPerSecSq Target acceleration in radians per second
-   *                                squared
+   * @param position     Target position in radians
+   * @param velocity     Target velocity in radians per second
+   * @param acceleration Target acceleration in radians per second squared
    */
-  default void setPosition(
-      double positionRad, double velocityRadPerSec, double accelerationRadPerSecSq) {
-    setPositionF(positionRad, velocityRadPerSec, accelerationRadPerSecSq, 0.0);
+  default void setPosition(double position, double velocity, double acceleration) {
+    setPositionF(position, velocity, acceleration, 0.0);
   }
 
   /**
    * Sets target position with feedforward voltage.
    *
-   * @param positionRad Target position in radians
+   * @param position    Target position in radians
    * @param feedforward Additional feedforward voltage
    */
-  default void setPositionF(double positionRad, double feedforward) {
-    setPositionF(positionRad, 0, 0, feedforward);
+  default void setPositionF(double position, double feedforward) {
+    setPositionF(position, 0, 0, feedforward);
   }
 
   /**
    * Sets target position with basic control.
    *
-   * @param positionRad Target position in radians
+   * @param position Target position in radians
    */
-  default void setPosition(double positionRad) {
-    setPositionF(positionRad, 0);
+  default void setPosition(double position) {
+    setPositionF(position, 0);
   }
 
   /**
    * Sets target velocity with full motion control parameters.
    *
-   * @param velocityRadPerSec       Target velocity in radians per second
-   * @param accelerationRadPerSecSq Target acceleration in radians per second
-   *                                squared
-   * @param feedforward             Additional feedforward voltage
+   * @param velocity     Target velocity in radians per second
+   * @param acceleration Target acceleration in radians per second squared
+   * @param feedforward  Additional feedforward voltage
    */
-  void setVelocityF(double velocityRadPerSec, double accelerationRadPerSecSq, double feedforward);
+  void setVelocityF(double velocity, double acceleration, double feedforward);
 
   /**
    * Sets target velocity with acceleration control.
    *
-   * @param velocityRadPerSec       Target velocity in radians per second
-   * @param accelerationRadPerSecSq Target acceleration in radians per second
-   *                                squared
+   * @param velocity     Target velocity in radians per second
+   * @param acceleration Target acceleration in radians per second squared
    */
-  default void setVelocity(double velocityRadPerSec, double accelerationRadPerSecSq) {
-    setVelocityF(velocityRadPerSec, accelerationRadPerSecSq, 0.0);
+  default void setVelocity(double velocity, double acceleration) {
+    setVelocityF(velocity, acceleration, 0.0);
   }
 
   /**
    * Sets target velocity with feedforward voltage.
    *
-   * @param velocityRadPerSec Target velocity in radians per second
-   * @param feedforward       Additional feedforward voltage
+   * @param velocity    Target velocity in radians per second
+   * @param feedforward Additional feedforward voltage
    */
-  default void setVelocityF(double velocityRadPerSec, double feedforward) {
-    setVelocityF(velocityRadPerSec, 0, feedforward);
+  default void setVelocityF(double velocity, double feedforward) {
+    setVelocityF(velocity, 0, feedforward);
   }
 
   /**
    * Sets target velocity with basic control.
    *
-   * @param velocityRadPerSec Target velocity in radians per second
+   * @param velocity Target velocity in radians per second
    */
-  default void setVelocity(double velocityRadPerSec) {
-    setVelocityF(velocityRadPerSec, 0);
+  default void setVelocity(double velocity) {
+    setVelocityF(velocity, 0);
   }
 
   /**

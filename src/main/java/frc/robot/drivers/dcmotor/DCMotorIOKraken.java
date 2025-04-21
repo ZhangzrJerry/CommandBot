@@ -20,10 +20,15 @@ import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.utils.CanDevice;
 import frc.robot.utils.PhoenixHelper;
+import frc.robot.utils.UnitConverter;
+import lombok.Getter;
 
 public class DCMotorIOKraken implements DCMotorIO {
   private final TalonFX motor;
   private final TalonFXConfiguration config;
+
+  private UnitConverter ratioConverter = UnitConverter.identity();
+  private UnitConverter positionConvertor = UnitConverter.identity();
 
   private final StatusSignal<Angle> position;
   private final StatusSignal<AngularVelocity> velocity;
@@ -52,35 +57,39 @@ public class DCMotorIOKraken implements DCMotorIO {
 
     PhoenixHelper.checkErrorAndRetry(
         wrappedName + " set signals update frequency",
-        () ->
-            BaseStatusSignal.setUpdateFrequencyForAll(
-                100.0,
-                position,
-                velocity,
-                acceleration,
-                outputVoltage,
-                supplyCurrent,
-                statorCurrent,
-                temperature));
+        () -> BaseStatusSignal.setUpdateFrequencyForAll(
+            100.0,
+            position,
+            velocity,
+            acceleration,
+            outputVoltage,
+            supplyCurrent,
+            statorCurrent,
+            temperature));
     PhoenixHelper.checkErrorAndRetry(
         wrappedName + " optimize CAN utilization", motor::optimizeBusUtilization);
   }
 
   public void updateInputs(DCMotorIOInputs inputs) {
-    inputs.connected =
-        BaseStatusSignal.refreshAll(
-                position,
-                velocity,
-                acceleration,
-                outputVoltage,
-                supplyCurrent,
-                statorCurrent,
-                temperature)
-            .isOK();
+    inputs.connected = BaseStatusSignal.refreshAll(
+        position,
+        velocity,
+        acceleration,
+        outputVoltage,
+        supplyCurrent,
+        statorCurrent,
+        temperature)
+        .isOK();
 
-    inputs.rawPositionRad = position.getValueAsDouble();
-    inputs.rawVelocityRadPerSec = velocity.getValueAsDouble();
-    inputs.rawAccelerationRadPerSecSq = velocity.getValueAsDouble();
+    // mechanism, rotated units
+    inputs.angularPosition = position.getValueAsDouble();
+    inputs.angularVelocity = velocity.getValueAsDouble();
+    inputs.angularAcceleration = velocity.getValueAsDouble();
+
+    // mechanism, applied units
+    inputs.position = positionConvertor.applyAsDouble(inputs.angularPosition);
+    inputs.velocity = ratioConverter.applyAsDouble(inputs.angularVelocity);
+    inputs.acceleration = ratioConverter.applyAsDouble(inputs.angularAcceleration);
 
     inputs.outputVoltageVolts = outputVoltage.getValueAsDouble();
     inputs.supplyCurrentAmps = supplyCurrent.getValueAsDouble();
@@ -108,40 +117,58 @@ public class DCMotorIOKraken implements DCMotorIO {
     // TODO
   }
 
+  public void setUnitConvertor(UnitConverter ratioConverter, UnitConverter... offsetConverter) {
+    this.ratioConverter = ratioConverter;
+    if (offsetConverter.length > 0) {
+      this.positionConvertor = ratioConverter.andThen(offsetConverter[0]);
+    } else {
+      this.positionConvertor = ratioConverter;
+    }
+  }
+
   public void setPositionF(
-      double positionRad,
-      double velocityRadPerSec,
-      double accelerationRadPerSecSq,
+      double position,
+      double velocity,
+      double acceleration,
       double feedforward) {
     motor.setControl(
         new DynamicMotionMagicTorqueCurrentFOC(
-                positionRad, velocityRadPerSec, accelerationRadPerSecSq, 0.0)
+            ratioConverter.convertInverse(position),
+            ratioConverter.convertInverse(velocity),
+            ratioConverter.convertInverse(acceleration),
+            0.0)
             .withFeedForward(feedforward));
   }
 
   @Override
   public void setPosition(
-      double positionRad, double velocityRadPerSec, double accelerationRadPerSecSq) {
-    motor.setControl(new PositionTorqueCurrentFOC(positionRad).withVelocity(velocityRadPerSec));
-  }
-
-  @Override
-  public void setPositionF(double positionRad, double feedforward) {
-    motor.setControl(new PositionTorqueCurrentFOC(positionRad).withFeedForward(feedforward));
-  }
-
-  @Override
-  public void setVelocityF(
-      double velocityRadPerSec, double accelerationRadPerSecSq, double feedforward) {
+      double position, double velocity, double acceleration) {
     motor.setControl(
-        new MotionMagicVelocityTorqueCurrentFOC(velocityRadPerSec)
-            .withAcceleration(accelerationRadPerSecSq)
+        new PositionTorqueCurrentFOC(ratioConverter.convertInverse(position))
+            .withVelocity(ratioConverter.convertInverse(velocity)));
+  }
+
+  @Override
+  public void setPositionF(double position, double feedforward) {
+    motor.setControl(
+        new PositionTorqueCurrentFOC(ratioConverter.convertInverse(position))
             .withFeedForward(feedforward));
   }
 
   @Override
-  public void setVelocityF(double velocityRadPerSec, double feedforward) {
-    motor.setControl(new VelocityTorqueCurrentFOC(velocityRadPerSec).withFeedForward(feedforward));
+  public void setVelocityF(
+      double velocity, double acceleration, double feedforward) {
+    motor.setControl(
+        new MotionMagicVelocityTorqueCurrentFOC(ratioConverter.convertInverse(velocity))
+            .withAcceleration(ratioConverter.convertInverse(acceleration))
+            .withFeedForward(feedforward));
+  }
+
+  @Override
+  public void setVelocityF(double velocity, double feedforward) {
+    motor.setControl(
+        new VelocityTorqueCurrentFOC(ratioConverter.convertInverse(velocity))
+            .withFeedForward(feedforward));
   }
 
   public void setVoltage(double volts) {
@@ -169,8 +196,11 @@ public class DCMotorIOKraken implements DCMotorIO {
     return motor.getDeviceID();
   }
 
-  public void withCancoder(int id) {
+  public void withCancoder(String name, int id) {
+    var wrappedName = "[" + name + "]";
     config.Feedback.FeedbackRemoteSensorID = id;
     config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+    PhoenixHelper.checkErrorAndRetry(
+        wrappedName + " config fused cancoder mode", () -> motor.getConfigurator().apply(config));
   }
 }
