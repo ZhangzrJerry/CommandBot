@@ -14,11 +14,12 @@ import java.util.function.DoubleSupplier;
 
 public class DCMotorIOSim implements DCMotorIO {
   private final DCMotorSim sim;
-  private final ProfiledPIDController pid = new ProfiledPIDController(
-      0,
-      0,
-      0,
-      new TrapezoidProfile.Constraints(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
+  private final ProfiledPIDController pid =
+      new ProfiledPIDController(
+          0,
+          0,
+          0,
+          new TrapezoidProfile.Constraints(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
   private final SlewRateLimiter voltageLimiter = new SlewRateLimiter(2.5);
 
   public DCMotorIOSim(LinearSystem<N2, N1, N2> plant, DCMotor motor) {
@@ -64,7 +65,8 @@ public class DCMotorIOSim implements DCMotorIO {
     setVoltage(pid.calculate(sim.getAngularPositionRad(), positionRad));
   }
 
-  public void setVelocityF(double velocityRadPerSec, double accelerationRadPerSecSq, double feedforward) {
+  public void setVelocityF(
+      double velocityRadPerSec, double accelerationRadPerSecSq, double feedforward) {
     setVoltage(pid.calculate(sim.getAngularVelocityRadPerSec(), velocityRadPerSec));
   }
 
@@ -90,6 +92,7 @@ public class DCMotorIOSim implements DCMotorIO {
   }
 
   public void follow(DCMotorIO motor, Boolean isInverted) {
+    // TODO
     setVoltage(() -> (isInverted ? -motor.getVoltage() : motor.getVoltage()));
   }
 

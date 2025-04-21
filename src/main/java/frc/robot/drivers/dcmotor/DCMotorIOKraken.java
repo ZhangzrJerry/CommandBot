@@ -52,29 +52,31 @@ public class DCMotorIOKraken implements DCMotorIO {
 
     PhoenixHelper.checkErrorAndRetry(
         wrappedName + " set signals update frequency",
-        () -> BaseStatusSignal.setUpdateFrequencyForAll(
-            100.0,
-            position,
-            velocity,
-            acceleration,
-            outputVoltage,
-            supplyCurrent,
-            statorCurrent,
-            temperature));
+        () ->
+            BaseStatusSignal.setUpdateFrequencyForAll(
+                100.0,
+                position,
+                velocity,
+                acceleration,
+                outputVoltage,
+                supplyCurrent,
+                statorCurrent,
+                temperature));
     PhoenixHelper.checkErrorAndRetry(
         wrappedName + " optimize CAN utilization", motor::optimizeBusUtilization);
   }
 
   public void updateInputs(DCMotorIOInputs inputs) {
-    inputs.connected = BaseStatusSignal.refreshAll(
-        position,
-        velocity,
-        acceleration,
-        outputVoltage,
-        supplyCurrent,
-        statorCurrent,
-        temperature)
-        .isOK();
+    inputs.connected =
+        BaseStatusSignal.refreshAll(
+                position,
+                velocity,
+                acceleration,
+                outputVoltage,
+                supplyCurrent,
+                statorCurrent,
+                temperature)
+            .isOK();
 
     inputs.rawPositionRad = position.getValueAsDouble();
     inputs.rawVelocityRadPerSec = velocity.getValueAsDouble();
@@ -113,8 +115,14 @@ public class DCMotorIOKraken implements DCMotorIO {
       double feedforward) {
     motor.setControl(
         new DynamicMotionMagicTorqueCurrentFOC(
-            positionRad, velocityRadPerSec, accelerationRadPerSecSq, 0.0)
+                positionRad, velocityRadPerSec, accelerationRadPerSecSq, 0.0)
             .withFeedForward(feedforward));
+  }
+
+  @Override
+  public void setPosition(
+      double positionRad, double velocityRadPerSec, double accelerationRadPerSecSq) {
+    motor.setControl(new PositionTorqueCurrentFOC(positionRad).withVelocity(velocityRadPerSec));
   }
 
   @Override
@@ -123,20 +131,17 @@ public class DCMotorIOKraken implements DCMotorIO {
   }
 
   @Override
-  public void setPosition(double positionRad, double velocityRadPerSec, double accelerationRadPerSecSq) {
-    motor.setControl(new PositionTorqueCurrentFOC(positionRad).withVelocity(velocity));
-  }
-
-  @Override
-  public void setVelocity(double velocityRadPerSec, double accelerationRadPerSecSq) {
+  public void setVelocityF(
+      double velocityRadPerSec, double accelerationRadPerSecSq, double feedforward) {
     motor.setControl(
         new MotionMagicVelocityTorqueCurrentFOC(velocityRadPerSec)
-            .withAcceleration(accelerationRadPerSecSq));
+            .withAcceleration(accelerationRadPerSecSq)
+            .withFeedForward(feedforward));
   }
 
   @Override
-  public void setVelocity(double velocityRadPerSec) {
-    motor.setControl(new VelocityTorqueCurrentFOC(velocityRadPerSec));
+  public void setVelocityF(double velocityRadPerSec, double feedforward) {
+    motor.setControl(new VelocityTorqueCurrentFOC(velocityRadPerSec).withFeedForward(feedforward));
   }
 
   public void setVoltage(double volts) {
@@ -152,7 +157,6 @@ public class DCMotorIOKraken implements DCMotorIO {
   }
 
   public void follow(DCMotorIO motor, Boolean isInverted) {
-    // TODO: make sure 一次调用 多次满足
     this.motor.setControl(new Follower(motor.getDeviceID(), isInverted));
   }
 

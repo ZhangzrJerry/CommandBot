@@ -1,12 +1,12 @@
 package frc.robot.subsystems.swerve;
 
-import org.littletonrobotics.junction.Logger;
-
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.drivers.dcmotor.DCMotorIO;
+import frc.robot.drivers.dcmotor.*;
 import frc.robot.utils.Alert;
 import frc.robot.utils.LoggedTunableNumber;
+import org.littletonrobotics.junction.Logger;
 
 public class SwerveModule extends SubsystemBase {
   private static final LoggedTunableNumber driveKp = new LoggedTunableNumber("Swerve/Module/DriveKp");
@@ -30,13 +30,14 @@ public class SwerveModule extends SubsystemBase {
 
   private final String name;
   private SwerveModuleState state;
+  private double velocityFeedforward = 0.0;
 
   private final DCMotorIO driveIO;
-  private final DCMotorIOAutoLogged driveInputs = new DCMotorIOAutoLogged();
+  private final DCMotorIOInputsAutoLogged driveInputs = new DCMotorIOInputsAutoLogged();
   private final Alert driveMotorOfflineAlert;
 
   private final DCMotorIO steerIO;
-  private final DCMotorIOAutoLogged steerInputs = new DCMotorIOAutoLogged();
+  private final DCMotorIOInputsAutoLogged steerInputs = new DCMotorIOInputsAutoLogged();
   private final Alert steerMotorOfflineAlert;
 
   public SwerveModule(DCMotorIO driveIO, DCMotorIO steerIO, String name) {
@@ -46,6 +47,8 @@ public class SwerveModule extends SubsystemBase {
 
     driveMotorOfflineAlert = new Alert(this.name + " drive motor offline!", Alert.AlertType.WARNING);
     steerMotorOfflineAlert = new Alert(this.name + " steer motor offline!", Alert.AlertType.WARNING);
+
+    state = new SwerveModuleState(0, Rotation2d.fromRadians(steerInputs.rawPositionRad));
   }
 
   @Override
@@ -55,13 +58,39 @@ public class SwerveModule extends SubsystemBase {
     Logger.processInputs("Swerve/" + name + "/Drive", driveInputs);
     Logger.processInputs("Swerve/" + name + "/Steer", steerInputs);
 
-    LoggedTunableNumber.ifChanged(hashCode(),
-        () -> driveIO.setPIDF(driveKp.get(), 0.0, driveKd.get(), driveKs.get(), 0.0), driveKp, driveKd, driveKs);
-    LoggedTunableNumber.ifChanged(hashCode(),
-        () -> steerIO.setPIDF(steerKp.get(), 0.0, steerKd.get(), steerKs.get(), 0.0), steerKp, steerKd, steerKs);
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        () -> driveIO.setPIDF(driveKp.get(), 0.0, driveKd.get(), driveKs.get(), 0.0),
+        driveKp,
+        driveKd,
+        driveKs);
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        () -> steerIO.setPIDF(steerKp.get(), 0.0, steerKd.get(), steerKs.get(), 0.0),
+        steerKp,
+        steerKd,
+        steerKs);
 
     driveMotorOfflineAlert.set(!driveInputs.connected);
     steerMotorOfflineAlert.set(!steerInputs.connected);
 
+    driveIO.setVelocityF(state.speedMetersPerSecond / SwerveConfig.WHEEL_RADIUS_METER,
+        velocityFeedforward / SwerveConfig.DRIVE_FF_KT);
+    steerIO.setPosition(state.angle.getRadians());
+  }
+
+  void setState(SwerveModuleState state, double velocityFeedforward) {
+    this.state = state;
+    this.velocityFeedforward = velocityFeedforward;
+  }
+
+  void setState(SwerveModuleState state) {
+    setState(state, 0.0);
+  }
+
+  SwerveModuleState getState() {
+    return new SwerveModuleState(
+        driveInputs.rawVelocityRadPerSec * SwerveConfig.WHEEL_RADIUS_METER,
+        Rotation2d.fromRadians(steerInputs.rawPositionRad));
   }
 }

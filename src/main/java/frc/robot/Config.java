@@ -2,25 +2,30 @@ package frc.robot;
 
 /**
  * Robot configuration class containing global settings such as operation mode, debug flags, and
- * control loop timing.
+ * control loop timing. All values should be treated as compile-time constants.
  */
 public final class Config {
-  // 不可变配置常量
-  public static final double LOOP_PERIOD_SEC = 0.02;
-  public static final boolean IS_LIVE_DEBUG = false;
-  public static final Mode MODE = Mode.REAL;
+  // Immutable configuration constants
+  public static final double LOOP_PERIOD_SEC = 0.02; // Main control loop period in seconds (50Hz)
+  public static final boolean IS_LIVE_DEBUG = false; // Enable live debugging outputs
+  public static final Mode MODE = Mode.REAL; // Current operating mode
 
-  /** 运行模式枚举 */
+  /** Robot operating mode enumeration */
   public enum Mode {
-    REAL, // 真实机器人模式
-    SIM, // 仿真模式
-    REPLAY // 回放模式
+    REAL, // Physical robot operation
+    SIM, // Simulation mode
+    REPLAY // Log replay mode
   }
 
-  /** 部署前检查配置是否正确 */
+  /** Pre-deployment configuration validation */
   public static final class DeployChecker {
     private static final String DEPLOY_ERROR = "Cannot deploy, invalid robot selected: ";
 
+    /**
+     * Validates that the configuration is suitable for physical robot deployment.
+     *
+     * @throws IllegalStateException if attempting to deploy in non-REAL mode
+     */
     public static void validate() {
       if (MODE != Mode.REAL) {
         exitWithError(DEPLOY_ERROR + MODE);
@@ -28,10 +33,15 @@ public final class Config {
     }
   }
 
-  /** 仿真前检查配置是否正确 */
+  /** Pre-simulation configuration validation */
   public static final class SimChecker {
-    private static final String SIM_ERROR = "Cannot sim, invalid robot selected: ";
+    private static final String SIM_ERROR = "Cannot simulate, invalid robot selected: ";
 
+    /**
+     * Validates that the configuration is suitable for simulation.
+     *
+     * @throws IllegalStateException if attempting to simulate in REAL mode
+     */
     public static void validate() {
       if (MODE == Mode.REAL) {
         exitWithError(SIM_ERROR + MODE);
@@ -39,10 +49,16 @@ public final class Config {
     }
   }
 
-  /** 合并代码前检查配置是否为默认值 */
+  /** Pre-merge configuration validation */
   public static final class MergeChecker {
-    private static final String MERGE_ERROR = "Do not merge, non-default constants are configured.";
+    private static final String MERGE_ERROR =
+        "Do not merge - non-default constants are configured.";
 
+    /**
+     * Validates that the configuration uses default values before code merging.
+     *
+     * @throws IllegalStateException if non-default values are detected
+     */
     public static void validate() {
       if (MODE != Mode.REAL || IS_LIVE_DEBUG) {
         exitWithError(MERGE_ERROR);
@@ -50,14 +66,18 @@ public final class Config {
     }
   }
 
-  // 私有工具方法，用于输出错误并退出
+  /**
+   * Terminates the application with an error message.
+   *
+   * @param message The error message to display
+   */
   private static void exitWithError(String message) {
     System.err.println(message);
     System.exit(1);
   }
 
-  // 防止实例化
+  // Prevent instantiation
   private Config() {
-    throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated");
   }
 }
