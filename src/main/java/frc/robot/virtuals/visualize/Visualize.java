@@ -2,7 +2,7 @@ package frc.robot.virtuals.visualize;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.virtuals.VirtualSubsystem;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -10,28 +10,24 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 /**
- * Visualization subsystem that helps visualize robot components in Advantage
- * Scope.
- * Maintains a transform tree and updates component poses periodically.
+ * Visualization subsystem that helps visualize robot components in Advantage Scope. Maintains a
+ * transform tree and updates component poses periodically.
  */
-public class Visualize extends SubsystemBase {
+public class Visualize extends VirtualSubsystem {
   private static final List<VisualizeComponent> components = new ArrayList<>();
   private static final Boolean isStrictBigEndian = true;
 
-  private Visualize() {
-  }
+  private Visualize() {}
 
   /**
    * Component record for visualization system.
-   * 
-   * @param componentId       the id of the component (0 to N)
-   * @param parentId          the id of the parent component (-1 for robot frame)
+   *
+   * @param componentId the id of the component (0 to N)
+   * @param parentId the id of the parent component (-1 for robot frame)
    * @param transformSupplier supplier of transform from parent to this component
    */
   public record VisualizeComponent(
-      int componentId,
-      int parentId,
-      Supplier<Transform3d> transformSupplier) {
+      int componentId, int parentId, Supplier<Transform3d> transformSupplier) {
     public VisualizeComponent {
       if (componentId < 0) {
         throw new IllegalArgumentException("componentId out of index");
@@ -51,7 +47,7 @@ public class Visualize extends SubsystemBase {
 
   /**
    * Register a component for visualization.
-   * 
+   *
    * @param visualizeComponent the component to register
    */
   public void register(VisualizeComponent visualizeComponent) {

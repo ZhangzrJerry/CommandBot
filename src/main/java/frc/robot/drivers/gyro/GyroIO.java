@@ -8,12 +8,11 @@ public interface GyroIO {
   class GyroIOInputs {
     public boolean connected = false;
 
-    public double yawRad = 0.0;
+    public Rotation2d yaw = new Rotation2d();
     public double omegaRadPerSec = 0.0;
 
     public double temperature = 35.0;
   }
 
-  default void updateInputs(GyroIOInputs inputs) {
-  }
+  default void updateInputs(GyroIOInputs inputs) {}
 }

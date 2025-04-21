@@ -1,2 +1,2 @@
 - 完成swerve teleop
-- 利用UnitConvertor修复DCMotorIO单位，注意Kraken getposition setposition单位为机械的rotation，rotorPosition为转子
+- 修复规则检查

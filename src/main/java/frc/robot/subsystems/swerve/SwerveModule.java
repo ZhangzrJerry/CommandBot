@@ -56,7 +56,7 @@ public class SwerveModule extends SubsystemBase {
     steerMotorOfflineAlert =
         new Alert(this.name + " steer motor offline!", Alert.AlertType.WARNING);
 
-    state = new SwerveModuleState(0, Rotation2d.fromRadians(steerInputs.position));
+    stop();
   }
 
   void updateInputs() {
@@ -104,5 +104,9 @@ public class SwerveModule extends SubsystemBase {
   SwerveModuleState getState() {
     return new SwerveModuleState(
         driveInputs.velocity, Rotation2d.fromRadians(steerInputs.position));
+  }
+
+  void stop() {
+    this.state = new SwerveModuleState(0, Rotation2d.fromRadians(steerInputs.position));
   }
 }

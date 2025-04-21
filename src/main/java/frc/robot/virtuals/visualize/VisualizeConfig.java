@@ -1,16 +1,14 @@
 package frc.robot.virtuals.visualize;
 
 /**
- * Configuration class for visualization component IDs.
- * These IDs should match the part order in config.json in AdvantageScope.
+ * Configuration class for visualization component IDs. These IDs should match the part order in
+ * config.json in AdvantageScope.
  */
 public final class VisualizeConfig {
-  private VisualizeConfig() {
-  }
+  private VisualizeConfig() {}
 
   public static final class Ids {
-    private Ids() {
-    }
+    private Ids() {}
 
     public static final int ROBOT_FRAME = -1;
     public static final int SWERVE_FL = 0;

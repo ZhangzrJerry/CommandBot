@@ -16,8 +16,7 @@ import lombok.Getter;
 public class GyroIOPigeon2 implements GyroIO {
   private final Pigeon2 pigeon;
 
-  @Getter
-  private final StatusSignal<Angle> yaw;
+  @Getter private final StatusSignal<Angle> yaw;
   private final StatusSignal<AngularVelocity> omega;
   private final StatusSignal<Temperature> temp;
 
@@ -45,7 +44,7 @@ public class GyroIOPigeon2 implements GyroIO {
   public void updateInputs(GyroIOInputs inputs) {
     inputs.connected = BaseStatusSignal.refreshAll(yaw, omega).isOK();
 
-    inputs.yawRad = Units.degreesToRadians(yaw.getValueAsDouble());
+    inputs.yaw = Rotation2d.fromDegrees(yaw.getValueAsDouble());
     inputs.omegaRadPerSec = Units.degreesToRadians(omega.getValueAsDouble());
 
     inputs.temperature = temp.getValueAsDouble();

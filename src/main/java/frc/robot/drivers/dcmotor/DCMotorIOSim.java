@@ -2,6 +2,9 @@ package frc.robot.drivers.dcmotor;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N2;
+import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -33,6 +36,10 @@ public class DCMotorIOSim implements DCMotorIO {
     sim =
         new DCMotorSim(LinearSystemId.createDCMotorSystem(motor, JKgMetersSquared, gearing), motor);
     setUnitConvertor(ratioConverter, offsetConverter);
+  }
+
+  public DCMotorIOSim(LinearSystem<N2, N1, N2> system, DCMotor motor) {
+    sim = new DCMotorSim(system, motor);
   }
 
   @Override
