@@ -59,10 +59,10 @@ public class SwerveModule extends SubsystemBase {
     state = new SwerveModuleState(0, Rotation2d.fromRadians(steerInputs.position));
   }
 
-  @Override
-  public void periodic() {
+  void updateInputs() {
     driveIO.updateInputs(driveInputs);
     steerIO.updateInputs(steerInputs);
+
     Logger.processInputs("Swerve/" + name + "/Drive", driveInputs);
     Logger.processInputs("Swerve/" + name + "/Steer", steerInputs);
 
@@ -81,6 +81,11 @@ public class SwerveModule extends SubsystemBase {
 
     driveMotorOfflineAlert.set(!driveInputs.connected);
     steerMotorOfflineAlert.set(!steerInputs.connected);
+  }
+
+  @Override
+  public void periodic() {
+    updateInputs();
 
     driveIO.setVelocityF(
         state.speedMetersPerSecond, velocityFeedforward / SwerveConfig.DRIVE_FF_KT);
