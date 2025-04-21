@@ -40,22 +40,10 @@ public class SwerveConfig {
           new Translation2d(WHEELBASE_LENGTH_METER / 2.0, -WHEELBASE_WIDTH_METER / 2.0));
 
   static final double WHEEL_RADIUS_METER = 0.0479;
-  static final ModuleConfig FL_MODULE_CONFIG =
-      new ModuleConfig(
-          getX2DriveTalonConfig(), getX2SteerTalonNoEncoderConfig(), getCancoderConfig(0.30859375));
-  static final ModuleConfig BL_MODULE_CONFIG =
-      new ModuleConfig(
-          getX2DriveTalonConfig(),
-          getX2SteerTalonNoEncoderConfig(),
-          getCancoderConfig(-0.367919921875));
-  static final ModuleConfig BR_MODULE_CONFIG =
-      new ModuleConfig(
-          getX2DriveTalonConfig(), getX2SteerTalonNoEncoderConfig(), getCancoderConfig(0.48046875));
-  static final ModuleConfig FR_MODULE_CONFIG =
-      new ModuleConfig(
-          getX2DriveTalonConfig(),
-          getX2SteerTalonNoEncoderConfig(),
-          getCancoderConfig(0.070068359375));
+  static final CANcoderConfiguration FL_MODULE_CONFIG = getCancoderConfig(0.30859375);
+  static final CANcoderConfiguration BL_MODULE_CONFIG = getCancoderConfig(-0.367919921875);
+  static final CANcoderConfiguration BR_MODULE_CONFIG = getCancoderConfig(0.48046875);
+  static final CANcoderConfiguration FR_MODULE_CONFIG = getCancoderConfig(0.070068359375);
 
   /// WCP X2 Reductions
   /// https://docs.wcproducts.com/wcp-swerve-x2/general-info/ratio-options
@@ -78,19 +66,13 @@ public class SwerveConfig {
   static final double DRIVE_FF_KT =
       DCMotor.getKrakenX60Foc(1).withReduction(DRIVE_REDUCTION).KtNMPerAmp;
 
-  record ModuleConfig(
-      TalonFXConfiguration driveTalonConfig,
-      TalonFXConfiguration steerTalonConfig,
-      CANcoderConfiguration cancoderConfig) {}
-
-  record Gains(double kp, double kd, double ks) {}
-
   static TalonFXConfiguration getX2DriveTalonConfig() {
     var config = new TalonFXConfiguration();
 
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
+    // PID
     switch (Config.MODE) {
       case REAL -> {
         config.Slot0 = new Slot0Configs().withKP(7.0).withKD(0.0).withKS(0.0);
@@ -120,6 +102,7 @@ public class SwerveConfig {
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 
+    // PID
     switch (Config.MODE) {
       case REAL -> {
         config.Slot0 = new Slot0Configs().withKP(2000.0).withKD(60.0).withKS(0.0);

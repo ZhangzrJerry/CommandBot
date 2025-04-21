@@ -2,10 +2,8 @@ package frc.robot.drivers.dcmotor;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N2;
-import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
@@ -15,18 +13,26 @@ import java.util.function.DoubleSupplier;
 
 public class DCMotorIOSim implements DCMotorIO {
   private final DCMotorSim sim;
-  private final ProfiledPIDController pid = new ProfiledPIDController(
-      0,
-      0,
-      0,
-      new TrapezoidProfile.Constraints(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
+  private final ProfiledPIDController pid =
+      new ProfiledPIDController(
+          0,
+          0,
+          0,
+          new TrapezoidProfile.Constraints(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
   private final SlewRateLimiter voltageLimiter = new SlewRateLimiter(2.5);
 
   private UnitConverter ratioConverter = UnitConverter.identity();
   private UnitConverter positionConvertor = UnitConverter.identity();
 
-  public DCMotorIOSim(LinearSystem<N2, N1, N2> plant, DCMotor motor) {
-    sim = new DCMotorSim(plant, motor);
+  public DCMotorIOSim(
+      DCMotor motor,
+      double JKgMetersSquared,
+      double gearing,
+      UnitConverter ratioConverter,
+      UnitConverter... offsetConverter) {
+    sim =
+        new DCMotorSim(LinearSystemId.createDCMotorSystem(motor, JKgMetersSquared, gearing), motor);
+    setUnitConvertor(ratioConverter, offsetConverter);
   }
 
   @Override
@@ -75,7 +81,7 @@ public class DCMotorIOSim implements DCMotorIO {
   public void setUnitConvertor(UnitConverter ratioConverter, UnitConverter... offsetConverter) {
     this.ratioConverter = ratioConverter;
     if (offsetConverter.length > 0) {
-      this.positionConvertor = ratioConverter.andThen(offsetConverter[0]);
+      this.positionConvertor = offsetConverter[0].andThen(ratioConverter);
     } else {
       this.positionConvertor = ratioConverter;
     }
@@ -84,13 +90,15 @@ public class DCMotorIOSim implements DCMotorIO {
   @Override
   public void setPositionF(
       double position, double velocity, double acceleration, double feedforward) {
-    double pidOutput = pid.calculate(sim.getAngularPositionRad(), positionConvertor.convertInverse(position));
+    double pidOutput =
+        pid.calculate(sim.getAngularPositionRad(), positionConvertor.convertInverse(position));
     setVoltage(pidOutput + feedforward);
   }
 
   @Override
   public void setVelocityF(double velocity, double acceleration, double feedforward) {
-    double pidOutput = pid.calculate(sim.getAngularVelocityRadPerSec(), ratioConverter.convertInverse(velocity));
+    double pidOutput =
+        pid.calculate(sim.getAngularVelocityRadPerSec(), ratioConverter.convertInverse(velocity));
     setVoltage(pidOutput + feedforward);
   }
 

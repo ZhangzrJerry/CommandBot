@@ -9,12 +9,18 @@ import frc.robot.utils.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
 public class SwerveModule extends SubsystemBase {
-  private static final LoggedTunableNumber driveKp = new LoggedTunableNumber("Swerve/Module/DriveKp");
-  private static final LoggedTunableNumber driveKd = new LoggedTunableNumber("Swerve/Module/DriveKd");
-  private static final LoggedTunableNumber driveKs = new LoggedTunableNumber("Swerve/Module/DriveKs");
-  private static final LoggedTunableNumber steerKp = new LoggedTunableNumber("Swerve/Module/SteerKp");
-  private static final LoggedTunableNumber steerKd = new LoggedTunableNumber("Swerve/Module/SteerKd");
-  private static final LoggedTunableNumber steerKs = new LoggedTunableNumber("Swerve/Module/SteerKs");
+  private static final LoggedTunableNumber driveKp =
+      new LoggedTunableNumber("Swerve/Module/DriveKp");
+  private static final LoggedTunableNumber driveKd =
+      new LoggedTunableNumber("Swerve/Module/DriveKd");
+  private static final LoggedTunableNumber driveKs =
+      new LoggedTunableNumber("Swerve/Module/DriveKs");
+  private static final LoggedTunableNumber steerKp =
+      new LoggedTunableNumber("Swerve/Module/SteerKp");
+  private static final LoggedTunableNumber steerKd =
+      new LoggedTunableNumber("Swerve/Module/SteerKd");
+  private static final LoggedTunableNumber steerKs =
+      new LoggedTunableNumber("Swerve/Module/SteerKs");
 
   static {
     var driveSlot = SwerveConfig.getX2DriveTalonConfig().Slot0;
@@ -45,8 +51,10 @@ public class SwerveModule extends SubsystemBase {
     this.steerIO = steerIO;
     this.name = name;
 
-    driveMotorOfflineAlert = new Alert(this.name + " drive motor offline!", Alert.AlertType.WARNING);
-    steerMotorOfflineAlert = new Alert(this.name + " steer motor offline!", Alert.AlertType.WARNING);
+    driveMotorOfflineAlert =
+        new Alert(this.name + " drive motor offline!", Alert.AlertType.WARNING);
+    steerMotorOfflineAlert =
+        new Alert(this.name + " steer motor offline!", Alert.AlertType.WARNING);
 
     state = new SwerveModuleState(0, Rotation2d.fromRadians(steerInputs.position));
   }
@@ -75,8 +83,7 @@ public class SwerveModule extends SubsystemBase {
     steerMotorOfflineAlert.set(!steerInputs.connected);
 
     driveIO.setVelocityF(
-        state.speedMetersPerSecond,
-        velocityFeedforward / SwerveConfig.DRIVE_FF_KT);
+        state.speedMetersPerSecond, velocityFeedforward / SwerveConfig.DRIVE_FF_KT);
     steerIO.setPosition(state.angle.getRadians());
   }
 
@@ -91,7 +98,6 @@ public class SwerveModule extends SubsystemBase {
 
   SwerveModuleState getState() {
     return new SwerveModuleState(
-        driveInputs.velocity,
-        Rotation2d.fromRadians(steerInputs.position));
+        driveInputs.velocity, Rotation2d.fromRadians(steerInputs.position));
   }
 }

@@ -21,7 +21,6 @@ import edu.wpi.first.units.measure.Voltage;
 import frc.robot.utils.CanDevice;
 import frc.robot.utils.PhoenixHelper;
 import frc.robot.utils.UnitConverter;
-import lombok.Getter;
 
 public class DCMotorIOKraken implements DCMotorIO {
   private final TalonFX motor;
@@ -38,9 +37,15 @@ public class DCMotorIOKraken implements DCMotorIO {
   private final StatusSignal<Current> supplyCurrent;
   private final StatusSignal<Temperature> temperature;
 
-  public DCMotorIOKraken(String name, CanDevice device, TalonFXConfiguration config) {
-    this.motor = new TalonFX(device.id(), device.bus());
+  public DCMotorIOKraken(
+      String name,
+      CanDevice kraken,
+      TalonFXConfiguration config,
+      UnitConverter ratioConverter,
+      UnitConverter... offsetConverter) {
+    this.motor = new TalonFX(kraken.id(), kraken.bus());
     this.config = config;
+    setUnitConvertor(ratioConverter, offsetConverter);
 
     var wrappedName = "[" + name + "]";
     PhoenixHelper.checkErrorAndRetry(wrappedName + " clear sticky fault", motor::clearStickyFaults);
@@ -57,29 +62,31 @@ public class DCMotorIOKraken implements DCMotorIO {
 
     PhoenixHelper.checkErrorAndRetry(
         wrappedName + " set signals update frequency",
-        () -> BaseStatusSignal.setUpdateFrequencyForAll(
-            100.0,
-            position,
-            velocity,
-            acceleration,
-            outputVoltage,
-            supplyCurrent,
-            statorCurrent,
-            temperature));
+        () ->
+            BaseStatusSignal.setUpdateFrequencyForAll(
+                100.0,
+                position,
+                velocity,
+                acceleration,
+                outputVoltage,
+                supplyCurrent,
+                statorCurrent,
+                temperature));
     PhoenixHelper.checkErrorAndRetry(
         wrappedName + " optimize CAN utilization", motor::optimizeBusUtilization);
   }
 
   public void updateInputs(DCMotorIOInputs inputs) {
-    inputs.connected = BaseStatusSignal.refreshAll(
-        position,
-        velocity,
-        acceleration,
-        outputVoltage,
-        supplyCurrent,
-        statorCurrent,
-        temperature)
-        .isOK();
+    inputs.connected =
+        BaseStatusSignal.refreshAll(
+                position,
+                velocity,
+                acceleration,
+                outputVoltage,
+                supplyCurrent,
+                statorCurrent,
+                temperature)
+            .isOK();
 
     // mechanism, rotated units
     inputs.angularPosition = position.getValueAsDouble();
@@ -97,6 +104,7 @@ public class DCMotorIOKraken implements DCMotorIO {
     inputs.temperatureCelsius = temperature.getValueAsDouble();
   }
 
+  @Override
   public void setPIDF(double kp, double ki, double kd, double ks, double kg) {
     config.Slot0.kP = kp;
     config.Slot0.kI = ki;
@@ -106,6 +114,7 @@ public class DCMotorIOKraken implements DCMotorIO {
     motor.getConfigurator().apply(config);
   }
 
+  @Override
   public void setPID(double kp, double ki, double kd) {
     config.Slot0.kP = kp;
     config.Slot0.kI = ki;
@@ -113,36 +122,35 @@ public class DCMotorIOKraken implements DCMotorIO {
     motor.getConfigurator().apply(config);
   }
 
+  @Override
   public void setMotionConstraints(double maxVelocityRadPerSec, double maxAccelerationRadPerSecSq) {
     // TODO
   }
 
+  @Override
   public void setUnitConvertor(UnitConverter ratioConverter, UnitConverter... offsetConverter) {
     this.ratioConverter = ratioConverter;
     if (offsetConverter.length > 0) {
-      this.positionConvertor = ratioConverter.andThen(offsetConverter[0]);
+      this.positionConvertor = offsetConverter[0].andThen(ratioConverter);
     } else {
       this.positionConvertor = ratioConverter;
     }
   }
 
+  @Override
   public void setPositionF(
-      double position,
-      double velocity,
-      double acceleration,
-      double feedforward) {
+      double position, double velocity, double acceleration, double feedforward) {
     motor.setControl(
         new DynamicMotionMagicTorqueCurrentFOC(
-            ratioConverter.convertInverse(position),
-            ratioConverter.convertInverse(velocity),
-            ratioConverter.convertInverse(acceleration),
-            0.0)
+                ratioConverter.convertInverse(position),
+                ratioConverter.convertInverse(velocity),
+                ratioConverter.convertInverse(acceleration),
+                0.0)
             .withFeedForward(feedforward));
   }
 
   @Override
-  public void setPosition(
-      double position, double velocity, double acceleration) {
+  public void setPosition(double position, double velocity, double acceleration) {
     motor.setControl(
         new PositionTorqueCurrentFOC(ratioConverter.convertInverse(position))
             .withVelocity(ratioConverter.convertInverse(velocity)));
@@ -156,8 +164,7 @@ public class DCMotorIOKraken implements DCMotorIO {
   }
 
   @Override
-  public void setVelocityF(
-      double velocity, double acceleration, double feedforward) {
+  public void setVelocityF(double velocity, double acceleration, double feedforward) {
     motor.setControl(
         new MotionMagicVelocityTorqueCurrentFOC(ratioConverter.convertInverse(velocity))
             .withAcceleration(ratioConverter.convertInverse(acceleration))
@@ -171,22 +178,27 @@ public class DCMotorIOKraken implements DCMotorIO {
             .withFeedForward(feedforward));
   }
 
+  @Override
   public void setVoltage(double volts) {
     motor.setControl(new VoltageOut(volts));
   }
 
+  @Override
   public void setCurrent(double amps) {
     motor.setControl(new TorqueCurrentFOC(amps));
   }
 
+  @Override
   public void resetPosition(double positionRad) {
     motor.set(positionRad);
   }
 
+  @Override
   public void follow(DCMotorIO motor, Boolean isInverted) {
     this.motor.setControl(new Follower(motor.getDeviceID(), isInverted));
   }
 
+  @Override
   public double getVoltage() {
     return outputVoltage.getValueAsDouble();
   }
