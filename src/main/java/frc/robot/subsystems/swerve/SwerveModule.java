@@ -1,6 +1,7 @@
 package frc.robot.subsystems.swerve;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.drivers.dcmotor.*;
 import frc.robot.utils.Alert;
@@ -98,6 +99,11 @@ public class SwerveModule {
   SwerveModuleState getState() {
     return new SwerveModuleState(
         driveInputs.velocity, Rotation2d.fromRadians(steerInputs.position));
+  }
+
+  SwerveModulePosition getPosition() {
+    return new SwerveModulePosition(
+        driveInputs.position, Rotation2d.fromRadians(steerInputs.position));
   }
 
   void stop() {

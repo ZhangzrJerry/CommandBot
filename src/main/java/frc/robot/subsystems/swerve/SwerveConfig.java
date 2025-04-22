@@ -79,7 +79,7 @@ public class SwerveConfig {
     if (Robot.isReal()) {
       config.Slot0 = new Slot0Configs().withKP(7.0).withKD(0.0).withKS(0.0);
     } else {
-      config.Slot0 = new Slot0Configs().withKP(0.3).withKD(0.0).withKS(0.0);
+      config.Slot0 = new Slot0Configs().withKP(0.5).withKD(0.0).withKS(0.0);
     }
 
     config.TorqueCurrent.PeakForwardTorqueCurrent = 120.0;
@@ -104,7 +104,7 @@ public class SwerveConfig {
     if (Robot.isReal()) {
       config.Slot0 = new Slot0Configs().withKP(2000.0).withKD(60.0).withKS(0.0);
     } else {
-      config.Slot0 = new Slot0Configs().withKP(10.0).withKD(0.0).withKS(0.0);
+      config.Slot0 = new Slot0Configs().withKP(2.0).withKD(0.0).withKS(0.0);
     }
 
     config.TorqueCurrent.PeakForwardTorqueCurrent = 80.0;

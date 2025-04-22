@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.controller.TeleopHeaderController;
+import frc.robot.virtuals.odometry.Odometry;
 
 public class RobotContainer {
   // commander
@@ -14,8 +15,15 @@ public class RobotContainer {
   // subsystem
   private final Swerve swerve;
 
+  // virtual subsystem
+  private final Odometry odometry;
+
   public RobotContainer() {
     swerve = new Swerve();
+
+    odometry =
+        new Odometry(
+            () -> swerve.getPositions(), () -> swerve.getGyroYaw(), swerve.getKinematics());
 
     configureBindings();
   }
@@ -23,7 +31,10 @@ public class RobotContainer {
   private void configureBindings() {
     swerve.setController(
         new TeleopHeaderController(
-            () -> joystick.getLeftX(), () -> -joystick.getLeftY(), () -> joystick.getRightX(), () -> 1));
+            () -> -joystick.getLeftY(),
+            () -> -joystick.getLeftX(),
+            () -> -joystick.getRightX(),
+            () -> 1));
   }
 
   public Command getAutonomousCommand() {

@@ -1,6 +1,9 @@
 package frc.robot.subsystems.swerve;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -10,12 +13,16 @@ import frc.robot.drivers.dcmotor.DCMotorIO;
 import frc.robot.drivers.dcmotor.DCMotorIOKraken;
 import frc.robot.drivers.dcmotor.DCMotorIOKrakenCancoder;
 import frc.robot.drivers.dcmotor.DCMotorIOSim;
+import frc.robot.drivers.gyro.GyroIO;
+import frc.robot.drivers.gyro.GyroIOPigeon2;
 import frc.robot.utils.UnitConverter;
 import lombok.Setter;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Swerve extends SubsystemBase {
   private final SwerveModule[] modules = new SwerveModule[4];
+  private final GyroIO gyro;
   @Setter private SwerveController controller = new SwerveController() {};
 
   public Swerve() {
@@ -27,6 +34,7 @@ public class Swerve extends SubsystemBase {
         blSteerIO,
         brDriveIO,
         brSteerIO;
+
     if (Robot.isReal()) {
       UnitConverter driveRatioConverter =
           UnitConverter.scale(2 * Math.PI * SwerveConfig.WHEEL_RADIUS_METER).withUnits("rot", "m");
@@ -132,18 +140,64 @@ public class Swerve extends SubsystemBase {
     }
 
     modules[0] = new SwerveModule(flDriveIO, flSteerIO, "FL");
-    modules[1] = new SwerveModule(frDriveIO, frSteerIO, "FR");
-    modules[2] = new SwerveModule(blDriveIO, blSteerIO, "BL");
-    modules[3] = new SwerveModule(brDriveIO, brSteerIO, "BR");
+    modules[1] = new SwerveModule(blDriveIO, blSteerIO, "BL");
+    modules[2] = new SwerveModule(brDriveIO, brSteerIO, "BR");
+    modules[3] = new SwerveModule(frDriveIO, frSteerIO, "FR");
+
+    if (Robot.isReal()) {
+      gyro = new GyroIOPigeon2(Ports.Can.CHASSIS_PIGEON);
+    } else {
+      gyro = new GyroIO() {};
+    }
   }
 
   @Override
   public void periodic() {
+    updateModules();
+
     ChassisSpeeds speeds = controller.getChassisSpeeds();
-    Logger.recordOutput("Swerve/ControllerChassisSpeeds", speeds);
+    Logger.recordOutput("Swerve/GoalVel", speeds);
+
     SwerveModuleState[] states = SwerveConfig.SWERVE_KINEMATICS.toSwerveModuleStates(speeds);
+    Logger.recordOutput("Swerve/GoalStates", states);
+
+    setModuleStates(states);
+  }
+
+  public SwerveModulePosition[] getPositions() {
+    SwerveModulePosition[] positions = new SwerveModulePosition[modules.length];
+    for (int i = 0; i < modules.length; i++) {
+      positions[i] = modules[i].getPosition();
+    }
+    return positions;
+  }
+
+  @AutoLogOutput(key = "Swerve/ModuleStates")
+  public SwerveModuleState[] getStates() {
+    SwerveModuleState[] states = new SwerveModuleState[modules.length];
+    for (int i = 0; i < modules.length; i++) {
+      states[i] = modules[i].getState();
+    }
+    return states;
+  }
+
+  public void setModuleStates(SwerveModuleState[] states) {
     for (int i = 0; i < modules.length; i++) {
       modules[i].setState(states[i]);
     }
+  }
+
+  public void updateModules() {
+    for (int i = 0; i < modules.length; i++) {
+      modules[i].update();
+    }
+  }
+
+  public Rotation2d getGyroYaw() {
+    return gyro.getYaw();
+  }
+
+  public SwerveDriveKinematics getKinematics() {
+    return SwerveConfig.SWERVE_KINEMATICS;
   }
 }

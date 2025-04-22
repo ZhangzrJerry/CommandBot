@@ -22,7 +22,7 @@ public class DCMotorIOSim implements DCMotorIO {
           0,
           0,
           new TrapezoidProfile.Constraints(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
-  private final SlewRateLimiter voltageLimiter = new SlewRateLimiter(2.5);
+  private final SlewRateLimiter voltageLimiter = new SlewRateLimiter(10);
 
   private UnitConverter ratioConverter = UnitConverter.identity();
   private UnitConverter positionConvertor = UnitConverter.identity();
@@ -71,7 +71,6 @@ public class DCMotorIOSim implements DCMotorIO {
   @Override
   public void setPIDF(double kp, double ki, double kd, double ks, double kg) {
     pid.setPID(kp, ki, kd);
-    // Note: ks and kg are not used in this simulation
   }
 
   @Override

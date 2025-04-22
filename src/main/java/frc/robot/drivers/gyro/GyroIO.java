@@ -15,4 +15,8 @@ public interface GyroIO {
   }
 
   default void updateInputs(GyroIOInputs inputs) {}
+
+  default Rotation2d getYaw() {
+    return null;
+  }
 }

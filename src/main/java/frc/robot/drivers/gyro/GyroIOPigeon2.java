@@ -11,16 +11,15 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Temperature;
 import frc.robot.utils.CanDevice;
 import frc.robot.utils.PhoenixHelper;
-import lombok.Getter;
 
 public class GyroIOPigeon2 implements GyroIO {
   private final Pigeon2 pigeon;
 
-  @Getter private final StatusSignal<Angle> yaw;
+  private final StatusSignal<Angle> yaw;
   private final StatusSignal<AngularVelocity> omega;
   private final StatusSignal<Temperature> temp;
 
-  GyroIOPigeon2(CanDevice gyro) {
+  public GyroIOPigeon2(CanDevice gyro) {
     pigeon = new Pigeon2(gyro.id(), gyro.bus());
 
     yaw = pigeon.getYaw();
@@ -48,5 +47,10 @@ public class GyroIOPigeon2 implements GyroIO {
     inputs.omegaRadPerSec = Units.degreesToRadians(omega.getValueAsDouble());
 
     inputs.temperature = temp.getValueAsDouble();
+  }
+
+  @Override
+  public Rotation2d getYaw() {
+    return Rotation2d.fromDegrees(yaw.getValueAsDouble());
   }
 }
