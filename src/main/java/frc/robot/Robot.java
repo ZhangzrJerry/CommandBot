@@ -11,11 +11,9 @@ import frc.robot.virtuals.VirtualSubsystem;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
-import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 public class Robot extends LoggedRobot {
@@ -39,23 +37,21 @@ public class Robot extends LoggedRobot {
   }
 
   private void configureAkitLogger() {
-    switch (Config.MODE) {
-      case REAL -> {
-        Logger.addDataReceiver(new WPILOGWriter("/home/lvuser/logs"));
-        if (Config.IS_LIVE_DEBUG) {
-          Logger.addDataReceiver(new NT4Publisher());
-        }
-      }
-      case SIM -> {
+    if (Robot.isReal()) {
+      Logger.addDataReceiver(new WPILOGWriter("/home/lvuser/logs"));
+      if (Config.IS_LIVE_DEBUG) {
         Logger.addDataReceiver(new NT4Publisher());
       }
-      case REPLAY -> {
-        setUseTiming(false);
-        var logPath = LogFileUtil.findReplayLog();
-        Logger.setReplaySource(new WPILOGReader(logPath));
-        Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
-      }
+    } else {
+      Logger.addDataReceiver(new NT4Publisher());
     }
+    // case REPLAY -> {
+    // setUseTiming(false);
+    // var logPath = LogFileUtil.findReplayLog();
+    // Logger.setReplaySource(new WPILOGReader(logPath));
+    // Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath,
+    // "_sim")));
+    // }
 
     Logger.start();
 

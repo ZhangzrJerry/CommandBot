@@ -1,11 +1,11 @@
-package frc.robot.virtuals.visualize;
+package frc.robot.virtuals.visualizer;
 
 /**
  * Configuration class for visualization component IDs. These IDs should match the part order in
  * config.json in AdvantageScope.
  */
-public final class VisualizeConfig {
-  private VisualizeConfig() {}
+public final class VisualizerConfig {
+  private VisualizerConfig() {}
 
   public static final class Ids {
     private Ids() {}

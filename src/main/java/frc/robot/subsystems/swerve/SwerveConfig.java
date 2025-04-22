@@ -11,7 +11,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
-import frc.robot.Config;
+import frc.robot.Robot;
 
 public class SwerveConfig {
   static final String FL_MODULE_NAME = "FL";
@@ -40,10 +40,14 @@ public class SwerveConfig {
           new Translation2d(WHEELBASE_LENGTH_METER / 2.0, -WHEELBASE_WIDTH_METER / 2.0));
 
   static final double WHEEL_RADIUS_METER = 0.0479;
-  static final CANcoderConfiguration FL_MODULE_CONFIG = getCancoderConfig(0.30859375);
-  static final CANcoderConfiguration BL_MODULE_CONFIG = getCancoderConfig(-0.367919921875);
-  static final CANcoderConfiguration BR_MODULE_CONFIG = getCancoderConfig(0.48046875);
-  static final CANcoderConfiguration FR_MODULE_CONFIG = getCancoderConfig(0.070068359375);
+  static final double FL_CANCODER_OFFSET = 0.30859375;
+  static final double BL_CANCODER_OFFSET = -0.367919921875;
+  static final double BR_CANCODER_OFFSET = 0.48046875;
+  static final double FR_CANCODER_OFFSET = 0.070068359375;
+  static final CANcoderConfiguration FL_CANCODER_CONFIG = getCancoderConfig(FL_CANCODER_OFFSET);
+  static final CANcoderConfiguration BL_CANCODER_CONFIG = getCancoderConfig(BL_CANCODER_OFFSET);
+  static final CANcoderConfiguration BR_CANCODER_CONFIG = getCancoderConfig(BR_CANCODER_OFFSET);
+  static final CANcoderConfiguration FR_CANCODER_CONFIG = getCancoderConfig(FR_CANCODER_OFFSET);
 
   /// WCP X2 Reductions
   /// https://docs.wcproducts.com/wcp-swerve-x2/general-info/ratio-options
@@ -72,15 +76,10 @@ public class SwerveConfig {
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
-    // PID
-    switch (Config.MODE) {
-      case REAL -> {
-        config.Slot0 = new Slot0Configs().withKP(7.0).withKD(0.0).withKS(0.0);
-        break;
-      }
-      case SIM, REPLAY -> {
-        config.Slot0 = new Slot0Configs().withKP(0.3).withKD(0.0).withKS(0.0);
-      }
+    if (Robot.isReal()) {
+      config.Slot0 = new Slot0Configs().withKP(7.0).withKD(0.0).withKS(0.0);
+    } else {
+      config.Slot0 = new Slot0Configs().withKP(0.3).withKD(0.0).withKS(0.0);
     }
 
     config.TorqueCurrent.PeakForwardTorqueCurrent = 120.0;
@@ -102,15 +101,10 @@ public class SwerveConfig {
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 
-    // PID
-    switch (Config.MODE) {
-      case REAL -> {
-        config.Slot0 = new Slot0Configs().withKP(2000.0).withKD(60.0).withKS(0.0);
-        break;
-      }
-      case SIM, REPLAY -> {
-        config.Slot0 = new Slot0Configs().withKP(10.0).withKD(0.0).withKS(0.0);
-      }
+    if (Robot.isReal()) {
+      config.Slot0 = new Slot0Configs().withKP(2000.0).withKD(60.0).withKS(0.0);
+    } else {
+      config.Slot0 = new Slot0Configs().withKP(10.0).withKD(0.0).withKS(0.0);
     }
 
     config.TorqueCurrent.PeakForwardTorqueCurrent = 80.0;

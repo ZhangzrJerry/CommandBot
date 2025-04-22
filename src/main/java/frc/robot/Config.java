@@ -2,13 +2,12 @@ package frc.robot;
 
 public final class Config {
   public static final double LOOP_PERIOD_SEC = 0.02;
-  public static final boolean IS_LIVE_DEBUG = false;
-  public static final Mode MODE = Mode.REAL;
+  public static final boolean IS_LIVE_DEBUG = true;
+  public static final Mode MODE = Mode.SIM;
 
   public enum Mode {
     REAL,
-    SIM,
-    REPLAY
+    SIM
   }
 
   /** Checks whether the correct mode is selected when deploying. */

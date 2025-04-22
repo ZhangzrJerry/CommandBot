@@ -1,4 +1,4 @@
-package frc.robot.virtuals.visualize;
+package frc.robot.virtuals.visualizer;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -13,11 +13,11 @@ import org.littletonrobotics.junction.Logger;
  * Visualization subsystem that helps visualize robot components in Advantage Scope. Maintains a
  * transform tree and updates component poses periodically.
  */
-public class Visualize extends VirtualSubsystem {
+public class Visualizer extends VirtualSubsystem {
   private static final List<VisualizeComponent> components = new ArrayList<>();
   private static final Boolean isStrictBigEndian = true;
 
-  private Visualize() {}
+  private Visualizer() {}
 
   /**
    * Component record for visualization system.
@@ -87,12 +87,12 @@ public class Visualize extends VirtualSubsystem {
     Logger.recordOutput("Visualize/Component", poses);
   }
 
-  public static Visualize getInstance() {
+  public static Visualizer getInstance() {
     if (instance == null) {
-      instance = new Visualize();
+      instance = new Visualizer();
     }
     return instance;
   }
 
-  private static Visualize instance;
+  private static Visualizer instance;
 }
