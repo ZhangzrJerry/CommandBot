@@ -57,6 +57,14 @@ public class Odometry extends VirtualSubsystem {
   }
 
   Pose2d getPose() {
-    return new Pose2d();
+    return estimatedPose;
+  }
+
+  public Rotation2d getGyroYaw() {
+    if (lastGyroYaw != null) {
+      return lastGyroYaw;
+    } else {
+      return estimatedPose.getRotation();
+    }
   }
 }

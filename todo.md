@@ -1,2 +1,1 @@
-- 完成swerve teleop
-- 修复规则检查
+- 优化swerve teleop

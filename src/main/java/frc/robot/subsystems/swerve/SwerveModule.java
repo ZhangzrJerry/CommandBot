@@ -35,8 +35,6 @@ public class SwerveModule {
   }
 
   private final String name;
-  private SwerveModuleState state;
-  private double velocityFeedforward = 0.0;
 
   private final DCMotorIO driveIO;
   private final DCMotorIOInputsAutoLogged driveInputs = new DCMotorIOInputsAutoLogged();
@@ -59,7 +57,7 @@ public class SwerveModule {
     stop();
   }
 
-  public void update() {
+  public void updateInputs() {
     driveIO.updateInputs(driveInputs);
     steerIO.updateInputs(steerInputs);
 
@@ -81,15 +79,13 @@ public class SwerveModule {
 
     driveMotorOfflineAlert.set(!driveInputs.connected);
     steerMotorOfflineAlert.set(!steerInputs.connected);
+  }
+
+  void setState(SwerveModuleState state, double velocityFeedforward) {
 
     driveIO.setVelocityF(
         state.speedMetersPerSecond, velocityFeedforward / SwerveConfig.DRIVE_FF_KT);
     steerIO.setPosition(state.angle.getRadians());
-  }
-
-  void setState(SwerveModuleState state, double velocityFeedforward) {
-    this.state = state;
-    this.velocityFeedforward = velocityFeedforward;
   }
 
   void setState(SwerveModuleState state) {
@@ -107,6 +103,7 @@ public class SwerveModule {
   }
 
   void stop() {
-    this.state = new SwerveModuleState(0, Rotation2d.fromRadians(steerInputs.position));
+    driveIO.stop();
+    steerIO.stop();
   }
 }

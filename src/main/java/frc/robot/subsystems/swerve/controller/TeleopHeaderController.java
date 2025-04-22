@@ -3,7 +3,7 @@ package frc.robot.subsystems.swerve.controller;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import frc.robot.subsystems.swerve.SwerveConfig;
 import frc.robot.subsystems.swerve.SwerveController;
 import frc.robot.utils.LoggedTunableNumber;
 import java.util.function.DoubleSupplier;
@@ -18,25 +18,16 @@ public class TeleopHeaderController implements SwerveController {
   private static final LoggedTunableNumber rotationScalar =
       new LoggedTunableNumber("Swerve/TeleopController/RotationScalar", 0.8);
 
-  protected DoubleSupplier xSupplier, ySupplier, omegaSupplier, slowerSupplier;
+  protected DoubleSupplier xSupplier, ySupplier, omegaSupplier;
 
-  public TeleopHeaderController(
-      DoubleSupplier x, DoubleSupplier y, DoubleSupplier omega, DoubleSupplier slower) {
+  public TeleopHeaderController(DoubleSupplier x, DoubleSupplier y, DoubleSupplier omega) {
     this.xSupplier = x;
     this.ySupplier = y;
     this.omegaSupplier = omega;
-    this.slowerSupplier = slower;
   }
 
   @Override
-  public ChassisSpeeds getChassisSpeeds() {
-    Translation2d translation = calcTranslation();
-    double rotation = calcRotation();
-
-    return new ChassisSpeeds(translation.getX(), translation.getY(), rotation);
-  }
-
-  protected Translation2d calcTranslation() {
+  public Translation2d getTranslation2d() {
     double x = xSupplier.getAsDouble();
     double y = ySupplier.getAsDouble();
     double magnitude = MathUtil.applyDeadband(Math.hypot(x, y), translationDeadband.get());
@@ -44,12 +35,18 @@ public class TeleopHeaderController implements SwerveController {
 
     // Square the magnitude for better sensitivity
     return new Translation2d(
-        magnitude * magnitude * slowerSupplier.getAsDouble(), new Rotation2d(direction));
+        magnitude
+            * magnitude
+            * SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC
+            * SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC,
+        new Rotation2d(direction));
   }
 
-  protected double calcRotation() {
+  @Override
+  public double getRotation() {
     double magnitude = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), rotationDeadband.get());
     // Square the magnitude for better sensitivity while preserving sign
-    return Math.copySign(magnitude * magnitude * slowerSupplier.getAsDouble(), magnitude);
+    return Math.copySign(
+        magnitude * magnitude * SwerveConfig.MAX_ANGULAR_VEL_RAD_PER_SEC, magnitude);
   }
 }
