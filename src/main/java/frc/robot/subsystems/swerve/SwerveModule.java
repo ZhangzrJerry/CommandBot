@@ -9,18 +9,12 @@ import frc.robot.utils.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
 public class SwerveModule {
-  private static final LoggedTunableNumber driveKp =
-      new LoggedTunableNumber("Swerve/Module/DriveKp");
-  private static final LoggedTunableNumber driveKd =
-      new LoggedTunableNumber("Swerve/Module/DriveKd");
-  private static final LoggedTunableNumber driveKs =
-      new LoggedTunableNumber("Swerve/Module/DriveKs");
-  private static final LoggedTunableNumber steerKp =
-      new LoggedTunableNumber("Swerve/Module/SteerKp");
-  private static final LoggedTunableNumber steerKd =
-      new LoggedTunableNumber("Swerve/Module/SteerKd");
-  private static final LoggedTunableNumber steerKs =
-      new LoggedTunableNumber("Swerve/Module/SteerKs");
+  private static final LoggedTunableNumber driveKp = new LoggedTunableNumber("Swerve/Module/DriveKp");
+  private static final LoggedTunableNumber driveKd = new LoggedTunableNumber("Swerve/Module/DriveKd");
+  private static final LoggedTunableNumber driveKs = new LoggedTunableNumber("Swerve/Module/DriveKs");
+  private static final LoggedTunableNumber steerKp = new LoggedTunableNumber("Swerve/Module/SteerKp");
+  private static final LoggedTunableNumber steerKd = new LoggedTunableNumber("Swerve/Module/SteerKd");
+  private static final LoggedTunableNumber steerKs = new LoggedTunableNumber("Swerve/Module/SteerKs");
 
   static {
     var driveSlot = SwerveConfig.getX2DriveTalonConfig().Slot0;
@@ -47,12 +41,11 @@ public class SwerveModule {
   public SwerveModule(DCMotorIO driveIO, DCMotorIO steerIO, String name) {
     this.driveIO = driveIO;
     this.steerIO = steerIO;
+    this.steerIO.setRotationContinuous(true);
     this.name = name;
 
-    driveMotorOfflineAlert =
-        new Alert(this.name + " drive motor offline!", Alert.AlertType.WARNING);
-    steerMotorOfflineAlert =
-        new Alert(this.name + " steer motor offline!", Alert.AlertType.WARNING);
+    driveMotorOfflineAlert = new Alert(this.name + " drive motor offline!", Alert.AlertType.WARNING);
+    steerMotorOfflineAlert = new Alert(this.name + " steer motor offline!", Alert.AlertType.WARNING);
 
     stop();
   }
@@ -79,13 +72,18 @@ public class SwerveModule {
 
     driveMotorOfflineAlert.set(!driveInputs.connected);
     steerMotorOfflineAlert.set(!steerInputs.connected);
+
+    Logger.recordOutput("SwerveModule/" + name + "/Drive/Voltage", driveIO.getVoltage());
+    Logger.recordOutput("SwerveModule/" + name + "/Drive/Current", driveInputs.supplyCurrentAmps);
+    Logger.recordOutput("SwerveModule/" + name + "/Drive/Velocity", driveInputs.appliedVelocity);
+    Logger.recordOutput("SwerveModule/" + name + "/Drive/Position", driveInputs.appliedPosition);
   }
 
   void setState(SwerveModuleState state, double velocityFeedforward) {
 
-    driveIO.setVelocityF(
+    driveIO.setAppliedVelocityF(
         state.speedMetersPerSecond, velocityFeedforward / SwerveConfig.DRIVE_FF_KT);
-    steerIO.setPosition(state.angle.getRadians());
+    steerIO.setAppliedPosition(state.angle.getRadians());
   }
 
   void setState(SwerveModuleState state) {
@@ -94,12 +92,12 @@ public class SwerveModule {
 
   SwerveModuleState getState() {
     return new SwerveModuleState(
-        driveInputs.velocity, Rotation2d.fromRadians(steerInputs.position));
+        driveInputs.appliedVelocity, Rotation2d.fromRadians(steerInputs.appliedPosition));
   }
 
   SwerveModulePosition getPosition() {
     return new SwerveModulePosition(
-        driveInputs.position, Rotation2d.fromRadians(steerInputs.position));
+        driveInputs.appliedPosition, Rotation2d.fromRadians(steerInputs.appliedPosition));
   }
 
   void stop() {

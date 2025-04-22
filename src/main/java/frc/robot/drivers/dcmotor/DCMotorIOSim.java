@@ -11,17 +11,17 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Config;
+import frc.robot.utils.Gains.PidfGains;
 import frc.robot.utils.UnitConverter;
 import java.util.function.DoubleSupplier;
 
 public class DCMotorIOSim implements DCMotorIO {
   private final DCMotorSim sim;
-  private final ProfiledPIDController pid =
-      new ProfiledPIDController(
-          0,
-          0,
-          0,
-          new TrapezoidProfile.Constraints(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
+  private final ProfiledPIDController pid = new ProfiledPIDController(
+      0,
+      0,
+      0,
+      new TrapezoidProfile.Constraints(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
   private final SlewRateLimiter voltageLimiter = new SlewRateLimiter(10);
 
   private UnitConverter ratioConverter = UnitConverter.identity();
@@ -32,10 +32,11 @@ public class DCMotorIOSim implements DCMotorIO {
       double JKgMetersSquared,
       double gearing,
       UnitConverter ratioConverter,
-      UnitConverter... offsetConverter) {
-    sim =
-        new DCMotorSim(LinearSystemId.createDCMotorSystem(motor, JKgMetersSquared, gearing), motor);
-    setUnitConvertor(ratioConverter, offsetConverter);
+      PidfGains pidfGains) {
+    sim = new DCMotorSim(LinearSystemId.createDCMotorSystem(motor, JKgMetersSquared, gearing), motor);
+
+    setUnitConvertor(ratioConverter);
+    setPIDF(pidfGains);
   }
 
   public DCMotorIOSim(LinearSystem<N2, N1, N2> system, DCMotor motor) {
@@ -53,14 +54,16 @@ public class DCMotorIOSim implements DCMotorIO {
     inputs.connected = true;
 
     // rotor, radians
-    inputs.angularPosition = sim.getAngularPositionRad();
-    inputs.angularVelocity = sim.getAngularVelocityRadPerSec();
-    inputs.angularAcceleration = sim.getAngularAccelerationRadPerSecSq();
+    inputs.rawPosition = sim.getAngularPositionRad();
+    inputs.rawVelocity = sim.getAngularVelocityRadPerSec();
+    inputs.rawAcceleration = sim.getAngularAccelerationRadPerSecSq();
+    inputs.rawUnit = ratioConverter.getFromUnits();
 
     // mechanism, applied units
-    inputs.position = positionConvertor.applyAsDouble(inputs.angularPosition);
-    inputs.velocity = positionConvertor.applyAsDouble(inputs.angularVelocity);
-    inputs.acceleration = positionConvertor.applyAsDouble(inputs.angularAcceleration);
+    inputs.appliedPosition = positionConvertor.applyAsDouble(inputs.rawPosition);
+    inputs.appliedVelocity = positionConvertor.applyAsDouble(inputs.rawVelocity);
+    inputs.appliedAcceleration = positionConvertor.applyAsDouble(inputs.rawAcceleration);
+    inputs.appliedUnit = ratioConverter.getToUnits();
 
     inputs.outputVoltageVolts = sim.getInputVoltage();
     inputs.supplyCurrentAmps = sim.getCurrentDrawAmps();
@@ -84,6 +87,15 @@ public class DCMotorIOSim implements DCMotorIO {
   }
 
   @Override
+  public void setRotationContinuous(boolean isContinuous) {
+    if (isContinuous) {
+      pid.enableContinuousInput(-Math.PI, Math.PI);
+    } else {
+      pid.disableContinuousInput();
+    }
+  }
+
+  @Override
   public void setUnitConvertor(UnitConverter ratioConverter, UnitConverter... offsetConverter) {
     this.ratioConverter = ratioConverter;
     if (offsetConverter.length > 0) {
@@ -94,17 +106,16 @@ public class DCMotorIOSim implements DCMotorIO {
   }
 
   @Override
-  public void setPositionF(
+  public void setAppliedPositionF(
       double position, double velocity, double acceleration, double feedforward) {
-    double pidOutput =
-        pid.calculate(sim.getAngularPositionRad(), positionConvertor.convertInverse(position));
+    double pidOutput = pid.calculate(sim.getAngularPositionRad(), positionConvertor.convertInverse(position));
     setVoltage(pidOutput + feedforward);
   }
 
   @Override
-  public void setVelocityF(double velocity, double acceleration, double feedforward) {
-    double pidOutput =
-        pid.calculate(sim.getAngularVelocityRadPerSec(), ratioConverter.convertInverse(velocity));
+  public void setAppliedVelocityF(double velocity, double acceleration, double feedforward) {
+    double pidOutput = pid.calculate(sim.getAngularVelocityRadPerSec(),
+        ratioConverter.convertInverse(velocity));
     setVoltage(pidOutput + feedforward);
   }
 
@@ -151,17 +162,17 @@ public class DCMotorIOSim implements DCMotorIO {
   }
 
   @Override
-  public double getPosition() {
+  public double getAppliedPosition() {
     return positionConvertor.applyAsDouble(sim.getAngularPositionRad());
   }
 
   @Override
-  public double getVelocity() {
+  public double getAppliedVelocity() {
     return ratioConverter.applyAsDouble(sim.getAngularVelocityRadPerSec());
   }
 
   @Override
-  public double getAcceleration() {
+  public double getAppliedAcceleration() {
     return ratioConverter.applyAsDouble(sim.getAngularAccelerationRadPerSecSq());
   }
 

@@ -1,5 +1,6 @@
 package frc.robot.drivers.dcmotor;
 
+import frc.robot.utils.Gains.PidfGains;
 import frc.robot.utils.UnitConverter;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -10,14 +11,16 @@ public interface DCMotorIO {
     public boolean connected = false;
 
     // Raw sensor data (angular units)
-    public double angularPosition = 0.0;
-    public double angularVelocity = 0.0;
-    public double angularAcceleration = 0.0;
+    public double rawPosition = 0.0;
+    public double rawVelocity = 0.0;
+    public double rawAcceleration = 0.0;
+    public String rawUnit = "";
 
     // Mechanism data (applied units)
-    public double position = 0.0;
-    public double velocity = 0.0;
-    public double acceleration = 0.0;
+    public double appliedPosition = 0.0;
+    public double appliedVelocity = 0.0;
+    public double appliedAcceleration = 0.0;
+    public String appliedUnit = "";
 
     // Electrical measurements
     public double outputVoltageVolts = 0.0;
@@ -37,7 +40,17 @@ public interface DCMotorIO {
    * @param ks Static feedforward gain
    * @param kg Gravity feedforward gain
    */
-  default void setPIDF(double kp, double ki, double kd, double ks, double kg) {}
+  default void setPIDF(double kp, double ki, double kd, double ks, double kg) {
+  }
+
+  /**
+   * Configures PIDF gains for the motor controller.
+   *
+   * @param gains PIDF gains
+   */
+  default void setPIDF(PidfGains gains) {
+    setPIDF(gains.kP(), gains.kI(), gains.kD(), gains.kS(), gains.kG());
+  }
 
   /**
    * Configures PID gains for the motor controller.
@@ -46,56 +59,77 @@ public interface DCMotorIO {
    * @param ki Integral gain (optional, default 0)
    * @param kd Derivative gain (optional, default 0)
    */
-  default void setPID(double kp, double ki, double kd) {}
+  default void setPID(double kp, double ki, double kd) {
+  }
+
+  /**
+   * Configures PID gains for the motor controller.
+   *
+   * @param gains PID gains
+   */
+  default void setPID(PidfGains gains) {
+    setPID(gains.kP(), gains.kI(), gains.kD());
+  }
 
   /**
    * Sets motion profile constraints for smart motion control.
    *
-   * @param maxVelocity Maximum velocity in radians per second
+   * @param maxVelocity     Maximum velocity in radians per second
    * @param maxAcceleration Maximum acceleration in radians per second squared
    */
-  default void setMotionConstraints(double maxVelocity, double maxAcceleration) {}
+  default void setMotionConstraints(double maxVelocity, double maxAcceleration) {
+  }
+
+  /**
+   * Sets the motor to operate in continuous rotation mode.
+   *
+   * @param isContinuous Whether to enable continuous rotation mode
+   */
+  default void setRotationContinuous(boolean isContinuous) {
+  }
 
   /**
    * Sets the unit conversion for position and velocity.
    *
-   * @param ratioConverter Converter for position, velocity, and acceleration
+   * @param ratioConverter  Converter for position, velocity, and acceleration
    * @param offsetConverter Converter for position (optional)
    */
-  default void setUnitConvertor(UnitConverter ratioConverter, UnitConverter... offsetConverter) {}
+  default void setUnitConvertor(UnitConverter ratioConverter, UnitConverter... offsetConverter) {
+  }
 
   // ========== Control Methods ==========
 
   /**
    * Sets target position with full motion control parameters.
    *
-   * @param position Target position in radians
-   * @param velocity Target velocity in radians per second
+   * @param position     Target position in radians
+   * @param velocity     Target velocity in radians per second
    * @param acceleration Target acceleration in radians per second squared
-   * @param feedforward Additional feedforward voltage
+   * @param feedforward  Additional feedforward voltage
    */
-  default void setPositionF(
-      double position, double velocity, double acceleration, double feedforward) {}
+  default void setAppliedPositionF(
+      double position, double velocity, double acceleration, double feedforward) {
+  }
 
   /**
    * Sets target position with velocity and acceleration parameters.
    *
-   * @param position Target position in radians
-   * @param velocity Target velocity in radians per second
+   * @param position     Target position in radians
+   * @param velocity     Target velocity in radians per second
    * @param acceleration Target acceleration in radians per second squared
    */
-  default void setPosition(double position, double velocity, double acceleration) {
-    setPositionF(position, velocity, acceleration, 0.0);
+  default void setAppliedPosition(double position, double velocity, double acceleration) {
+    setAppliedPositionF(position, velocity, acceleration, 0.0);
   }
 
   /**
    * Sets target position with feedforward voltage.
    *
-   * @param position Target position in radians
+   * @param position    Target position in radians
    * @param feedforward Additional feedforward voltage
    */
-  default void setPositionF(double position, double feedforward) {
-    setPositionF(position, 0, 0, feedforward);
+  default void setAppliedPositionF(double position, double feedforward) {
+    setAppliedPositionF(position, 0, 0, feedforward);
   }
 
   /**
@@ -103,37 +137,38 @@ public interface DCMotorIO {
    *
    * @param position Target position in radians
    */
-  default void setPosition(double position) {
-    setPositionF(position, 0);
+  default void setAppliedPosition(double position) {
+    setAppliedPositionF(position, 0);
   }
 
   /**
    * Sets target velocity with full motion control parameters.
    *
-   * @param velocity Target velocity in radians per second
+   * @param velocity     Target velocity in radians per second
    * @param acceleration Target acceleration in radians per second squared
-   * @param feedforward Additional feedforward voltage
+   * @param feedforward  Additional feedforward voltage
    */
-  default void setVelocityF(double velocity, double acceleration, double feedforward) {}
+  default void setAppliedVelocityF(double velocity, double acceleration, double feedforward) {
+  }
 
   /**
    * Sets target velocity with acceleration control.
    *
-   * @param velocity Target velocity in radians per second
+   * @param velocity     Target velocity in radians per second
    * @param acceleration Target acceleration in radians per second squared
    */
-  default void setVelocity(double velocity, double acceleration) {
-    setVelocityF(velocity, acceleration, 0.0);
+  default void setAppliedVelocity(double velocity, double acceleration) {
+    setAppliedVelocityF(velocity, acceleration, 0.0);
   }
 
   /**
    * Sets target velocity with feedforward voltage.
    *
-   * @param velocity Target velocity in radians per second
+   * @param velocity    Target velocity in radians per second
    * @param feedforward Additional feedforward voltage
    */
-  default void setVelocityF(double velocity, double feedforward) {
-    setVelocityF(velocity, 0, feedforward);
+  default void setAppliedVelocityF(double velocity, double feedforward) {
+    setAppliedVelocityF(velocity, 0, feedforward);
   }
 
   /**
@@ -141,8 +176,8 @@ public interface DCMotorIO {
    *
    * @param velocity Target velocity in radians per second
    */
-  default void setVelocity(double velocity) {
-    setVelocityF(velocity, 0);
+  default void setAppliedVelocity(double velocity) {
+    setAppliedVelocityF(velocity, 0);
   }
 
   /**
@@ -150,21 +185,24 @@ public interface DCMotorIO {
    *
    * @param volts Voltage to apply (-12 to 12V)
    */
-  default void setVoltage(double volts) {}
+  default void setVoltage(double volts) {
+  }
 
   /**
    * Sets current limit for the motor.
    *
    * @param amps Current limit in amps
    */
-  default void setCurrent(double amps) {}
+  default void setCurrent(double amps) {
+  }
 
   /**
    * Resets the motor position sensor.
    *
    * @param position New position in radians
    */
-  default void resetPosition(double position) {}
+  default void resetPosition(double position) {
+  }
 
   /** Stop the motor */
   default void stop() {
@@ -174,10 +212,11 @@ public interface DCMotorIO {
   /**
    * Configures this motor to follow another motor.
    *
-   * @param motor The motor to follow
+   * @param motor      The motor to follow
    * @param isInverted Whether to follow inverted
    */
-  default void follow(DCMotorIO motor, Boolean isInverted) {}
+  default void follow(DCMotorIO motor, Boolean isInverted) {
+  }
 
   // ========== Status Methods ==========
 
@@ -186,7 +225,8 @@ public interface DCMotorIO {
    *
    * @param inputs Inputs object to populate with current data
    */
-  default void updateInputs(DCMotorIOInputs inputs) {}
+  default void updateInputs(DCMotorIOInputs inputs) {
+  }
 
   /**
    * Gets the current output voltage of the motor.
@@ -207,15 +247,15 @@ public interface DCMotorIO {
   }
 
   /** */
-  default double getPosition() {
+  default double getAppliedPosition() {
     return 0.0;
   }
 
-  default double getVelocity() {
+  default double getAppliedVelocity() {
     return 0.0;
   }
 
-  default double getAcceleration() {
+  default double getAppliedAcceleration() {
     return 0.0;
   }
 

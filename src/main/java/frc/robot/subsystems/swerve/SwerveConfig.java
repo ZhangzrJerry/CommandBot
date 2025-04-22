@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
 import frc.robot.Robot;
+import frc.robot.utils.Gains.PidfGains;
 
 public class SwerveConfig {
   static final String FL_MODULE_NAME = "FL";
@@ -67,18 +68,25 @@ public class SwerveConfig {
 
   static final double DRIVE_FF_KT = DCMotor.getKrakenX60Foc(1).withReduction(DRIVE_REDUCTION).KtNMPerAmp;
 
+  static PidfGains STEER_GAINS = Robot.isReal()
+      ? new PidfGains(2000.0, 0.0, 60.0, 0.0, 0.0)
+      : new PidfGains(10.0, 0.0, 2.0, 0.0, 0.0);
+  static PidfGains DRIVE_GAINS = Robot.isReal()
+      ? new PidfGains(7.0, 0.0, 0.0, 0.0, 0.0)
+      : new PidfGains(0.3, 0.0, 0.0, 0.0, 0.0);
+
   static TalonFXConfiguration getX2DriveTalonConfig() {
     var config = new TalonFXConfiguration();
 
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
-    if (Robot.isReal()) {
-      config.Slot0 = new Slot0Configs().withKP(7.0).withKD(0.0).withKS(0.0);
-    } else {
-      config.Slot0 = new Slot0Configs().withKP(0.5).withKD(0.0).withKS(0.0);
-    }
-
+    config.Slot0 = new Slot0Configs()
+        .withKP(DRIVE_GAINS.kP())
+        .withKI(DRIVE_GAINS.kI())
+        .withKD(DRIVE_GAINS.kD())
+        .withKS(DRIVE_GAINS.kS())
+        .withKG(DRIVE_GAINS.kG());
     config.TorqueCurrent.PeakForwardTorqueCurrent = 120.0;
     config.TorqueCurrent.PeakReverseTorqueCurrent = -120.0;
 
@@ -98,12 +106,12 @@ public class SwerveConfig {
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 
-    if (Robot.isReal()) {
-      config.Slot0 = new Slot0Configs().withKP(2000.0).withKD(60.0).withKS(0.0);
-    } else {
-      config.Slot0 = new Slot0Configs().withKP(5.0).withKD(0.0).withKS(0.0);
-    }
-
+    config.Slot0 = new Slot0Configs()
+        .withKP(STEER_GAINS.kP())
+        .withKI(STEER_GAINS.kI())
+        .withKD(STEER_GAINS.kD())
+        .withKS(STEER_GAINS.kS())
+        .withKG(STEER_GAINS.kG());
     config.TorqueCurrent.PeakForwardTorqueCurrent = 80.0;
     config.TorqueCurrent.PeakReverseTorqueCurrent = -80.0;
 
