@@ -62,29 +62,31 @@ public class DCMotorIOKraken implements DCMotorIO {
 
     PhoenixHelper.checkErrorAndRetry(
         wrappedName + " set signals update frequency",
-        () -> BaseStatusSignal.setUpdateFrequencyForAll(
-            100.0,
-            rawPosition,
-            rawVelocity,
-            rawAcceleration,
-            outputVoltage,
-            supplyCurrent,
-            statorCurrent,
-            temperature));
+        () ->
+            BaseStatusSignal.setUpdateFrequencyForAll(
+                100.0,
+                rawPosition,
+                rawVelocity,
+                rawAcceleration,
+                outputVoltage,
+                supplyCurrent,
+                statorCurrent,
+                temperature));
     PhoenixHelper.checkErrorAndRetry(
         wrappedName + " optimize CAN utilization", motor::optimizeBusUtilization);
   }
 
   public void updateInputs(DCMotorIOInputs inputs) {
-    inputs.connected = BaseStatusSignal.refreshAll(
-        rawPosition,
-        rawVelocity,
-        rawAcceleration,
-        outputVoltage,
-        supplyCurrent,
-        statorCurrent,
-        temperature)
-        .isOK();
+    inputs.connected =
+        BaseStatusSignal.refreshAll(
+                rawPosition,
+                rawVelocity,
+                rawAcceleration,
+                outputVoltage,
+                supplyCurrent,
+                statorCurrent,
+                temperature)
+            .isOK();
 
     // mechanism, rotated units
     inputs.rawPosition = rawPosition.getValueAsDouble();
@@ -105,7 +107,7 @@ public class DCMotorIOKraken implements DCMotorIO {
   }
 
   @Override
-  public void setPIDF(double kp, double ki, double kd, double ks, double kg) {
+  public void setPidsg(double kp, double ki, double kd, double ks, double kg) {
     config.Slot0.kP = kp;
     config.Slot0.kI = ki;
     config.Slot0.kD = kd;
@@ -115,7 +117,7 @@ public class DCMotorIOKraken implements DCMotorIO {
   }
 
   @Override
-  public void setPID(double kp, double ki, double kd) {
+  public void setPid(double kp, double ki, double kd) {
     config.Slot0.kP = kp;
     config.Slot0.kI = ki;
     config.Slot0.kD = kd;
@@ -148,10 +150,10 @@ public class DCMotorIOKraken implements DCMotorIO {
       double position, double velocity, double acceleration, double feedforward) {
     motor.setControl(
         new DynamicMotionMagicTorqueCurrentFOC(
-            ratioConverter.convertInverse(position),
-            ratioConverter.convertInverse(velocity),
-            ratioConverter.convertInverse(acceleration),
-            0.0)
+                ratioConverter.convertInverse(position),
+                ratioConverter.convertInverse(velocity),
+                ratioConverter.convertInverse(acceleration),
+                0.0)
             .withFeedForward(feedforward));
   }
 

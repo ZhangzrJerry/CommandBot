@@ -9,12 +9,18 @@ import frc.robot.utils.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
 public class SwerveModule {
-  private static final LoggedTunableNumber driveKp = new LoggedTunableNumber("Swerve/Module/DriveKp");
-  private static final LoggedTunableNumber driveKd = new LoggedTunableNumber("Swerve/Module/DriveKd");
-  private static final LoggedTunableNumber driveKs = new LoggedTunableNumber("Swerve/Module/DriveKs");
-  private static final LoggedTunableNumber steerKp = new LoggedTunableNumber("Swerve/Module/SteerKp");
-  private static final LoggedTunableNumber steerKd = new LoggedTunableNumber("Swerve/Module/SteerKd");
-  private static final LoggedTunableNumber steerKs = new LoggedTunableNumber("Swerve/Module/SteerKs");
+  private static final LoggedTunableNumber driveKp =
+      new LoggedTunableNumber("Swerve/Module/DriveKp");
+  private static final LoggedTunableNumber driveKd =
+      new LoggedTunableNumber("Swerve/Module/DriveKd");
+  private static final LoggedTunableNumber driveKs =
+      new LoggedTunableNumber("Swerve/Module/DriveKs");
+  private static final LoggedTunableNumber steerKp =
+      new LoggedTunableNumber("Swerve/Module/SteerKp");
+  private static final LoggedTunableNumber steerKd =
+      new LoggedTunableNumber("Swerve/Module/SteerKd");
+  private static final LoggedTunableNumber steerKs =
+      new LoggedTunableNumber("Swerve/Module/SteerKs");
 
   static {
     var driveSlot = SwerveConfig.getX2DriveTalonConfig().Slot0;
@@ -44,8 +50,10 @@ public class SwerveModule {
     this.steerIO.setRotationContinuous(true);
     this.name = name;
 
-    driveMotorOfflineAlert = new Alert(this.name + " drive motor offline!", Alert.AlertType.WARNING);
-    steerMotorOfflineAlert = new Alert(this.name + " steer motor offline!", Alert.AlertType.WARNING);
+    driveMotorOfflineAlert =
+        new Alert(this.name + " drive motor offline!", Alert.AlertType.WARNING);
+    steerMotorOfflineAlert =
+        new Alert(this.name + " steer motor offline!", Alert.AlertType.WARNING);
 
     stop();
   }
@@ -59,13 +67,13 @@ public class SwerveModule {
 
     LoggedTunableNumber.ifChanged(
         hashCode(),
-        () -> driveIO.setPIDF(driveKp.get(), 0.0, driveKd.get(), driveKs.get(), 0.0),
+        () -> driveIO.setPidsg(driveKp.get(), 0.0, driveKd.get(), driveKs.get(), 0.0),
         driveKp,
         driveKd,
         driveKs);
     LoggedTunableNumber.ifChanged(
         hashCode(),
-        () -> steerIO.setPIDF(steerKp.get(), 0.0, steerKd.get(), steerKs.get(), 0.0),
+        () -> steerIO.setPidsg(steerKp.get(), 0.0, steerKd.get(), steerKs.get(), 0.0),
         steerKp,
         steerKd,
         steerKs);

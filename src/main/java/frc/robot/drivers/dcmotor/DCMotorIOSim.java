@@ -11,17 +11,18 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Config;
-import frc.robot.utils.Gains.PidfGains;
+import frc.robot.utils.Gains.PidsgGains;
 import frc.robot.utils.UnitConverter;
 import java.util.function.DoubleSupplier;
 
 public class DCMotorIOSim implements DCMotorIO {
   private final DCMotorSim sim;
-  private final ProfiledPIDController pid = new ProfiledPIDController(
-      0,
-      0,
-      0,
-      new TrapezoidProfile.Constraints(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
+  private final ProfiledPIDController pid =
+      new ProfiledPIDController(
+          0,
+          0,
+          0,
+          new TrapezoidProfile.Constraints(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
   private final SlewRateLimiter voltageLimiter = new SlewRateLimiter(10);
 
   private UnitConverter ratioConverter = UnitConverter.identity();
@@ -32,11 +33,12 @@ public class DCMotorIOSim implements DCMotorIO {
       double JKgMetersSquared,
       double gearing,
       UnitConverter ratioConverter,
-      PidfGains pidfGains) {
-    sim = new DCMotorSim(LinearSystemId.createDCMotorSystem(motor, JKgMetersSquared, gearing), motor);
+      PidsgGains pidfGains) {
+    sim =
+        new DCMotorSim(LinearSystemId.createDCMotorSystem(motor, JKgMetersSquared, gearing), motor);
 
     setUnitConvertor(ratioConverter);
-    setPIDF(pidfGains);
+    setPidsg(pidfGains);
   }
 
   public DCMotorIOSim(LinearSystem<N2, N1, N2> system, DCMotor motor) {
@@ -72,12 +74,12 @@ public class DCMotorIOSim implements DCMotorIO {
   }
 
   @Override
-  public void setPIDF(double kp, double ki, double kd, double ks, double kg) {
+  public void setPidsg(double kp, double ki, double kd, double ks, double kg) {
     pid.setPID(kp, ki, kd);
   }
 
   @Override
-  public void setPID(double kp, double ki, double kd) {
+  public void setPid(double kp, double ki, double kd) {
     pid.setPID(kp, ki, kd);
   }
 
@@ -108,14 +110,15 @@ public class DCMotorIOSim implements DCMotorIO {
   @Override
   public void setAppliedPositionF(
       double position, double velocity, double acceleration, double feedforward) {
-    double pidOutput = pid.calculate(sim.getAngularPositionRad(), positionConvertor.convertInverse(position));
+    double pidOutput =
+        pid.calculate(sim.getAngularPositionRad(), positionConvertor.convertInverse(position));
     setVoltage(pidOutput + feedforward);
   }
 
   @Override
   public void setAppliedVelocityF(double velocity, double acceleration, double feedforward) {
-    double pidOutput = pid.calculate(sim.getAngularVelocityRadPerSec(),
-        ratioConverter.convertInverse(velocity));
+    double pidOutput =
+        pid.calculate(sim.getAngularVelocityRadPerSec(), ratioConverter.convertInverse(velocity));
     setVoltage(pidOutput + feedforward);
   }
 
