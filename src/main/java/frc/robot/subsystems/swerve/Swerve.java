@@ -230,13 +230,13 @@ public class Swerve extends SubsystemBase {
     ChassisSpeeds currentVel = getCurrentVel();
     ChassisSpeeds goalVel = controller.getChassisSpeeds();
 
-    // if (EqualsUtil.epsilonEquals(goalVel.vxMetersPerSecond, 0.0) &&
-    // EqualsUtil.epsilonEquals(goalVel.vyMetersPerSecond, 0.0) &&
-    // EqualsUtil.epsilonEquals(goalVel.omegaRadiansPerSecond, 0.0)) {
-    // for (int i = 0; i < modules.length; ++i) {
-    // modules[i].stop();
-    // }
-    // }
+    if (EqualsUtil.epsilonEquals(goalVel.vxMetersPerSecond, 0.0)
+        && EqualsUtil.epsilonEquals(goalVel.vyMetersPerSecond, 0.0)
+        && EqualsUtil.epsilonEquals(goalVel.omegaRadiansPerSecond, 0.0)) {
+      for (int i = 0; i < modules.length; ++i) {
+        modules[i].stop();
+      }
+    }
 
     var rawGoalModuleStates = SwerveConfig.SWERVE_KINEMATICS.toSwerveModuleStates(goalVel);
     SwerveDriveKinematics.desaturateWheelSpeeds(

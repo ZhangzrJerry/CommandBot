@@ -14,6 +14,10 @@ public class LoggedTunableGains<T extends GainsUtil.Gains> {
   private final LoggedNetworkNumber[] networkNumbers;
   private final Map<Integer, T> lastHasChangedValues = new HashMap<>();
 
+  public LoggedTunableGains() {
+    this("default", null);
+  }
+
   public LoggedTunableGains(String subKey, T defaultValue) {
     this.fullKey = TABLE_KEY + "/" + subKey;
     this.defaultValue = defaultValue;

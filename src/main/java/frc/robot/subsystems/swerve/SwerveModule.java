@@ -7,7 +7,6 @@ import frc.robot.drivers.dcmotor.*;
 import frc.robot.utils.AlertUtil;
 import frc.robot.utils.GainsUtil.PdsGains;
 import frc.robot.utils.LoggedTunableGains;
-import frc.robot.utils.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
 public class SwerveModule {
@@ -15,8 +14,10 @@ public class SwerveModule {
   private static final LoggedTunableGains<PdsGains> steerGains;
 
   static {
-    driveGains = new LoggedTunableGains<PdsGains>("Swerve/Module/DriveGains", SwerveConfig.DRIVE_GAINS);
-    steerGains = new LoggedTunableGains<PdsGains>("Swerve/Module/SteerGains", SwerveConfig.STEER_GAINS);
+    driveGains =
+        new LoggedTunableGains<PdsGains>("Swerve/Module/DriveGains", SwerveConfig.DRIVE_GAINS);
+    steerGains =
+        new LoggedTunableGains<PdsGains>("Swerve/Module/SteerGains", SwerveConfig.STEER_GAINS);
   }
 
   private final String name;
@@ -35,8 +36,10 @@ public class SwerveModule {
     this.steerIO.setRotationContinuous(true);
     this.name = name;
 
-    driveMotorOfflineAlert = new AlertUtil(this.name + " drive motor offline!", AlertUtil.AlertType.WARNING);
-    steerMotorOfflineAlert = new AlertUtil(this.name + " steer motor offline!", AlertUtil.AlertType.WARNING);
+    driveMotorOfflineAlert =
+        new AlertUtil(this.name + " drive motor offline!", AlertUtil.AlertType.WARNING);
+    steerMotorOfflineAlert =
+        new AlertUtil(this.name + " steer motor offline!", AlertUtil.AlertType.WARNING);
 
     stop();
   }
