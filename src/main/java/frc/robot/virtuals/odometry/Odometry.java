@@ -67,4 +67,8 @@ public class Odometry extends VirtualSubsystem {
       return estimatedPose.getRotation();
     }
   }
+
+  public Rotation2d getEstimatedYaw() {
+    return estimatedPose.getRotation();
+  }
 }

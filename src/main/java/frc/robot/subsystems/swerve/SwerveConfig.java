@@ -12,7 +12,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
 import frc.robot.Robot;
-import frc.robot.utils.Gains.PidsgGains;
+import frc.robot.utils.GainsUtil.PdsGains;
 
 public class SwerveConfig {
   static final String FL_MODULE_NAME = "FL";
@@ -71,14 +71,10 @@ public class SwerveConfig {
   static final double DRIVE_FF_KT =
       DCMotor.getKrakenX60Foc(1).withReduction(DRIVE_REDUCTION).KtNMPerAmp;
 
-  static PidsgGains STEER_GAINS =
-      Robot.isReal()
-          ? new PidsgGains(2000.0, 0.0, 60.0, 0.0, 0.0)
-          : new PidsgGains(10.0, 0.0, 2.0, 0.0, 0.0);
-  static PidsgGains DRIVE_GAINS =
-      Robot.isReal()
-          ? new PidsgGains(7.0, 0.0, 0.0, 0.0, 0.0)
-          : new PidsgGains(0.3, 0.0, 0.0, 0.0, 0.0);
+  static PdsGains STEER_GAINS =
+      Robot.isReal() ? new PdsGains(2000.0, 60.0, 0.0) : new PdsGains(10.0, 2.0, 0.0);
+  static PdsGains DRIVE_GAINS =
+      Robot.isReal() ? new PdsGains(7.0, 0.0, 0.0) : new PdsGains(0.3, 0.0, 0.0);
 
   static TalonFXConfiguration getX2DriveTalonConfig() {
     var config = new TalonFXConfiguration();
@@ -89,10 +85,8 @@ public class SwerveConfig {
     config.Slot0 =
         new Slot0Configs()
             .withKP(DRIVE_GAINS.kP())
-            .withKI(DRIVE_GAINS.kI())
             .withKD(DRIVE_GAINS.kD())
-            .withKS(DRIVE_GAINS.kS())
-            .withKG(DRIVE_GAINS.kG());
+            .withKS(DRIVE_GAINS.kS());
     config.TorqueCurrent.PeakForwardTorqueCurrent = 120.0;
     config.TorqueCurrent.PeakReverseTorqueCurrent = -120.0;
 
@@ -115,10 +109,8 @@ public class SwerveConfig {
     config.Slot0 =
         new Slot0Configs()
             .withKP(STEER_GAINS.kP())
-            .withKI(STEER_GAINS.kI())
             .withKD(STEER_GAINS.kD())
-            .withKS(STEER_GAINS.kS())
-            .withKG(STEER_GAINS.kG());
+            .withKS(STEER_GAINS.kS());
     config.TorqueCurrent.PeakForwardTorqueCurrent = 80.0;
     config.TorqueCurrent.PeakReverseTorqueCurrent = -80.0;
 

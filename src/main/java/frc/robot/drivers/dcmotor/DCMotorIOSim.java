@@ -11,7 +11,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Config;
-import frc.robot.utils.Gains.PidsgGains;
+import frc.robot.utils.GainsUtil.Gains;
 import frc.robot.utils.UnitConverter;
 import java.util.function.DoubleSupplier;
 
@@ -33,12 +33,12 @@ public class DCMotorIOSim implements DCMotorIO {
       double JKgMetersSquared,
       double gearing,
       UnitConverter ratioConverter,
-      PidsgGains pidfGains) {
+      Gains gains) {
     sim =
         new DCMotorSim(LinearSystemId.createDCMotorSystem(motor, JKgMetersSquared, gearing), motor);
 
     setUnitConvertor(ratioConverter);
-    setPidsg(pidfGains);
+    setGains(gains);
   }
 
   public DCMotorIOSim(LinearSystem<N2, N1, N2> system, DCMotor motor) {

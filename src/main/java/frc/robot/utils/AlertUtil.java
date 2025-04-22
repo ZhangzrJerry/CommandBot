@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.function.Predicate;
 
 /** Class for managing persistent alerts to be sent over NetworkTables. */
-public class Alert {
+public class AlertUtil {
   private static final Map<String, SendableAlerts> groups = new HashMap<>();
 
   private final AlertType type;
@@ -24,7 +24,7 @@ public class Alert {
    * @param text Text to be displayed when the alert is active.
    * @param type Alert level specifying urgency.
    */
-  public Alert(String text, AlertType type) {
+  public AlertUtil(String text, AlertType type) {
     this("Alerts", text, type);
   }
 
@@ -36,7 +36,7 @@ public class Alert {
    * @param text Text to be displayed when the alert is active.
    * @param type Alert level specifying urgency.
    */
-  public Alert(String group, String text, AlertType type) {
+  public AlertUtil(String group, String text, AlertType type) {
     if (!groups.containsKey(group)) {
       groups.put(group, new SendableAlerts());
       SmartDashboard.putData(group, groups.get(group));
@@ -88,16 +88,16 @@ public class Alert {
   }
 
   private static class SendableAlerts implements Sendable {
-    public final List<Alert> alerts = new ArrayList<>();
+    public final List<AlertUtil> alerts = new ArrayList<>();
 
     public String[] getStrings(AlertType type) {
-      Predicate<Alert> activeFilter = (Alert x) -> x.type == type && x.active;
-      Comparator<Alert> timeSorter =
-          (Alert a1, Alert a2) -> (int) (a2.activeStartTime - a1.activeStartTime);
+      Predicate<AlertUtil> activeFilter = (AlertUtil x) -> x.type == type && x.active;
+      Comparator<AlertUtil> timeSorter =
+          (AlertUtil a1, AlertUtil a2) -> (int) (a2.activeStartTime - a1.activeStartTime);
       return alerts.stream()
           .filter(activeFilter)
           .sorted(timeSorter)
-          .map((Alert a) -> a.text)
+          .map((AlertUtil a) -> a.text)
           .toArray(String[]::new);
     }
 

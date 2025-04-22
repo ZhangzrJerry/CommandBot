@@ -20,7 +20,7 @@ import frc.robot.drivers.dcmotor.DCMotorIOSim;
 import frc.robot.drivers.gyro.GyroIO;
 import frc.robot.drivers.gyro.GyroIOInputsAutoLogged;
 import frc.robot.drivers.gyro.GyroIOPigeon2;
-import frc.robot.utils.Alert;
+import frc.robot.utils.AlertUtil;
 import frc.robot.utils.EqualsUtil;
 import frc.robot.utils.GeomUtil;
 import frc.robot.utils.LoggedTunableNumber;
@@ -46,7 +46,8 @@ public class Swerve extends SubsystemBase {
 
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
-  private final Alert gyroOfflineAlert = new Alert("Gyro offline!", Alert.AlertType.WARNING);
+  private final AlertUtil gyroOfflineAlert =
+      new AlertUtil("Gyro offline!", AlertUtil.AlertType.WARNING);
 
   @Setter private SwerveController controller = new SwerveController() {};
   @Setter private Supplier<Double> customMaxTiltAccelScale = () -> 1.0;

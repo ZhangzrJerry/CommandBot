@@ -4,45 +4,30 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.drivers.dcmotor.*;
-import frc.robot.utils.Alert;
+import frc.robot.utils.AlertUtil;
+import frc.robot.utils.GainsUtil.PdsGains;
+import frc.robot.utils.LoggedTunableGains;
 import frc.robot.utils.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
 public class SwerveModule {
-  private static final LoggedTunableNumber driveKp =
-      new LoggedTunableNumber("Swerve/Module/DriveKp");
-  private static final LoggedTunableNumber driveKd =
-      new LoggedTunableNumber("Swerve/Module/DriveKd");
-  private static final LoggedTunableNumber driveKs =
-      new LoggedTunableNumber("Swerve/Module/DriveKs");
-  private static final LoggedTunableNumber steerKp =
-      new LoggedTunableNumber("Swerve/Module/SteerKp");
-  private static final LoggedTunableNumber steerKd =
-      new LoggedTunableNumber("Swerve/Module/SteerKd");
-  private static final LoggedTunableNumber steerKs =
-      new LoggedTunableNumber("Swerve/Module/SteerKs");
+  private static final LoggedTunableGains<PdsGains> driveGains;
+  private static final LoggedTunableGains<PdsGains> steerGains;
 
   static {
-    var driveSlot = SwerveConfig.getX2DriveTalonConfig().Slot0;
-    driveKp.initDefault(driveSlot.kP);
-    driveKd.initDefault(driveSlot.kD);
-    driveKs.initDefault(driveSlot.kS);
-
-    var steerSlot = SwerveConfig.getX2SteerTalonNoEncoderConfig().Slot0;
-    steerKp.initDefault(steerSlot.kP);
-    steerKd.initDefault(steerSlot.kD);
-    steerKs.initDefault(steerSlot.kS);
+    driveGains = new LoggedTunableGains<PdsGains>("Swerve/Module/DriveGains", SwerveConfig.DRIVE_GAINS);
+    steerGains = new LoggedTunableGains<PdsGains>("Swerve/Module/SteerGains", SwerveConfig.STEER_GAINS);
   }
 
   private final String name;
 
   private final DCMotorIO driveIO;
   private final DCMotorIOInputsAutoLogged driveInputs = new DCMotorIOInputsAutoLogged();
-  private final Alert driveMotorOfflineAlert;
+  private final AlertUtil driveMotorOfflineAlert;
 
   private final DCMotorIO steerIO;
   private final DCMotorIOInputsAutoLogged steerInputs = new DCMotorIOInputsAutoLogged();
-  private final Alert steerMotorOfflineAlert;
+  private final AlertUtil steerMotorOfflineAlert;
 
   public SwerveModule(DCMotorIO driveIO, DCMotorIO steerIO, String name) {
     this.driveIO = driveIO;
@@ -50,10 +35,8 @@ public class SwerveModule {
     this.steerIO.setRotationContinuous(true);
     this.name = name;
 
-    driveMotorOfflineAlert =
-        new Alert(this.name + " drive motor offline!", Alert.AlertType.WARNING);
-    steerMotorOfflineAlert =
-        new Alert(this.name + " steer motor offline!", Alert.AlertType.WARNING);
+    driveMotorOfflineAlert = new AlertUtil(this.name + " drive motor offline!", AlertUtil.AlertType.WARNING);
+    steerMotorOfflineAlert = new AlertUtil(this.name + " steer motor offline!", AlertUtil.AlertType.WARNING);
 
     stop();
   }
@@ -65,18 +48,8 @@ public class SwerveModule {
     Logger.processInputs("Swerve/" + name + "/Drive", driveInputs);
     Logger.processInputs("Swerve/" + name + "/Steer", steerInputs);
 
-    LoggedTunableNumber.ifChanged(
-        hashCode(),
-        () -> driveIO.setPidsg(driveKp.get(), 0.0, driveKd.get(), driveKs.get(), 0.0),
-        driveKp,
-        driveKd,
-        driveKs);
-    LoggedTunableNumber.ifChanged(
-        hashCode(),
-        () -> steerIO.setPidsg(steerKp.get(), 0.0, steerKd.get(), steerKs.get(), 0.0),
-        steerKp,
-        steerKd,
-        steerKs);
+    LoggedTunableGains.ifChanged(hashCode(), () -> driveIO.setPidsg(driveGains.get()), driveGains);
+    LoggedTunableGains.ifChanged(hashCode(), () -> steerIO.setPidsg(steerGains.get()), steerGains);
 
     driveMotorOfflineAlert.set(!driveInputs.connected);
     steerMotorOfflineAlert.set(!steerInputs.connected);

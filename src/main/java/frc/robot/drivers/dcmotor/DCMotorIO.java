@@ -1,8 +1,9 @@
 package frc.robot.drivers.dcmotor;
 
-import frc.robot.utils.Gains.PdsGains;
-import frc.robot.utils.Gains.PidGains;
-import frc.robot.utils.Gains.PidsgGains;
+import frc.robot.utils.GainsUtil.Gains;
+import frc.robot.utils.GainsUtil.PdsGains;
+import frc.robot.utils.GainsUtil.PidGains;
+import frc.robot.utils.GainsUtil.PidsgGains;
 import frc.robot.utils.UnitConverter;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -44,6 +45,16 @@ public interface DCMotorIO {
    */
   default void setPidsg(double kp, double ki, double kd, double ks, double kg) {}
 
+  default void setGains(Gains gains) {
+    if (gains instanceof PidsgGains) {
+      setPidsg((PidsgGains) gains);
+    } else if (gains instanceof PidGains) {
+      setPid((PidGains) gains);
+    } else if (gains instanceof PdsGains) {
+      setPds((PdsGains) gains);
+    }
+  }
+
   /**
    * Configures PIDF gains for the motor controller.
    *
@@ -77,7 +88,7 @@ public interface DCMotorIO {
    *
    * @param gains PID gains
    */
-  default void setPid(PidsgGains gains) {
+  default void setPid(PidGains gains) {
     setPid(gains.kP(), gains.kI(), gains.kD());
   }
 
