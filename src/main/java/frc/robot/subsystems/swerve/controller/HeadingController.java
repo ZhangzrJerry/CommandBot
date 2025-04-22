@@ -13,6 +13,7 @@ public class HeadingController {
   private final ProfiledPIDController pid;
   private final LoggedTunableGains<PidGains> pidGains;
 
+  @Deprecated
   public HeadingController(
       Supplier<Rotation2d> yawSupplier, Supplier<Rotation2d> targetYawSupplier, PidGains pidGains) {
     this.yawSupplier = yawSupplier;
@@ -25,10 +26,9 @@ public class HeadingController {
             new TrapezoidProfile.Constraints(
                 SwerveConfig.MAX_ANGULAR_VEL_RAD_PER_SEC, Double.POSITIVE_INFINITY));
     this.pid.enableContinuousInput(-Math.PI, Math.PI);
-    this.pidGains = new LoggedTunableGains<PidGains>("HeadingController/DefaultGains", pidGains);
+    this.pidGains = new LoggedTunableGains<>();
   }
 
-  @Deprecated
   public HeadingController(
       Supplier<Rotation2d> yawSupplier,
       Supplier<Rotation2d> targetYawSupplier,
