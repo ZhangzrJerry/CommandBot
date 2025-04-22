@@ -204,6 +204,26 @@ public class DCMotorIOKraken implements DCMotorIO {
   }
 
   @Override
+  public double getCurrent() {
+    return supplyCurrent.getValueAsDouble();
+  }
+
+  @Override
+  public double getPosition() {
+    return positionConvertor.applyAsDouble(position.getValueAsDouble());
+  }
+
+  @Override
+  public double getVelocity() {
+    return ratioConverter.applyAsDouble(velocity.getValueAsDouble());
+  }
+
+  @Override
+  public double getAcceleration() {
+    return ratioConverter.applyAsDouble(acceleration.getValueAsDouble());
+  }
+
+  @Override
   public int getDeviceID() {
     return motor.getDeviceID();
   }

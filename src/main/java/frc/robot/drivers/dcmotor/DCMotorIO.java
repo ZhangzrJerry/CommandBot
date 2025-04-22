@@ -198,6 +198,28 @@ public interface DCMotorIO {
   }
 
   /**
+   * Gets the current supply current of the motor.
+   *
+   * @return Current supply current in amps
+   */
+  default double getCurrent() {
+    return 0.0;
+  }
+
+  /** */
+  default double getPosition() {
+    return 0.0;
+  }
+
+  default double getVelocity() {
+    return 0.0;
+  }
+
+  default double getAcceleration() {
+    return 0.0;
+  }
+
+  /**
    * Gets the device ID of the motor controller.
    *
    * @return Device ID (default implementation returns 0)

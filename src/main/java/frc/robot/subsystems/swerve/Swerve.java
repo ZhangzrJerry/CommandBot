@@ -1,9 +1,8 @@
 package frc.robot.subsystems.swerve;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Config;
 import frc.robot.Ports;
@@ -12,10 +11,12 @@ import frc.robot.drivers.dcmotor.DCMotorIOKraken;
 import frc.robot.drivers.dcmotor.DCMotorIOKrakenCancoder;
 import frc.robot.drivers.dcmotor.DCMotorIOSim;
 import frc.robot.utils.UnitConverter;
+import lombok.Getter;
+import lombok.Setter;
 
 public class Swerve extends SubsystemBase {
   private final SwerveModule[] modules = new SwerveModule[4];
-  private SwerveController controller = new SwerveController() {};
+  @Getter @Setter private ChassisSpeeds state;
 
   public Swerve() {
     DCMotorIO flDriveIO,
@@ -169,24 +170,8 @@ public class Swerve extends SubsystemBase {
     modules[3] = new SwerveModule(brDriveIO, brSteerIO, "BR");
   }
 
-  void updateInputs() {
-    for (SwerveModule module : modules) {
-      module.updateInputs();
-    }
-  }
-
   @Override
   public void periodic() {
-    updateInputs();
-
-    ChassisSpeeds speeds = controller.getChassisSpeeds();
-  }
-
-  public Command setSwerveController(SwerveController controller) {
-    return Commands.runOnce(
-            () -> {
-              this.controller = controller;
-            })
-        .withName("[Swerve] Toggle Swerve Controller");
+    SwerveModuleState[] states = SwerveConfig.SWERVE_KINEMATICS.toSwerveModuleStates(state);
   }
 }

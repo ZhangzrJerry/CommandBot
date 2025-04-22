@@ -2,13 +2,12 @@ package frc.robot.subsystems.swerve;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.drivers.dcmotor.*;
 import frc.robot.utils.Alert;
 import frc.robot.utils.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
-public class SwerveModule extends SubsystemBase {
+public class SwerveModule {
   private static final LoggedTunableNumber driveKp =
       new LoggedTunableNumber("Swerve/Module/DriveKp");
   private static final LoggedTunableNumber driveKd =
@@ -59,7 +58,7 @@ public class SwerveModule extends SubsystemBase {
     stop();
   }
 
-  void updateInputs() {
+  public void update() {
     driveIO.updateInputs(driveInputs);
     steerIO.updateInputs(steerInputs);
 
@@ -81,11 +80,6 @@ public class SwerveModule extends SubsystemBase {
 
     driveMotorOfflineAlert.set(!driveInputs.connected);
     steerMotorOfflineAlert.set(!steerInputs.connected);
-  }
-
-  @Override
-  public void periodic() {
-    updateInputs();
 
     driveIO.setVelocityF(
         state.speedMetersPerSecond, velocityFeedforward / SwerveConfig.DRIVE_FF_KT);

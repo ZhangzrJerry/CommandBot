@@ -147,6 +147,26 @@ public class DCMotorIOSim implements DCMotorIO {
   }
 
   @Override
+  public double getCurrent() {
+    return sim.getCurrentDrawAmps();
+  }
+
+  @Override
+  public double getPosition() {
+    return positionConvertor.applyAsDouble(sim.getAngularPositionRad());
+  }
+
+  @Override
+  public double getVelocity() {
+    return ratioConverter.applyAsDouble(sim.getAngularVelocityRadPerSec());
+  }
+
+  @Override
+  public double getAcceleration() {
+    return ratioConverter.applyAsDouble(sim.getAngularAccelerationRadPerSecSq());
+  }
+
+  @Override
   public int getDeviceID() {
     return 0; // Simulation doesn't have device IDs
   }
