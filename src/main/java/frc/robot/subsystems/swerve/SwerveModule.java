@@ -10,7 +10,7 @@ import frc.robot.utils.logging.AlertUtil;
 import frc.robot.utils.logging.LoggedTunableGains;
 import org.littletonrobotics.junction.Logger;
 
-public class SwerveModuleImpl {
+public class SwerveModule {
   private static final LoggedTunableGains<PdsGains> driveGains;
   private static final LoggedTunableGains<PdsGains> steerGains;
 
@@ -31,7 +31,7 @@ public class SwerveModuleImpl {
   private final DCMotorIOInputsAutoLogged steerInputs = new DCMotorIOInputsAutoLogged();
   private final AlertUtil steerMotorOfflineAlert;
 
-  public SwerveModuleImpl(DCMotorIO driveIO, DCMotorIO steerIO, String name) {
+  public SwerveModule(DCMotorIO driveIO, DCMotorIO steerIO, String name) {
     this.driveIO = driveIO;
     this.steerIO = steerIO;
     this.steerIO.setRotationContinuous(true);

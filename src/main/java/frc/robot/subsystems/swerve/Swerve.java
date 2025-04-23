@@ -49,7 +49,7 @@ public class Swerve extends SubsystemBase {
           "Swerve/MaxSkidAccelMeterPerSecPerLoop",
           SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC * 2.0 / Constants.LOOP_PERIOD_SEC);
 
-  private final SwerveModuleImpl[] modules = new SwerveModuleImpl[4];
+  private final SwerveModule[] modules = new SwerveModule[4];
 
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
@@ -117,7 +117,7 @@ public class Swerve extends SubsystemBase {
     Logger.processInputs("Swerve/Gyro", gyroInputs);
     gyroOfflineAlert.set(!gyroInputs.connected);
 
-    for (SwerveModuleImpl module : modules) {
+    for (SwerveModule module : modules) {
       module.updateInputs();
     }
 
@@ -450,10 +450,10 @@ public class Swerve extends SubsystemBase {
       GyroIO gyroIO) {
     this.gyroIO = gyroIO;
 
-    modules[0] = new SwerveModuleImpl(flDriveIO, flSteerIO, "ModuleFL");
-    modules[1] = new SwerveModuleImpl(blDriveIO, blSteerIO, "ModuleBL");
-    modules[2] = new SwerveModuleImpl(brDriveIO, brSteerIO, "ModuleBR");
-    modules[3] = new SwerveModuleImpl(frDriveIO, frSteerIO, "ModuleFR");
+    modules[0] = new SwerveModule(flDriveIO, flSteerIO, "ModuleFL");
+    modules[1] = new SwerveModule(blDriveIO, blSteerIO, "ModuleBL");
+    modules[2] = new SwerveModule(brDriveIO, brSteerIO, "ModuleBR");
+    modules[3] = new SwerveModule(frDriveIO, frSteerIO, "ModuleFR");
 
     for (int i = 0; i < modules.length; i++) {
       lastModulePositions[i] = modules[i].getPosition();
