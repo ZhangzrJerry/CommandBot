@@ -2,7 +2,9 @@ package frc.robot.subsystems.visualization;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
-import frc.robot.virtuals.VirtualSubsystem;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.utils.VirtualSubsystem;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -14,7 +16,7 @@ import org.littletonrobotics.junction.Logger;
  * transform tree and updates component poses periodically.
  */
 public class Visualization extends VirtualSubsystem {
-  private static final List<VisualizeComponent> components = new ArrayList<>();
+  private static final List<VisualizationComponent> components = new ArrayList<>();
   private static final Boolean isStrictBigEndian = true;
 
   public Visualization() {}
@@ -26,9 +28,9 @@ public class Visualization extends VirtualSubsystem {
    * @param parentId the id of the parent component (-1 for robot frame)
    * @param transformSupplier supplier of transform from parent to this component
    */
-  public record VisualizeComponent(
+  public record VisualizationComponent(
       int componentId, int parentId, Supplier<Transform3d> transformSupplier) {
-    public VisualizeComponent {
+    public VisualizationComponent {
       if (componentId < 0) {
         throw new IllegalArgumentException("componentId out of index");
       }
@@ -50,21 +52,28 @@ public class Visualization extends VirtualSubsystem {
    *
    * @param visualizeComponent the component to register
    */
-  public void registerComponent(VisualizeComponent visualizeComponent) {
-    for (VisualizeComponent component : components) {
-      if (component.componentId() == visualizeComponent.componentId()) {
-        throw new IllegalArgumentException("componentId already exists");
-      }
-    }
-    components.add(visualizeComponent);
-    components.sort(Comparator.comparingInt(VisualizeComponent::componentId));
+  public Command registerVisualizationComponentCommand(
+      VisualizationComponent visualizationComponent) {
+    return Commands.runOnce(
+            () -> {
+              for (VisualizationComponent component : components) {
+                if (component.componentId() == visualizationComponent.componentId()) {
+                  throw new IllegalArgumentException("componentId already exists");
+                }
+              }
+              components.add(visualizationComponent);
+              components.sort(Comparator.comparingInt(VisualizationComponent::componentId));
 
-    // Validate component IDs are continuous
-    for (int i = 0; i < components.size(); ++i) {
-      if (components.get(i).componentId() != i) {
-        throw new IllegalArgumentException("componentId should be continuous");
-      }
-    }
+              // Validate component IDs are continuous
+              for (int i = 0; i < components.size(); ++i) {
+                if (components.get(i).componentId() != i) {
+                  throw new IllegalArgumentException("componentId should be continuous");
+                }
+              }
+            })
+        .withName(
+            "[Visualization] Register Visualization Component: "
+                + visualizationComponent.componentId());
   }
 
   @Override

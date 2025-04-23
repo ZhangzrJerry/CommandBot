@@ -5,11 +5,13 @@ import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
+import lombok.Getter;
+import lombok.Setter;
 
 public class PoseUtil {
   public static class UncertainPose2d {
-    private final Pose2d pose;
-    private final Matrix<N3, N3> covariance;
+    @Getter @Setter private Pose2d pose;
+    @Getter @Setter private Matrix<N3, N3> covariance;
 
     /**
      * 创建一个具有确定位姿的不确定位姿（协方差为0）
@@ -37,24 +39,6 @@ public class PoseUtil {
       this.covariance.set(0, 0, xVariance);
       this.covariance.set(1, 1, yVariance);
       this.covariance.set(2, 2, thetaVariance);
-    }
-
-    /**
-     * 获取位姿
-     *
-     * @return 位姿
-     */
-    public Pose2d getPose() {
-      return pose;
-    }
-
-    /**
-     * 获取协方差矩阵
-     *
-     * @return 协方差矩阵
-     */
-    public Matrix<N3, N3> getCovariance() {
-      return covariance;
     }
 
     public double getXVariance() {
@@ -91,6 +75,48 @@ public class PoseUtil {
 
     public double getThetaYCovariance() {
       return covariance.get(2, 1);
+    }
+
+    public void setXVariance(double xVariance) {
+      covariance.set(0, 0, xVariance);
+    }
+
+    public void setYVariance(double yVariance) {
+      covariance.set(1, 1, yVariance);
+    }
+
+    public void setThetaVariance(double thetaVariance) {
+      covariance.set(2, 2, thetaVariance);
+    }
+
+    public void setXYCovariance(double xyCovariance) {
+      covariance.set(0, 1, xyCovariance);
+      covariance.set(1, 0, xyCovariance);
+    }
+
+    public void setXThetaCovariance(double xThetaCovariance) {
+      covariance.set(0, 2, xThetaCovariance);
+      covariance.set(2, 0, xThetaCovariance);
+    }
+
+    public void setYThetaCovariance(double yThetaCovariance) {
+      covariance.set(1, 2, yThetaCovariance);
+      covariance.set(2, 1, yThetaCovariance);
+    }
+
+    public void setYXCovariance(double yxCovariance) {
+      covariance.set(1, 0, yxCovariance);
+      covariance.set(0, 1, yxCovariance);
+    }
+
+    public void setThetaXCovariance(double thetaXCovariance) {
+      covariance.set(2, 0, thetaXCovariance);
+      covariance.set(0, 2, thetaXCovariance);
+    }
+
+    public void setThetaYCovariance(double thetaYCovariance) {
+      covariance.set(2, 1, thetaYCovariance);
+      covariance.set(1, 2, thetaYCovariance);
     }
 
     public double getPositionUncertainty() {
@@ -140,6 +166,18 @@ public class PoseUtil {
           Math.sqrt(getYVariance()),
           pose.getRotation().getDegrees(),
           Units.radiansToDegrees(Math.sqrt(getThetaVariance())));
+    }
+
+    public void fuseWith(UncertainPose2d other) {
+      // Matrix<N3, N3> totalCovariance = covariance.plus(other.covariance);
+      // Matrix<N3, N3> invCovariance = totalCovariance.inv();
+
+      // Matrix<N3, N3> fusedPose =
+      // invCovariance.times(pose).plus(invCovariance.times(other.pose));
+      // pose = new Pose2d(fusedPose.get(0, 0), fusedPose.get(1, 0), fusedPose.get(2,
+      // 0));
+
+      // covariance = totalCovariance;
     }
   }
 
