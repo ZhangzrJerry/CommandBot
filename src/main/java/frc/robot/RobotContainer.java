@@ -14,10 +14,10 @@ import frc.robot.virtuals.odometry.Odometry;
 public class RobotContainer {
   // subsystem
   private final Swerve swerve;
-  
+
   // service
   private final Odometry odometry;
-  
+
   // commander
   private final CommandXboxController joystick = new CommandXboxController(Ports.Joystick.DRIVER);
 
@@ -26,8 +26,9 @@ public class RobotContainer {
     swerve = new Swerve();
 
     // service
-    odometry = new Odometry(
-        () -> swerve.getPositions(), () -> swerve.getGyroYaw(), swerve.getKinematics());
+    odometry =
+        new Odometry(
+            () -> swerve.getPositions(), () -> swerve.getGyroYaw(), swerve.getKinematics());
 
     // commander
     configureBindings();
@@ -40,31 +41,35 @@ public class RobotContainer {
         .a()
         .whileTrue(
             Commands.run(
-                () -> swerve.setController(
-                    new AlongWaypointsController(
-                        () -> odometry.getEstimatedPose(), new Pose2d(0, 0, new Rotation2d()))),
-                swerve).withName("## Proceed to Waypoint"));
+                    () ->
+                        swerve.setController(
+                            new AlongWaypointsController(
+                                () -> odometry.getEstimatedPose(),
+                                new Pose2d(0, 0, new Rotation2d()))),
+                    swerve)
+                .withName("## Proceed to Waypoint"));
   }
 
   private Command swerveHeadlessControlCommand() {
     return Commands.run(
-            () -> swerve.setController(
-                new TeleopHeadlessController(
-                    () -> -joystick.getLeftY(),
-                    () -> -joystick.getLeftX(),
-                    () -> -joystick.getRightX(),
-                    () -> odometry.getGyroYaw())),
+            () ->
+                swerve.setController(
+                    new TeleopHeadlessController(
+                        () -> -joystick.getLeftY(),
+                        () -> -joystick.getLeftX(),
+                        () -> -joystick.getRightX(),
+                        () -> odometry.getGyroYaw())),
             swerve)
-            .withName("[Swerve] Headless Control");
+        .withName("[Swerve] Headless Control");
   }
 
   private Command joystickRumbleCommand() {
     return Commands.startEnd(
-        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
-        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
+            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
+            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
         .withName("[Joystick] Rumble");
   }
-  
+
   public Command getAutonomousCommand() {
     return Commands.none();
   }

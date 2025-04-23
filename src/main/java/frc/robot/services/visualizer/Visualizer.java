@@ -1,4 +1,3 @@
-
 package frc.robot.virtuals.visualizer;
 
 import edu.wpi.first.math.geometry.Pose3d;
