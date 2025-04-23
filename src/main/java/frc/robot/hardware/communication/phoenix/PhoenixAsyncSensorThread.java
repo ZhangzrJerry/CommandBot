@@ -13,8 +13,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.DoubleSupplier;
 
 /**
- * Provides an interface for asynchronously reading high-frequency measurements
- * to a set of queues,
+ * Provides an interface for asynchronously reading high-frequency measurements to a set of queues,
  * with support for cases where gyro might be null.
  */
 public class PhoenixAsyncSensorThread extends Thread {
