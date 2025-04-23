@@ -16,8 +16,8 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Config;
-import frc.robot.Ports;
+import frc.robot.Constants;
+import frc.robot.Constants.Ports;
 import frc.robot.hardware.motors.DCMotorIO;
 import frc.robot.hardware.motors.DCMotorIOKraken;
 import frc.robot.hardware.motors.DCMotorIOKrakenCancoder;
@@ -47,7 +47,7 @@ public class Swerve extends SubsystemBase {
   private final LoggedTunableNumber maxSkidAccelMeterPerSecPerLoop =
       new LoggedTunableNumber(
           "Swerve/MaxSkidAccelMeterPerSecPerLoop",
-          SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC * 2.0 / Config.LOOP_PERIOD_SEC);
+          SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC * 2.0 / Constants.LOOP_PERIOD_SEC);
 
   private final SwerveModuleImpl[] modules = new SwerveModuleImpl[4];
 
@@ -75,29 +75,6 @@ public class Swerve extends SubsystemBase {
 
   private SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[4];
   private Rotation2d lastGyroYaw = new Rotation2d();
-
-  private Swerve(
-      DCMotorIO flDriveIO,
-      DCMotorIO flSteerIO,
-      DCMotorIO frDriveIO,
-      DCMotorIO frSteerIO,
-      DCMotorIO blDriveIO,
-      DCMotorIO blSteerIO,
-      DCMotorIO brDriveIO,
-      DCMotorIO brSteerIO,
-      GyroIO gyroIO) {
-    this.gyroIO = gyroIO;
-
-    modules[0] = new SwerveModuleImpl(flDriveIO, flSteerIO, "ModuleFL");
-    modules[1] = new SwerveModuleImpl(blDriveIO, blSteerIO, "ModuleBL");
-    modules[2] = new SwerveModuleImpl(brDriveIO, brSteerIO, "ModuleBR");
-    modules[3] = new SwerveModuleImpl(frDriveIO, frSteerIO, "ModuleFR");
-
-    for (int i = 0; i < modules.length; i++) {
-      lastModulePositions[i] = modules[i].getPosition();
-    }
-    lastGyroYaw = gyroIO.getYaw();
-  }
 
   public Command setControllerCommand(SwerveController controller) {
     return Commands.run(
@@ -189,7 +166,7 @@ public class Swerve extends SubsystemBase {
     goalVel = applyAccelLimitation(currentVel, goalVel);
 
     // Dynamics compensation
-    goalVel = ChassisSpeeds.discretize(goalVel, Config.LOOP_PERIOD_SEC);
+    goalVel = ChassisSpeeds.discretize(goalVel, Constants.LOOP_PERIOD_SEC);
 
     // Use last goal angle for module if chassis want stop completely
     var goalModuleStates = SwerveConfig.SWERVE_KINEMATICS.toSwerveModuleStates(goalVel);
@@ -251,7 +228,7 @@ public class Swerve extends SubsystemBase {
         new Translation2d(goalVel.vxMetersPerSecond, goalVel.vyMetersPerSecond);
 
     var rawAccelPerLoop =
-        goalTranslationVel.minus(currentTranslationVel).div(Config.LOOP_PERIOD_SEC);
+        goalTranslationVel.minus(currentTranslationVel).div(Constants.LOOP_PERIOD_SEC);
 
     var customMaxTiltAccelScaleVal = customMaxTiltAccelScale.get();
     Logger.recordOutput("Swerve/customMaxTiltAccelScale", customMaxTiltAccelScaleVal);
@@ -275,7 +252,7 @@ public class Swerve extends SubsystemBase {
               tiltLimitedAccelPerLoop.toRotation2d());
     }
 
-    var calculatedDeltaVel = skidLimitedAccelPerLoop.times(Config.LOOP_PERIOD_SEC);
+    var calculatedDeltaVel = skidLimitedAccelPerLoop.times(Constants.LOOP_PERIOD_SEC);
 
     var limitedGoalVelTranslation = currentTranslationVel.plus(calculatedDeltaVel);
 
@@ -459,5 +436,28 @@ public class Swerve extends SubsystemBase {
         new DCMotorIO() {},
         new DCMotorIO() {},
         new GyroIO() {});
+  }
+
+  private Swerve(
+      DCMotorIO flDriveIO,
+      DCMotorIO flSteerIO,
+      DCMotorIO frDriveIO,
+      DCMotorIO frSteerIO,
+      DCMotorIO blDriveIO,
+      DCMotorIO blSteerIO,
+      DCMotorIO brDriveIO,
+      DCMotorIO brSteerIO,
+      GyroIO gyroIO) {
+    this.gyroIO = gyroIO;
+
+    modules[0] = new SwerveModuleImpl(flDriveIO, flSteerIO, "ModuleFL");
+    modules[1] = new SwerveModuleImpl(blDriveIO, blSteerIO, "ModuleBL");
+    modules[2] = new SwerveModuleImpl(brDriveIO, brSteerIO, "ModuleBR");
+    modules[3] = new SwerveModuleImpl(frDriveIO, frSteerIO, "ModuleFR");
+
+    for (int i = 0; i < modules.length; i++) {
+      lastModulePositions[i] = modules[i].getPosition();
+    }
+    lastGyroYaw = gyroIO.getYaw();
   }
 }

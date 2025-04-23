@@ -9,17 +9,18 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.subsystems.odometry.Odometry;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.controller.TeleopHeaderController;
-import frc.robot.virtuals.odometry.Odometry;
 
 public class RobotContainer {
   // physical subsystems
   private final Swerve swerve;
 
-  // virtual subsystems
-  private final CommandXboxController joystick = new CommandXboxController(Ports.Joystick.DRIVER);
   private final Odometry odometry = new Odometry();
+
+  private final CommandXboxController joystick =
+      new CommandXboxController(Constants.Ports.Joystick.DRIVER);
 
   public RobotContainer() {
     if (Robot.isReal()) {

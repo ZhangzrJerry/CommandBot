@@ -1,6 +1,6 @@
 package frc.robot.utils.logging;
 
-import frc.robot.Config;
+import frc.robot.Constants;
 import frc.robot.utils.GainsUtil;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +24,7 @@ public class LoggedTunableGains<T extends GainsUtil.Gains> {
     this.fullKey = TABLE_KEY + "/" + subKey;
     this.defaultValue = defaultValue;
 
-    if (Config.IS_LIVE_DEBUG) {
+    if (Constants.IS_LIVE_DEBUG) {
       // Check if the key already exists in the existing entries
       if (existingEntries.containsKey(fullKey)) {
         networkNumbers = existingEntries.get(fullKey);
@@ -46,7 +46,7 @@ public class LoggedTunableGains<T extends GainsUtil.Gains> {
   /** Get current gains (tuned values if in debug mode) */
   @SuppressWarnings("unchecked")
   public T get() {
-    if (!Config.IS_LIVE_DEBUG || networkNumbers == null) {
+    if (!Constants.IS_LIVE_DEBUG || networkNumbers == null) {
       return defaultValue;
     }
 

@@ -10,7 +10,7 @@ import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import frc.robot.Config;
+import frc.robot.Constants;
 import frc.robot.utils.GainsUtil.Gains;
 import frc.robot.utils.math.UnitConverter;
 import java.util.function.DoubleSupplier;
@@ -51,7 +51,7 @@ public class DCMotorIOSim implements DCMotorIO {
       stop();
     }
 
-    sim.update(Config.LOOP_PERIOD_SEC);
+    sim.update(Constants.LOOP_PERIOD_SEC);
 
     inputs.connected = true;
 

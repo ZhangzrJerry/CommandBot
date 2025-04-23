@@ -1,4 +1,4 @@
-package frc.robot.virtuals.odometry;
+package frc.robot.subsystems.odometry;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;

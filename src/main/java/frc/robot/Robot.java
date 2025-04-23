@@ -38,7 +38,7 @@ public class Robot extends LoggedRobot {
   private void configureAkitLogger() {
     if (Robot.isReal()) {
       Logger.addDataReceiver(new WPILOGWriter("/home/lvuser/logs"));
-      if (Config.IS_LIVE_DEBUG) {
+      if (Constants.IS_LIVE_DEBUG) {
         Logger.addDataReceiver(new NT4Publisher());
       }
     } else {
