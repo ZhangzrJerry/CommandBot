@@ -38,6 +38,9 @@ public class AtagVisionIOPhotonSim extends AtagVisionIOPhoton {
     // Add sim camera
     var cameraProperties = new SimCameraProperties();
     cameraSim = new PhotonCameraSim(camera, cameraProperties, aprilTagLayout);
+    cameraSim.enableRawStream(true);
+    cameraSim.enableProcessedStream(true);
+    cameraSim.enableDrawWireframe(true);
     visionSim.addCamera(cameraSim, robotToCamera);
   }
 
