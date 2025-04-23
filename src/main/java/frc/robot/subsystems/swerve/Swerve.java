@@ -60,7 +60,7 @@ public class Swerve extends SubsystemBase {
         new SwerveModuleState(),
       };
 
-  public Swerve() {
+  public static Swerve createSim() {
     DCMotorIO flDriveIO,
         flSteerIO,
         frDriveIO,
@@ -70,151 +70,183 @@ public class Swerve extends SubsystemBase {
         brDriveIO,
         brSteerIO;
 
+    UnitConverter driveRatioConverter =
+        UnitConverter.scale(SwerveConfig.WHEEL_RADIUS_METER).withUnits("rad", "m");
+    UnitConverter steerRatioConverter = UnitConverter.identity().withUnits("rad", "rad");
+
+    flDriveIO =
+        new DCMotorIOSim(
+            DCMotor.getKrakenX60(1),
+            0.025,
+            SwerveConfig.DRIVE_REDUCTION,
+            driveRatioConverter,
+            SwerveConfig.DRIVE_GAINS);
+    flSteerIO =
+        new DCMotorIOSim(
+            DCMotor.getKrakenX60(1),
+            0.004,
+            SwerveConfig.STEER_REDUCTION,
+            steerRatioConverter,
+            SwerveConfig.STEER_GAINS);
+    frDriveIO =
+        new DCMotorIOSim(
+            DCMotor.getKrakenX60(1),
+            0.025,
+            SwerveConfig.DRIVE_REDUCTION,
+            driveRatioConverter,
+            SwerveConfig.DRIVE_GAINS);
+    frSteerIO =
+        new DCMotorIOSim(
+            DCMotor.getKrakenX60(1),
+            0.004,
+            SwerveConfig.STEER_REDUCTION,
+            steerRatioConverter,
+            SwerveConfig.STEER_GAINS);
+    blDriveIO =
+        new DCMotorIOSim(
+            DCMotor.getKrakenX60(1),
+            0.025,
+            SwerveConfig.DRIVE_REDUCTION,
+            driveRatioConverter,
+            SwerveConfig.DRIVE_GAINS);
+    blSteerIO =
+        new DCMotorIOSim(
+            DCMotor.getKrakenX60(1),
+            0.004,
+            SwerveConfig.STEER_REDUCTION,
+            steerRatioConverter,
+            SwerveConfig.STEER_GAINS);
+    brDriveIO =
+        new DCMotorIOSim(
+            DCMotor.getKrakenX60(1),
+            0.025,
+            SwerveConfig.DRIVE_REDUCTION,
+            driveRatioConverter,
+            SwerveConfig.DRIVE_GAINS);
+    brSteerIO =
+        new DCMotorIOSim(
+            DCMotor.getKrakenX60(1),
+            0.004,
+            SwerveConfig.STEER_REDUCTION,
+            steerRatioConverter,
+            SwerveConfig.STEER_GAINS);
+
+    GyroIO gyroIO = new GyroIO() {};
+
+    return new Swerve(
+        flDriveIO, flSteerIO, frDriveIO, frSteerIO, blDriveIO, blSteerIO, brDriveIO, brSteerIO,
+        gyroIO);
+  }
+
+  public static Swerve createReal() {
+    DCMotorIO flDriveIO,
+        flSteerIO,
+        frDriveIO,
+        frSteerIO,
+        blDriveIO,
+        blSteerIO,
+        brDriveIO,
+        brSteerIO;
+
+    UnitConverter driveRatioConverter =
+        UnitConverter.scale(2 * Math.PI * SwerveConfig.WHEEL_RADIUS_METER).withUnits("rot", "m");
+    UnitConverter steerRatioConverter = UnitConverter.scale(2 * Math.PI).withUnits("rot", "rad");
+
+    flDriveIO =
+        new DCMotorIOKraken(
+            "flDrive",
+            Ports.Can.FL_DRIVE_MOTOR,
+            SwerveConfig.getX2DriveTalonConfig(),
+            driveRatioConverter);
+    flSteerIO =
+        new DCMotorIOKrakenCancoder(
+            "flSteer",
+            Ports.Can.FL_STEER_MOTOR,
+            SwerveConfig.getX2SteerTalonNoEncoderConfig(),
+            Ports.Can.FL_STEER_SENSOR,
+            SwerveConfig.FL_CANCODER_CONFIG,
+            steerRatioConverter,
+            UnitConverter.offset(SwerveConfig.FL_CANCODER_OFFSET).withUnits("rot", "rot"));
+
+    frDriveIO =
+        new DCMotorIOKraken(
+            "frDrive",
+            Ports.Can.FR_DRIVE_MOTOR,
+            SwerveConfig.getX2DriveTalonConfig(),
+            driveRatioConverter);
+    frSteerIO =
+        new DCMotorIOKrakenCancoder(
+            "frSteer",
+            Ports.Can.FR_STEER_MOTOR,
+            SwerveConfig.getX2SteerTalonNoEncoderConfig(),
+            Ports.Can.FR_STEER_SENSOR,
+            SwerveConfig.FR_CANCODER_CONFIG,
+            steerRatioConverter,
+            UnitConverter.offset(SwerveConfig.FR_CANCODER_OFFSET).withUnits("rot", "rot"));
+
+    blDriveIO =
+        new DCMotorIOKraken(
+            "blDrive",
+            Ports.Can.BL_DRIVE_MOTOR,
+            SwerveConfig.getX2DriveTalonConfig(),
+            driveRatioConverter);
+    blSteerIO =
+        new DCMotorIOKrakenCancoder(
+            "blSteer",
+            Ports.Can.BL_STEER_MOTOR,
+            SwerveConfig.getX2SteerTalonNoEncoderConfig(),
+            Ports.Can.BL_STEER_SENSOR,
+            SwerveConfig.BL_CANCODER_CONFIG,
+            steerRatioConverter,
+            UnitConverter.offset(SwerveConfig.BL_CANCODER_OFFSET).withUnits("rot", "rot"));
+
+    brDriveIO =
+        new DCMotorIOKraken(
+            "brDrive",
+            Ports.Can.BR_DRIVE_MOTOR,
+            SwerveConfig.getX2DriveTalonConfig(),
+            driveRatioConverter);
+    brSteerIO =
+        new DCMotorIOKrakenCancoder(
+            "brSteer",
+            Ports.Can.BR_STEER_MOTOR,
+            SwerveConfig.getX2SteerTalonNoEncoderConfig(),
+            Ports.Can.BR_STEER_SENSOR,
+            SwerveConfig.BR_CANCODER_CONFIG,
+            steerRatioConverter,
+            UnitConverter.offset(SwerveConfig.BR_CANCODER_OFFSET).withUnits("rot", "rot"));
+
+    GyroIO gyroIO = new GyroIOPigeon2(Ports.Can.CHASSIS_PIGEON);
+
+    return new Swerve(
+        flDriveIO, flSteerIO, frDriveIO, frSteerIO, blDriveIO, blSteerIO, brDriveIO, brSteerIO,
+        gyroIO);
+  }
+
+  public static Swerve create() {
     if (Robot.isReal()) {
-      UnitConverter driveRatioConverter =
-          UnitConverter.scale(2 * Math.PI * SwerveConfig.WHEEL_RADIUS_METER).withUnits("rot", "m");
-      UnitConverter steerRatioConverter = UnitConverter.scale(2 * Math.PI).withUnits("rot", "rad");
-      flDriveIO =
-          new DCMotorIOKraken(
-              "flDrive",
-              Ports.Can.FL_DRIVE_MOTOR,
-              SwerveConfig.getX2DriveTalonConfig(),
-              driveRatioConverter);
-      flSteerIO =
-          new DCMotorIOKrakenCancoder(
-              "flSteer",
-              Ports.Can.FL_STEER_MOTOR,
-              SwerveConfig.getX2SteerTalonNoEncoderConfig(),
-              Ports.Can.FL_STEER_SENSOR,
-              SwerveConfig.FL_CANCODER_CONFIG,
-              steerRatioConverter,
-              UnitConverter.offset(SwerveConfig.FL_CANCODER_OFFSET).withUnits("rot", "rot"));
-      frDriveIO =
-          new DCMotorIOKraken(
-              "frDrive",
-              Ports.Can.FR_DRIVE_MOTOR,
-              SwerveConfig.getX2DriveTalonConfig(),
-              driveRatioConverter);
-      frSteerIO =
-          new DCMotorIOKrakenCancoder(
-              "frSteer",
-              Ports.Can.FR_STEER_MOTOR,
-              SwerveConfig.getX2SteerTalonNoEncoderConfig(),
-              Ports.Can.FR_STEER_SENSOR,
-              SwerveConfig.FR_CANCODER_CONFIG,
-              steerRatioConverter,
-              UnitConverter.offset(SwerveConfig.FR_CANCODER_OFFSET).withUnits("rot", "rot"));
-      blDriveIO =
-          new DCMotorIOKraken(
-              "blDrive",
-              Ports.Can.BL_DRIVE_MOTOR,
-              SwerveConfig.getX2DriveTalonConfig(),
-              driveRatioConverter);
-      blSteerIO =
-          new DCMotorIOKrakenCancoder(
-              "blSteer",
-              Ports.Can.BL_STEER_MOTOR,
-              SwerveConfig.getX2SteerTalonNoEncoderConfig(),
-              Ports.Can.BL_STEER_SENSOR,
-              SwerveConfig.BL_CANCODER_CONFIG,
-              steerRatioConverter,
-              UnitConverter.offset(SwerveConfig.BL_CANCODER_OFFSET).withUnits("rot", "rot"));
-      brDriveIO =
-          new DCMotorIOKraken(
-              "brDrive",
-              Ports.Can.BR_DRIVE_MOTOR,
-              SwerveConfig.getX2DriveTalonConfig(),
-              driveRatioConverter);
-      brSteerIO =
-          new DCMotorIOKrakenCancoder(
-              "brSteer",
-              Ports.Can.BR_STEER_MOTOR,
-              SwerveConfig.getX2SteerTalonNoEncoderConfig(),
-              Ports.Can.BR_STEER_SENSOR,
-              SwerveConfig.BR_CANCODER_CONFIG,
-              steerRatioConverter,
-              UnitConverter.offset(SwerveConfig.BR_CANCODER_OFFSET).withUnits("rot", "rot"));
-    } else if (Robot.isSimulation()) {
-      UnitConverter driveRatioConverter =
-          UnitConverter.scale(SwerveConfig.WHEEL_RADIUS_METER).withUnits("rad", "m");
-      UnitConverter steerRatioConverter = UnitConverter.identity().withUnits("rad", "rad");
-      flDriveIO =
-          new DCMotorIOSim(
-              DCMotor.getKrakenX60(1),
-              0.025,
-              SwerveConfig.DRIVE_REDUCTION,
-              driveRatioConverter,
-              SwerveConfig.DRIVE_GAINS);
-      flSteerIO =
-          new DCMotorIOSim(
-              DCMotor.getKrakenX60(1),
-              0.004,
-              SwerveConfig.STEER_REDUCTION,
-              steerRatioConverter,
-              SwerveConfig.STEER_GAINS);
-      frDriveIO =
-          new DCMotorIOSim(
-              DCMotor.getKrakenX60(1),
-              0.025,
-              SwerveConfig.DRIVE_REDUCTION,
-              driveRatioConverter,
-              SwerveConfig.DRIVE_GAINS);
-      frSteerIO =
-          new DCMotorIOSim(
-              DCMotor.getKrakenX60(1),
-              0.004,
-              SwerveConfig.STEER_REDUCTION,
-              steerRatioConverter,
-              SwerveConfig.STEER_GAINS);
-      blDriveIO =
-          new DCMotorIOSim(
-              DCMotor.getKrakenX60(1),
-              0.025,
-              SwerveConfig.DRIVE_REDUCTION,
-              driveRatioConverter,
-              SwerveConfig.DRIVE_GAINS);
-      blSteerIO =
-          new DCMotorIOSim(
-              DCMotor.getKrakenX60(1),
-              0.004,
-              SwerveConfig.STEER_REDUCTION,
-              steerRatioConverter,
-              SwerveConfig.STEER_GAINS);
-      brDriveIO =
-          new DCMotorIOSim(
-              DCMotor.getKrakenX60(1),
-              0.025,
-              SwerveConfig.DRIVE_REDUCTION,
-              driveRatioConverter,
-              SwerveConfig.DRIVE_GAINS);
-      brSteerIO =
-          new DCMotorIOSim(
-              DCMotor.getKrakenX60(1),
-              0.004,
-              SwerveConfig.STEER_REDUCTION,
-              steerRatioConverter,
-              SwerveConfig.STEER_GAINS);
+      return createReal();
     } else {
-      flDriveIO = new DCMotorIO() {};
-      flSteerIO = new DCMotorIO() {};
-      frDriveIO = new DCMotorIO() {};
-      frSteerIO = new DCMotorIO() {};
-      blDriveIO = new DCMotorIO() {};
-      blSteerIO = new DCMotorIO() {};
-      brDriveIO = new DCMotorIO() {};
-      brSteerIO = new DCMotorIO() {};
+      return createSim();
     }
+  }
+
+  private Swerve(
+      DCMotorIO flDriveIO,
+      DCMotorIO flSteerIO,
+      DCMotorIO frDriveIO,
+      DCMotorIO frSteerIO,
+      DCMotorIO blDriveIO,
+      DCMotorIO blSteerIO,
+      DCMotorIO brDriveIO,
+      DCMotorIO brSteerIO,
+      GyroIO gyroIO) {
+    this.gyroIO = gyroIO;
 
     modules[0] = new SwerveModule(flDriveIO, flSteerIO, "ModuleFL");
     modules[1] = new SwerveModule(blDriveIO, blSteerIO, "ModuleBL");
     modules[2] = new SwerveModule(brDriveIO, brSteerIO, "ModuleBR");
     modules[3] = new SwerveModule(frDriveIO, frSteerIO, "ModuleFR");
-
-    if (Robot.isReal()) {
-      gyroIO = new GyroIOPigeon2(Ports.Can.CHASSIS_PIGEON);
-    } else {
-      gyroIO = new GyroIO() {};
-    }
   }
 
   @Override

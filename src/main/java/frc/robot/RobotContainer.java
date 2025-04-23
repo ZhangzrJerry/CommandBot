@@ -1,73 +1,52 @@
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.commands.composite.CompositeCommands;
+import frc.robot.commands.joystick.JoystickCommands;
+import frc.robot.commands.swerve.SwerveCommands;
 import frc.robot.subsystems.swerve.Swerve;
-import frc.robot.subsystems.swerve.controller.AlongWaypointsController;
-import frc.robot.subsystems.swerve.controller.TeleopHeadlessController;
 import frc.robot.virtuals.odometry.Odometry;
 
 public class RobotContainer {
-  // subsystem
+  // real subsystems
   private final Swerve swerve;
 
-  // service
+  // virtual subsystems
   private final Odometry odometry;
+  private final CommandXboxController joystick;
 
-  // commander
-  private final CommandXboxController joystick = new CommandXboxController(Ports.Joystick.DRIVER);
+  // commands
+  private final SwerveCommands swerveCommands;
+  private final JoystickCommands joystickCommands;
+  private final CompositeCommands compositeCommands;
 
   public RobotContainer() {
-    // subsystem
-    swerve = new Swerve();
+    // real subsystems
+    swerve = Swerve.create();
 
-    // service
+    // virtual subsystem
     odometry =
         new Odometry(
             () -> swerve.getPositions(), () -> swerve.getGyroYaw(), swerve.getKinematics());
+    joystick = new CommandXboxController(Ports.Joystick.DRIVER);
 
-    // commander
-    configureBindings();
+    // commands
+    swerveCommands = new SwerveCommands(swerve, odometry, joystick);
+    joystickCommands = new JoystickCommands(joystick);
+    compositeCommands = new CompositeCommands(swerveCommands, joystickCommands, swerve);
+
+    handlePhysicalSubsystemSignals();
+    handleVirtualSubsystemSignals();
   }
 
-  private void configureBindings() {
-    swerve.setDefaultCommand(swerveHeadlessControlCommand());
+  private void handlePhysicalSubsystemSignals() {}
 
-    joystick
-        .a()
-        .whileTrue(
-            Commands.run(
-                    () ->
-                        swerve.setController(
-                            new AlongWaypointsController(
-                                () -> odometry.getEstimatedPose(),
-                                new Pose2d(0, 0, new Rotation2d()))),
-                    swerve)
-                .withName("## Proceed to Waypoint"));
-  }
-
-  private Command swerveHeadlessControlCommand() {
-    return Commands.run(
-            () ->
-                swerve.setController(
-                    new TeleopHeadlessController(
-                        () -> -joystick.getLeftY(),
-                        () -> -joystick.getLeftX(),
-                        () -> -joystick.getRightX(),
-                        () -> odometry.getGyroYaw())),
-            swerve)
-        .withName("[Swerve] Headless Control");
-  }
-
-  private Command joystickRumbleCommand() {
-    return Commands.startEnd(
-            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
-            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
-        .withName("[Joystick] Rumble");
+  private void handleVirtualSubsystemSignals() {
+    joystick.a().whileTrue(compositeCommands.createAutoWaypointCommand());
+    joystick.b().whileTrue(joystickCommands.createRumbleCommand(0.5));
+    joystick.x().whileTrue(compositeCommands.createEmergencyStopCommand());
   }
 
   public Command getAutonomousCommand() {
