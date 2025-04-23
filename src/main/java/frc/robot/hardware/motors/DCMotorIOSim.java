@@ -17,12 +17,11 @@ import java.util.function.DoubleSupplier;
 
 public class DCMotorIOSim implements DCMotorIO {
   private final DCMotorSim sim;
-  private final ProfiledPIDController pid =
-      new ProfiledPIDController(
-          0,
-          0,
-          0,
-          new TrapezoidProfile.Constraints(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
+  private final ProfiledPIDController pid = new ProfiledPIDController(
+      0,
+      0,
+      0,
+      new TrapezoidProfile.Constraints(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
   private final SlewRateLimiter voltageLimiter = new SlewRateLimiter(10);
 
   private UnitConverter ratioConverter = UnitConverter.identity();
@@ -34,8 +33,7 @@ public class DCMotorIOSim implements DCMotorIO {
       double gearing,
       UnitConverter ratioConverter,
       Gains gains) {
-    sim =
-        new DCMotorSim(LinearSystemId.createDCMotorSystem(motor, JKgMetersSquared, gearing), motor);
+    sim = new DCMotorSim(LinearSystemId.createDCMotorSystem(motor, JKgMetersSquared, gearing), motor);
 
     setUnitConvertor(ratioConverter);
     setGains(gains);
@@ -110,15 +108,13 @@ public class DCMotorIOSim implements DCMotorIO {
   @Override
   public void setAppliedPositionF(
       double position, double velocity, double acceleration, double feedforward) {
-    double pidOutput =
-        pid.calculate(sim.getAngularPositionRad(), positionConvertor.convertInverse(position));
+    double pidOutput = pid.calculate(sim.getAngularPositionRad(), positionConvertor.convertInverse(position));
     setVoltage(pidOutput + feedforward);
   }
 
   @Override
   public void setAppliedVelocityF(double velocity, double acceleration, double feedforward) {
-    double pidOutput =
-        pid.calculate(sim.getAngularVelocityRadPerSec(), ratioConverter.convertInverse(velocity));
+    double pidOutput = pid.calculate(sim.getAngularVelocityRadPerSec(), ratioConverter.convertInverse(velocity));
     setVoltage(pidOutput + feedforward);
   }
 
@@ -177,6 +173,21 @@ public class DCMotorIOSim implements DCMotorIO {
   @Override
   public double getAppliedAcceleration() {
     return ratioConverter.applyAsDouble(sim.getAngularAccelerationRadPerSecSq());
+  }
+
+  @Override
+  public double getRawPosition() {
+    return sim.getAngularPositionRad();
+  }
+
+  @Override
+  public double getRawVelocity() {
+    return sim.getAngularVelocityRadPerSec();
+  }
+
+  @Override
+  public double getRawAcceleration() {
+    return sim.getAngularAccelerationRadPerSecSq();
   }
 
   @Override
