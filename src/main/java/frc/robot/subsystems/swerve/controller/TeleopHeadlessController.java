@@ -24,6 +24,6 @@ public class TeleopHeadlessController extends TeleopHeaderController {
 
   @Override
   public String getName() {
-    return "Headless Control";
+    return "Teleop Headless Controller";
   }
 }

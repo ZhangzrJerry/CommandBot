@@ -14,27 +14,24 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class AlongWaypointsController implements SwerveController {
-  private final LoggedTunableGains<PidGains> translationGains =
-      new LoggedTunableGains<>(
-          "AlongWaypointsController/translationGains", new PidGains(0.5, 0, 0));
-  private final ProfiledPIDController translationController =
-      new ProfiledPIDController(
-          translationGains.get().kP(),
-          translationGains.get().kI(),
-          translationGains.get().kD(),
-          new TrapezoidProfile.Constraints(
-              SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC,
-              SwerveConfig.MAX_TRANSLATION_ACC_METERS_PER_SEC));
+  private final LoggedTunableGains<PidGains> translationGains = new LoggedTunableGains<>(
+      "AlongWaypointsController/translationGains", new PidGains(0.5, 0, 0));
+  private final ProfiledPIDController translationController = new ProfiledPIDController(
+      translationGains.get().kP(),
+      translationGains.get().kI(),
+      translationGains.get().kD(),
+      new TrapezoidProfile.Constraints(
+          SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC,
+          SwerveConfig.MAX_TRANSLATION_ACC_METERS_PER_SEC));
 
-  private final LoggedTunableGains<PidGains> rotationGains =
-      new LoggedTunableGains<>("AlongWaypointsController/rotationGains", new PidGains(0.5, 0, 0));
-  private final ProfiledPIDController rotationController =
-      new ProfiledPIDController(
-          rotationGains.get().kP(),
-          rotationGains.get().kI(),
-          rotationGains.get().kD(),
-          new TrapezoidProfile.Constraints(
-              SwerveConfig.MAX_ANGULAR_VEL_RAD_PER_SEC, Double.POSITIVE_INFINITY));
+  private final LoggedTunableGains<PidGains> rotationGains = new LoggedTunableGains<>(
+      "AlongWaypointsController/rotationGains", new PidGains(0.5, 0, 0));
+  private final ProfiledPIDController rotationController = new ProfiledPIDController(
+      rotationGains.get().kP(),
+      rotationGains.get().kI(),
+      rotationGains.get().kD(),
+      new TrapezoidProfile.Constraints(
+          SwerveConfig.MAX_ANGULAR_VEL_RAD_PER_SEC, Double.POSITIVE_INFINITY));
 
   private final List<Pose2d> waypoints = new ArrayList<>();
   private final Supplier<Pose2d> currentPoseSupplier;
@@ -67,8 +64,7 @@ public class AlongWaypointsController implements SwerveController {
   @Override
   public Translation2d getTranslation2d() {
     Pose2d currentPose = currentPoseSupplier.get();
-    Translation2d eTranslation2d =
-        getTargetPose2d().getTranslation().minus(currentPose.getTranslation());
+    Translation2d eTranslation2d = getTargetPose2d().getTranslation().minus(currentPose.getTranslation());
     double magnitude = translationController.calculate(eTranslation2d.getNorm());
     return eTranslation2d.getNorm() > 0
         ? eTranslation2d.times(magnitude / eTranslation2d.getNorm())
@@ -86,6 +82,6 @@ public class AlongWaypointsController implements SwerveController {
 
   @Override
   public String getName() {
-    return "Along Waypoints";
+    return "Along Waypoints Controller";
   }
 }

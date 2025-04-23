@@ -27,6 +27,6 @@ public interface SwerveController {
   }
 
   default String getName() {
-    return "SwerveController";
+    return "Swerve Controller";
   }
 }
