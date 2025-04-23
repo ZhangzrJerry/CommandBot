@@ -12,10 +12,12 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.odometry.Odometry;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.controller.TeleopHeaderController;
+import frc.robot.subsystems.vision.AtagVision;
 
 public class RobotContainer {
   // physical subsystems
   private final Swerve swerve;
+  private final AtagVision vision;
 
   private final Odometry odometry = new Odometry();
 
@@ -26,12 +28,15 @@ public class RobotContainer {
     if (Robot.isReal()) {
       // physical subsystems
       swerve = Swerve.createReal();
+      vision = AtagVision.createReal();
     } else if (Robot.isSimulation()) {
       // simulation subsystems
       swerve = Swerve.createSim();
+      vision = AtagVision.createSim(() -> swerve.getWheeledPose());
     } else {
       // dummy subsystems
       swerve = Swerve.createIO();
+      vision = AtagVision.createIO();
     }
 
     configureOdometry();
