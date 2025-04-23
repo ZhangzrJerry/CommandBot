@@ -13,9 +13,12 @@
 
 package frc.robot.subsystems.vision;
 
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -27,12 +30,22 @@ import frc.robot.utils.logging.AlertUtil;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Supplier;
+import lombok.Getter;
 import org.littletonrobotics.junction.Logger;
 
 public class AtagVision extends SubsystemBase {
   private final AtagVisionIO[] io;
   private final AtagVisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
+
+  @Getter private Pose2d estimatedPose = new Pose2d();
+
+  @Getter private Matrix<N3, N3> poseCovariance = Matrix.eye(Nat.N3()).times(0.1);
+
+  @Getter private double latestTimestamp = 0.0;
+
+  private final Pose2d lastGoodPose = new Pose2d();
+  private final Matrix<N3, N3> lastGoodPoseCovariance = Matrix.eye(Nat.N3()).times(0.1);
 
   private final AlertUtil visionOfflineAlert =
       new AlertUtil("Vision offline!", AlertUtil.AlertType.WARNING);
@@ -169,9 +182,19 @@ public class AtagVision extends SubsystemBase {
           linearStdDev *= VisionConfig.cameraStdDevFactors[cameraIndex];
           angularStdDev *= VisionConfig.cameraStdDevFactors[cameraIndex];
         }
+
+        // Update estimated pose and covariance
+        if (robotPosesAccepted.size() > 0) {
+          Pose3d bestPose = robotPosesAccepted.get(robotPosesAccepted.size() - 1);
+          estimatedPose =
+              new Pose2d(bestPose.getX(), bestPose.getY(), bestPose.getRotation().toRotation2d());
+          poseCovariance = Matrix.eye(Nat.N3()).times(linearStdDev * linearStdDev);
+          poseCovariance.set(2, 2, angularStdDev * angularStdDev);
+          latestTimestamp = observation.timestamp();
+        }
       }
 
-      // Log camera datadata
+      // Log camera data
       Logger.recordOutput(
           "Vision/Camera" + Integer.toString(cameraIndex) + "/TagPoses",
           tagPoses.toArray(new Pose3d[tagPoses.size()]));

@@ -70,6 +70,14 @@ public class RobotContainer {
             swerve::getWheeledPose,
             swerve::getWheeledPoseCovariance,
             () -> Timer.getFPGATimestamp()));
+
+    // 注册AtagVision的位姿估计
+    odometry.registerObservation(
+        new Odometry.PoseObservation(
+            "AtagVision",
+            () -> vision.getEstimatedPose(),
+            () -> vision.getPoseCovariance(),
+            () -> vision.getLatestTimestamp()));
   }
 
   private void configureVisualizer() {}
