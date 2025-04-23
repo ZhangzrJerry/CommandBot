@@ -1,11 +1,9 @@
 package frc.robot.hardware.communication.phoenix;
 
 import com.ctre.phoenix6.BaseStatusSignal;
-import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusSignal;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.RobotController;
-import frc.robot.Constants.Ports;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -15,10 +13,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.DoubleSupplier;
 
 /**
- * Provides an interface for asynchronously reading high-frequency measurements to a set of queues,
+ * Provides an interface for asynchronously reading high-frequency measurements
+ * to a set of queues,
  * with support for cases where gyro might be null.
  */
-public class PhoenixOdometryThread extends Thread {
+public class PhoenixAsyncSensorThread extends Thread {
   private final Lock signalsLock = new ReentrantLock();
   private BaseStatusSignal[] phoenixSignals = new BaseStatusSignal[0];
   private final List<DoubleSupplier> genericSignals = new ArrayList<>();
@@ -26,17 +25,19 @@ public class PhoenixOdometryThread extends Thread {
   private final List<Queue<Double>> genericQueues = new ArrayList<>();
   private final List<Queue<Double>> timestampQueues = new ArrayList<>();
 
-  private static boolean isCANFD = new CANBus(Ports.Can.CHASSIS_CANIVORE_BUS).isNetworkFD();
-  private static PhoenixOdometryThread instance = null;
+  // private static boolean isCANFD = new
+  // CANBus(Ports.Can.CHASSIS_CANIVORE_BUS).isNetworkFD();
+  private static boolean isCANFD = true;
+  private static PhoenixAsyncSensorThread instance = null;
 
-  public static PhoenixOdometryThread getInstance() {
+  public static PhoenixAsyncSensorThread getInstance() {
     if (instance == null) {
-      instance = new PhoenixOdometryThread();
+      instance = new PhoenixAsyncSensorThread();
     }
     return instance;
   }
 
-  private PhoenixOdometryThread() {
+  private PhoenixAsyncSensorThread() {
     setName("PhoenixOdometryThread");
     setDaemon(true);
   }
