@@ -12,28 +12,29 @@ import frc.robot.subsystems.swerve.controller.TeleopHeadlessController;
 import frc.robot.virtuals.odometry.Odometry;
 
 public class RobotContainer {
-  // commander
-  private final CommandXboxController joystick = new CommandXboxController(Ports.Joystick.DRIVER);
-
   // subsystem
   private final Swerve swerve;
-
-  // virtual subsystem
+  
+  // service
   private final Odometry odometry;
+  
+  // commander
+  private final CommandXboxController joystick = new CommandXboxController(Ports.Joystick.DRIVER);
 
   public RobotContainer() {
     // subsystem
     swerve = new Swerve();
 
-    // virtual subsystem
+    // service
     odometry = new Odometry(
         () -> swerve.getPositions(), () -> swerve.getGyroYaw(), swerve.getKinematics());
 
-    configureDefaultBindings();
+    // commander
     configureBindings();
   }
 
   private void configureBindings() {
+    swerve.setDefaultCommand(swerveHeadlessControlCommand);
 
     joystick
         .a()
@@ -42,12 +43,11 @@ public class RobotContainer {
                 () -> swerve.setController(
                     new AlongWaypointsController(
                         () -> odometry.getEstimatedPose(), new Pose2d(0, 0, new Rotation2d()))),
-                swerve).withName("## Proceed to waypoint"));
+                swerve).withName("## Proceed to Waypoint"));
   }
 
-  private void configureDefaultBindings() {
-    swerve.setDefaultCommand(
-        Commands.run(
+  private Command swerveHeadlessControlCommand() {
+    return Commands.run(
             () -> swerve.setController(
                 new TeleopHeadlessController(
                     () -> -joystick.getLeftY(),
@@ -55,11 +55,7 @@ public class RobotContainer {
                     () -> -joystick.getRightX(),
                     () -> odometry.getGyroYaw())),
             swerve)
-            .withName("[Swerve] Teleop"));
-  }
-
-  public Command getAutonomousCommand() {
-    return Commands.none();
+            .withName("[Swerve] Headless Control");
   }
 
   private Command joystickRumbleCommand() {
@@ -67,5 +63,9 @@ public class RobotContainer {
         () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
         () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
         .withName("[Joystick] Rumble");
+  }
+  
+  public Command getAutonomousCommand() {
+    return Commands.none();
   }
 }

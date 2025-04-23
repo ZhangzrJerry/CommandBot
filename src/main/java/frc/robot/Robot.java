@@ -45,13 +45,6 @@ public class Robot extends LoggedRobot {
     } else {
       Logger.addDataReceiver(new NT4Publisher());
     }
-    // case REPLAY -> {
-    // setUseTiming(false);
-    // var logPath = LogFileUtil.findReplayLog();
-    // Logger.setReplaySource(new WPILOGReader(logPath));
-    // Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath,
-    // "_sim")));
-    // }
 
     Logger.start();
 
@@ -69,21 +62,21 @@ public class Robot extends LoggedRobot {
     CommandScheduler.getInstance()
         .onCommandInitialize(
             (Command command) -> {
-              System.out.println(command.getName() + " started");
+              System.out.println("" + command.getName() + "");
               logCommandFunction.accept(command, true);
             });
 
     CommandScheduler.getInstance()
         .onCommandFinish(
             (Command command) -> {
-              System.out.println(command.getName() + " finished");
+              System.out.println("\u001B[32m" + command.getName() + "\u001B[0m");
               logCommandFunction.accept(command, false);
             });
 
     CommandScheduler.getInstance()
         .onCommandInterrupt(
             (Command command) -> {
-              System.out.println(command.getName() + " interrupted");
+              System.out.println("\u001B[31m" + command.getName() + "\u001B[0m");
               logCommandFunction.accept(command, false);
             });
   }
