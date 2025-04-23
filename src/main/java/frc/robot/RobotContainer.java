@@ -5,7 +5,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -64,20 +63,20 @@ public class RobotContainer {
   }
 
   private void configureOdometry() {
-    odometry.registerObservation(
-        new Odometry.PoseObservation(
-            "Wheeled",
-            swerve::getWheeledPose,
-            swerve::getWheeledPoseCovariance,
-            () -> Timer.getFPGATimestamp()));
+    // odometry.registerObservation(
+    // new Odometry.PoseObservation(
+    // "Wheeled",
+    // swerve::getWheeledPose,
+    // swerve::getWheeledPoseCovariance,
+    // () -> Timer.getFPGATimestamp()));
 
-    // 注册AtagVision的位姿估计
-    odometry.registerObservation(
-        new Odometry.PoseObservation(
-            "AtagVision",
-            () -> vision.getEstimatedPose(),
-            () -> vision.getPoseCovariance(),
-            () -> vision.getLatestTimestamp()));
+    // // 注册AtagVision的位姿估计
+    // odometry.registerObservation(
+    // new Odometry.PoseObservation(
+    // "AtagVision",
+    // () -> vision.getEstimatedPose(),
+    // () -> vision.getPoseCovariance(),
+    // () -> vision.getLatestTimestamp()));
   }
 
   private void configureVisualizer() {}
