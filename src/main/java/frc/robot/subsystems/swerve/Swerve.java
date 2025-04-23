@@ -1,6 +1,7 @@
 package frc.robot.subsystems.swerve;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
@@ -12,7 +13,6 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Config;
 import frc.robot.Ports;
-import frc.robot.Robot;
 import frc.robot.drivers.dcmotor.DCMotorIO;
 import frc.robot.drivers.dcmotor.DCMotorIOKraken;
 import frc.robot.drivers.dcmotor.DCMotorIOKrakenCancoder;
@@ -26,6 +26,7 @@ import frc.robot.utils.GeomUtil;
 import frc.robot.utils.LoggedTunableNumber;
 import frc.robot.utils.UnitConverter;
 import java.util.function.Supplier;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.ExtensionMethod;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -59,6 +60,13 @@ public class Swerve extends SubsystemBase {
         new SwerveModuleState(),
         new SwerveModuleState(),
       };
+
+  @AutoLogOutput(key = "Swerve/WheeledPose")
+  @Getter
+  private Pose2d wheeledPose = new Pose2d();
+
+  private SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[4];
+  private Rotation2d lastGyroYaw = new Rotation2d();
 
   public static Swerve createSim() {
     DCMotorIO flDriveIO,
@@ -223,12 +231,17 @@ public class Swerve extends SubsystemBase {
         gyroIO);
   }
 
-  public static Swerve create() {
-    if (Robot.isReal()) {
-      return createReal();
-    } else {
-      return createSim();
-    }
+  public static Swerve createIO() {
+    return new Swerve(
+        new DCMotorIO() {},
+        new DCMotorIO() {},
+        new DCMotorIO() {},
+        new DCMotorIO() {},
+        new DCMotorIO() {},
+        new DCMotorIO() {},
+        new DCMotorIO() {},
+        new DCMotorIO() {},
+        new GyroIO() {});
   }
 
   private Swerve(
@@ -247,6 +260,11 @@ public class Swerve extends SubsystemBase {
     modules[1] = new SwerveModule(blDriveIO, blSteerIO, "ModuleBL");
     modules[2] = new SwerveModule(brDriveIO, brSteerIO, "ModuleBR");
     modules[3] = new SwerveModule(frDriveIO, frSteerIO, "ModuleFR");
+
+    for (int i = 0; i < modules.length; i++) {
+      lastModulePositions[i] = modules[i].getPosition();
+    }
+    lastGyroYaw = gyroIO.getYaw();
   }
 
   @Override
@@ -258,6 +276,19 @@ public class Swerve extends SubsystemBase {
     for (SwerveModule module : modules) {
       module.updateInputs();
     }
+
+    // Update wheeled pose
+    var modulePositions = getPositions();
+    var twist = SwerveConfig.SWERVE_KINEMATICS.toTwist2d(lastModulePositions, modulePositions);
+    lastModulePositions = modulePositions.clone();
+
+    if (lastGyroYaw != null) {
+      var gyroYaw = gyroIO.getYaw();
+      twist = new Twist2d(twist.dx, twist.dy, gyroYaw.minus(lastGyroYaw).getRadians());
+      lastGyroYaw = gyroYaw;
+    }
+
+    wheeledPose = wheeledPose.exp(twist);
 
     ChassisSpeeds currentVel = getCurrentVel();
     ChassisSpeeds goalVel = controller.getChassisSpeeds();
@@ -330,14 +361,6 @@ public class Swerve extends SubsystemBase {
 
   public ChassisSpeeds getCurrentVel() {
     return SwerveConfig.SWERVE_KINEMATICS.toChassisSpeeds(getStates());
-  }
-
-  public Rotation2d getGyroYaw() {
-    return gyroIO.getYaw();
-  }
-
-  public SwerveDriveKinematics getKinematics() {
-    return SwerveConfig.SWERVE_KINEMATICS;
   }
 
   private ChassisSpeeds applyAccelLimitation(

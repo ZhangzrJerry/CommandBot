@@ -17,7 +17,7 @@ public class Visualizer extends VirtualSubsystem {
   private static final List<VisualizeComponent> components = new ArrayList<>();
   private static final Boolean isStrictBigEndian = true;
 
-  private Visualizer() {}
+  public Visualizer() {}
 
   /**
    * Component record for visualization system.
@@ -86,13 +86,4 @@ public class Visualizer extends VirtualSubsystem {
 
     Logger.recordOutput("Visualize/Component", poses);
   }
-
-  public static Visualizer getInstance() {
-    if (instance == null) {
-      instance = new Visualizer();
-    }
-    return instance;
-  }
-
-  private static Visualizer instance;
 }
