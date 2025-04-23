@@ -30,6 +30,7 @@ public class SwerveConfig {
       Math.hypot(WHEELBASE_LENGTH_METER, WHEELBASE_WIDTH_METER);
 
   public static final double MAX_TRANSLATION_VEL_METER_PER_SEC = 4.925568; // WCP X3T10
+  public static final double MAX_TRANSLATION_ACC_METERS_PER_SEC = 80;
   public static final double MAX_ANGULAR_VEL_RAD_PER_SEC =
       MAX_TRANSLATION_VEL_METER_PER_SEC / (WHEELBASE_DIAGONAL_METER / 2.0);
 

@@ -13,6 +13,7 @@ public class LoggedTunableGains<T extends GainsUtil.Gains> {
   private final T defaultValue;
   private final LoggedNetworkNumber[] networkNumbers;
   private final Map<Integer, T> lastHasChangedValues = new HashMap<>();
+  private static final Map<String, LoggedNetworkNumber[]> existingEntries = new HashMap<>();
 
   public LoggedTunableGains() {
     this("default", null);
@@ -23,12 +24,18 @@ public class LoggedTunableGains<T extends GainsUtil.Gains> {
     this.defaultValue = defaultValue;
 
     if (Config.IS_LIVE_DEBUG) {
-      String[] keys = defaultValue.getKeys();
-      double[] values = defaultValue.getValues();
-      networkNumbers = new LoggedNetworkNumber[keys.length];
+      // Check if the key already exists in the existing entries
+      if (existingEntries.containsKey(fullKey)) {
+        networkNumbers = existingEntries.get(fullKey);
+      } else {
+        String[] keys = defaultValue.getKeys();
+        double[] values = defaultValue.getValues();
+        networkNumbers = new LoggedNetworkNumber[keys.length];
 
-      for (int i = 0; i < keys.length; i++) {
-        networkNumbers[i] = new LoggedNetworkNumber(fullKey + "/" + keys[i], values[i]);
+        for (int i = 0; i < keys.length; i++) {
+          networkNumbers[i] = new LoggedNetworkNumber(fullKey + "/" + keys[i], values[i]);
+        }
+        existingEntries.put(fullKey, networkNumbers);
       }
     } else {
       networkNumbers = null;

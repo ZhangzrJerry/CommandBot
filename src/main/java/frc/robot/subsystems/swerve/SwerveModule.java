@@ -56,11 +56,6 @@ public class SwerveModule {
 
     driveMotorOfflineAlert.set(!driveInputs.connected);
     steerMotorOfflineAlert.set(!steerInputs.connected);
-
-    Logger.recordOutput("SwerveModule/" + name + "/Drive/Voltage", driveIO.getVoltage());
-    Logger.recordOutput("SwerveModule/" + name + "/Drive/Current", driveInputs.supplyCurrentAmps);
-    Logger.recordOutput("SwerveModule/" + name + "/Drive/Velocity", driveInputs.appliedVelocity);
-    Logger.recordOutput("SwerveModule/" + name + "/Drive/Position", driveInputs.appliedPosition);
   }
 
   void setState(SwerveModuleState state, double velocityFeedforward) {
