@@ -1,4 +1,4 @@
-package frc.robot.utils;
+package frc.robot.utils.math;
 
 import java.util.Objects;
 import java.util.function.DoubleUnaryOperator;

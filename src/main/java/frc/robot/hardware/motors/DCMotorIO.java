@@ -1,10 +1,10 @@
-package frc.robot.drivers.dcmotor;
+package frc.robot.hardware.motors;
 
 import frc.robot.utils.GainsUtil.Gains;
 import frc.robot.utils.GainsUtil.PdsGains;
 import frc.robot.utils.GainsUtil.PidGains;
 import frc.robot.utils.GainsUtil.PidsgGains;
-import frc.robot.utils.UnitConverter;
+import frc.robot.utils.math.UnitConverter;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface DCMotorIO {

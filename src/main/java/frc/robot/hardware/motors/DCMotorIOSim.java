@@ -1,4 +1,4 @@
-package frc.robot.drivers.dcmotor;
+package frc.robot.hardware.motors;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Config;
 import frc.robot.utils.GainsUtil.Gains;
-import frc.robot.utils.UnitConverter;
+import frc.robot.utils.math.UnitConverter;
 import java.util.function.DoubleSupplier;
 
 public class DCMotorIOSim implements DCMotorIO {

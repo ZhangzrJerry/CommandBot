@@ -1,6 +1,6 @@
 package frc.robot;
 
-import frc.robot.utils.CanDevice;
+import frc.robot.hardware.communication.CanDevice;
 
 public final class Ports {
   public static final class Can {

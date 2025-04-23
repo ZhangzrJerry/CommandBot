@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.subsystems.swerve.SwerveConfig;
 import frc.robot.subsystems.swerve.SwerveController;
-import frc.robot.utils.LoggedTunableNumber;
+import frc.robot.utils.logging.LoggedTunableNumber;
 import java.util.function.DoubleSupplier;
 
 public class TeleopHeaderController implements SwerveController {

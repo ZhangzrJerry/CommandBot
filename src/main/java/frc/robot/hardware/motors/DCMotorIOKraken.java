@@ -1,4 +1,4 @@
-package frc.robot.drivers.dcmotor;
+package frc.robot.hardware.motors;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -18,9 +18,9 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
-import frc.robot.utils.CanDevice;
-import frc.robot.utils.PhoenixHelper;
-import frc.robot.utils.UnitConverter;
+import frc.robot.hardware.communication.CanDevice;
+import frc.robot.hardware.communication.phoenix.PhoenixConfigurator;
+import frc.robot.utils.math.UnitConverter;
 
 public class DCMotorIOKraken implements DCMotorIO {
   private final TalonFX motor;
@@ -48,8 +48,8 @@ public class DCMotorIOKraken implements DCMotorIO {
     setUnitConvertor(ratioConverter, offsetConverter);
 
     var wrappedName = "[" + name + "]";
-    PhoenixHelper.checkErrorAndRetry(wrappedName + " clear sticky fault", motor::clearStickyFaults);
-    PhoenixHelper.checkErrorAndRetry(
+    PhoenixConfigurator.configure(wrappedName + " clear sticky fault", motor::clearStickyFaults);
+    PhoenixConfigurator.configure(
         wrappedName + " config", () -> motor.getConfigurator().apply(config));
 
     rawPosition = motor.getPosition();
@@ -60,7 +60,7 @@ public class DCMotorIOKraken implements DCMotorIO {
     supplyCurrent = motor.getSupplyCurrent();
     temperature = motor.getDeviceTemp();
 
-    PhoenixHelper.checkErrorAndRetry(
+    PhoenixConfigurator.configure(
         wrappedName + " set signals update frequency",
         () ->
             BaseStatusSignal.setUpdateFrequencyForAll(
@@ -72,7 +72,7 @@ public class DCMotorIOKraken implements DCMotorIO {
                 supplyCurrent,
                 statorCurrent,
                 temperature));
-    PhoenixHelper.checkErrorAndRetry(
+    PhoenixConfigurator.configure(
         wrappedName + " optimize CAN utilization", motor::optimizeBusUtilization);
   }
 
@@ -240,7 +240,7 @@ public class DCMotorIOKraken implements DCMotorIO {
     var wrappedName = "[" + name + "]";
     config.Feedback.FeedbackRemoteSensorID = id;
     config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
-    PhoenixHelper.checkErrorAndRetry(
+    PhoenixConfigurator.configure(
         wrappedName + " config fused cancoder mode", () -> motor.getConfigurator().apply(config));
   }
 }

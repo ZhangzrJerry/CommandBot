@@ -1,4 +1,4 @@
-package frc.robot.utils;
+package frc.robot.utils.logging;
 
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;

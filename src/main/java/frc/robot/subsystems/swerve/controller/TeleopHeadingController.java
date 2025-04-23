@@ -2,7 +2,7 @@ package frc.robot.subsystems.swerve.controller;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.utils.GainsUtil.PidGains;
-import frc.robot.utils.LoggedTunableGains;
+import frc.robot.utils.logging.LoggedTunableGains;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 

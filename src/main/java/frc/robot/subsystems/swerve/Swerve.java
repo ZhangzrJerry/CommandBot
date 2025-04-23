@@ -18,19 +18,19 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Config;
 import frc.robot.Ports;
-import frc.robot.drivers.dcmotor.DCMotorIO;
-import frc.robot.drivers.dcmotor.DCMotorIOKraken;
-import frc.robot.drivers.dcmotor.DCMotorIOKrakenCancoder;
-import frc.robot.drivers.dcmotor.DCMotorIOSim;
-import frc.robot.drivers.gyro.GyroIO;
-import frc.robot.drivers.gyro.GyroIOInputsAutoLogged;
-import frc.robot.drivers.gyro.GyroIOPigeon2;
-import frc.robot.utils.AlertUtil;
-import frc.robot.utils.EqualsUtil;
-import frc.robot.utils.GeomUtil;
-import frc.robot.utils.LoggedTunableNumber;
-import frc.robot.utils.LoggedUtil;
-import frc.robot.utils.UnitConverter;
+import frc.robot.hardware.motors.DCMotorIO;
+import frc.robot.hardware.motors.DCMotorIOKraken;
+import frc.robot.hardware.motors.DCMotorIOKrakenCancoder;
+import frc.robot.hardware.motors.DCMotorIOSim;
+import frc.robot.hardware.sensors.gyro.GyroIO;
+import frc.robot.hardware.sensors.gyro.GyroIOInputsAutoLogged;
+import frc.robot.hardware.sensors.gyro.GyroIOPigeon2;
+import frc.robot.utils.logging.AlertUtil;
+import frc.robot.utils.logging.LoggedTunableNumber;
+import frc.robot.utils.logging.LoggedUtil;
+import frc.robot.utils.math.EqualsUtil;
+import frc.robot.utils.math.GeomUtil;
+import frc.robot.utils.math.UnitConverter;
 import java.util.function.Supplier;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,7 +49,7 @@ public class Swerve extends SubsystemBase {
           "Swerve/MaxSkidAccelMeterPerSecPerLoop",
           SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC * 2.0 / Config.LOOP_PERIOD_SEC);
 
-  private final SwerveModule[] modules = new SwerveModule[4];
+  private final SwerveModuleImpl[] modules = new SwerveModuleImpl[4];
 
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
@@ -88,10 +88,10 @@ public class Swerve extends SubsystemBase {
       GyroIO gyroIO) {
     this.gyroIO = gyroIO;
 
-    modules[0] = new SwerveModule(flDriveIO, flSteerIO, "ModuleFL");
-    modules[1] = new SwerveModule(blDriveIO, blSteerIO, "ModuleBL");
-    modules[2] = new SwerveModule(brDriveIO, brSteerIO, "ModuleBR");
-    modules[3] = new SwerveModule(frDriveIO, frSteerIO, "ModuleFR");
+    modules[0] = new SwerveModuleImpl(flDriveIO, flSteerIO, "ModuleFL");
+    modules[1] = new SwerveModuleImpl(blDriveIO, blSteerIO, "ModuleBL");
+    modules[2] = new SwerveModuleImpl(brDriveIO, brSteerIO, "ModuleBR");
+    modules[3] = new SwerveModuleImpl(frDriveIO, frSteerIO, "ModuleFR");
 
     for (int i = 0; i < modules.length; i++) {
       lastModulePositions[i] = modules[i].getPosition();
@@ -140,7 +140,7 @@ public class Swerve extends SubsystemBase {
     Logger.processInputs("Swerve/Gyro", gyroInputs);
     gyroOfflineAlert.set(!gyroInputs.connected);
 
-    for (SwerveModule module : modules) {
+    for (SwerveModuleImpl module : modules) {
       module.updateInputs();
     }
 

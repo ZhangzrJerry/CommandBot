@@ -1,10 +1,10 @@
-package frc.robot.drivers.dcmotor;
+package frc.robot.hardware.motors;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
-import frc.robot.utils.CanDevice;
-import frc.robot.utils.UnitConverter;
+import frc.robot.hardware.communication.CanDevice;
+import frc.robot.utils.math.UnitConverter;
 
 public class DCMotorIOKrakenCancoder extends DCMotorIOKraken {
   CANcoder cancoder;

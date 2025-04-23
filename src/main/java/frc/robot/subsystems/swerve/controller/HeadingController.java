@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import frc.robot.subsystems.swerve.SwerveConfig;
 import frc.robot.utils.GainsUtil.PidGains;
-import frc.robot.utils.LoggedTunableGains;
+import frc.robot.utils.logging.LoggedTunableGains;
 import java.util.function.Supplier;
 
 public class HeadingController {

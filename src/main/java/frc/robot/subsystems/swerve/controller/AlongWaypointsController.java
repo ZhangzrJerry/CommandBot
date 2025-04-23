@@ -7,7 +7,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import frc.robot.subsystems.swerve.SwerveConfig;
 import frc.robot.subsystems.swerve.SwerveController;
 import frc.robot.utils.GainsUtil.PidGains;
-import frc.robot.utils.LoggedTunableGains;
+import frc.robot.utils.logging.LoggedTunableGains;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;

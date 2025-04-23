@@ -1,4 +1,4 @@
-package frc.robot.drivers.gyro;
+package frc.robot.hardware.sensors.gyro;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -9,8 +9,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Temperature;
-import frc.robot.utils.CanDevice;
-import frc.robot.utils.PhoenixHelper;
+import frc.robot.hardware.communication.CanDevice;
+import frc.robot.hardware.communication.phoenix.PhoenixConfigurator;
 
 public class GyroIOPigeon2 implements GyroIO {
   private final Pigeon2 pigeon;
@@ -26,17 +26,16 @@ public class GyroIOPigeon2 implements GyroIO {
     omega = pigeon.getAngularVelocityZWorld();
     temp = pigeon.getTemperature();
 
-    PhoenixHelper.checkErrorAndRetry(
+    PhoenixConfigurator.configure(
         "Gyro config", () -> pigeon.getConfigurator().apply(new Pigeon2Configuration()));
 
-    PhoenixHelper.checkErrorAndRetry("Gyro zero", () -> pigeon.getConfigurator().setYaw(0.0));
+    PhoenixConfigurator.configure("Gyro zero", () -> pigeon.getConfigurator().setYaw(0.0));
 
-    PhoenixHelper.checkErrorAndRetry(
+    PhoenixConfigurator.configure(
         "Gyro set yaw vel signal update frequency",
         () -> BaseStatusSignal.setUpdateFrequencyForAll(100., yaw, omega));
 
-    PhoenixHelper.checkErrorAndRetry(
-        "Gyro optimize CAN utilization", pigeon::optimizeBusUtilization);
+    PhoenixConfigurator.configure("Gyro optimize CAN utilization", pigeon::optimizeBusUtilization);
   }
 
   @Override
