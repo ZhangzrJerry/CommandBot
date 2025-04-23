@@ -16,12 +16,9 @@ import lombok.Getter;
 public class GyroIOPigeon2 implements GyroIO {
   private final Pigeon2 pigeon;
 
-  @Getter
-  private final StatusSignal<Angle> yawSignal;
-  @Getter
-  private final StatusSignal<AngularVelocity> omegaSignal;
-  @Getter
-  private final StatusSignal<Temperature> tempSignal;
+  @Getter private final StatusSignal<Angle> yawSignal;
+  @Getter private final StatusSignal<AngularVelocity> omegaSignal;
+  @Getter private final StatusSignal<Temperature> tempSignal;
 
   public GyroIOPigeon2(CanDevice gyro) {
     pigeon = new Pigeon2(gyro.id(), gyro.bus());
