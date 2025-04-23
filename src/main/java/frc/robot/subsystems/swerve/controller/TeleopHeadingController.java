@@ -25,4 +25,9 @@ public class TeleopHeadingController extends TeleopHeadlessController {
   public double getRotation() {
     return headingController.calcRotation();
   }
+
+  @Override
+  public String getName() {
+    return "Heading Control";
+  }
 }

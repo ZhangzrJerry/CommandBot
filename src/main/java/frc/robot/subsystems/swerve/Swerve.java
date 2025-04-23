@@ -1,6 +1,8 @@
 package frc.robot.subsystems.swerve;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -9,6 +11,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Config;
@@ -24,6 +27,7 @@ import frc.robot.utils.AlertUtil;
 import frc.robot.utils.EqualsUtil;
 import frc.robot.utils.GeomUtil;
 import frc.robot.utils.LoggedTunableNumber;
+import frc.robot.utils.LoggedUtil;
 import frc.robot.utils.UnitConverter;
 import java.util.function.Supplier;
 import lombok.Getter;
@@ -65,8 +69,183 @@ public class Swerve extends SubsystemBase {
   @Getter
   private Pose2d wheeledPose = new Pose2d();
 
+  @Getter private Matrix<N3, N3> wheeledPoseCovariance = Matrix.eye(Nat.N3()).times(0.1);
+
   private SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[4];
   private Rotation2d lastGyroYaw = new Rotation2d();
+
+  private Swerve(
+      DCMotorIO flDriveIO,
+      DCMotorIO flSteerIO,
+      DCMotorIO frDriveIO,
+      DCMotorIO frSteerIO,
+      DCMotorIO blDriveIO,
+      DCMotorIO blSteerIO,
+      DCMotorIO brDriveIO,
+      DCMotorIO brSteerIO,
+      GyroIO gyroIO) {
+    this.gyroIO = gyroIO;
+
+    modules[0] = new SwerveModule(flDriveIO, flSteerIO, "ModuleFL");
+    modules[1] = new SwerveModule(blDriveIO, blSteerIO, "ModuleBL");
+    modules[2] = new SwerveModule(brDriveIO, brSteerIO, "ModuleBR");
+    modules[3] = new SwerveModule(frDriveIO, frSteerIO, "ModuleFR");
+
+    for (int i = 0; i < modules.length; i++) {
+      lastModulePositions[i] = modules[i].getPosition();
+    }
+    lastGyroYaw = gyroIO.getYaw();
+  }
+
+  @Override
+  public void periodic() {
+    gyroIO.updateInputs(gyroInputs);
+    Logger.processInputs("Swerve/Gyro", gyroInputs);
+    gyroOfflineAlert.set(!gyroInputs.connected);
+
+    for (SwerveModule module : modules) {
+      module.updateInputs();
+    }
+
+    // Update wheeled pose, lock wheeled pose
+    var modulePositions = getPositions();
+    var twist = SwerveConfig.SWERVE_KINEMATICS.toTwist2d(lastModulePositions, modulePositions);
+    lastModulePositions = modulePositions.clone();
+
+    if (lastGyroYaw != null) {
+      var gyroYaw = gyroIO.getYaw();
+      twist = new Twist2d(twist.dx, twist.dy, gyroYaw.minus(lastGyroYaw).getRadians());
+      lastGyroYaw = gyroYaw;
+    }
+
+    wheeledPose = wheeledPose.exp(twist);
+
+    ChassisSpeeds currentVel = getCurrentVel();
+
+    double currentVelMeterPerSec =
+        Math.sqrt(
+            currentVel.vxMetersPerSecond * currentVel.vxMetersPerSecond
+                + currentVel.vyMetersPerSecond * currentVel.vyMetersPerSecond);
+
+    wheeledPoseCovariance.set(0, 0, Math.exp(-currentVelMeterPerSec / 5));
+    wheeledPoseCovariance.set(1, 1, Math.exp(-currentVelMeterPerSec / 5));
+    wheeledPoseCovariance.set(2, 2, Math.exp(-currentVel.omegaRadiansPerSecond / 2));
+    LoggedUtil.logMatrix("Swerve/WheeledPoseCovariance", wheeledPoseCovariance);
+
+    ChassisSpeeds goalVel = controller.getChassisSpeeds();
+
+    if (EqualsUtil.epsilonEquals(goalVel.vxMetersPerSecond, 0.0)
+        && EqualsUtil.epsilonEquals(goalVel.vyMetersPerSecond, 0.0)
+        && EqualsUtil.epsilonEquals(goalVel.omegaRadiansPerSecond, 0.0)) {
+      for (int i = 0; i < modules.length; ++i) {
+        modules[i].stop();
+      }
+    }
+
+    var rawGoalModuleStates = SwerveConfig.SWERVE_KINEMATICS.toSwerveModuleStates(goalVel);
+    SwerveDriveKinematics.desaturateWheelSpeeds(
+        rawGoalModuleStates, SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC);
+    goalVel = SwerveConfig.SWERVE_KINEMATICS.toChassisSpeeds(rawGoalModuleStates);
+
+    // 1690 Orbit accel limitation
+    goalVel = applyAccelLimitation(currentVel, goalVel);
+
+    // Dynamics compensation
+    goalVel = ChassisSpeeds.discretize(goalVel, Config.LOOP_PERIOD_SEC);
+
+    // Use last goal angle for module if chassis want stop completely
+    var goalModuleStates = SwerveConfig.SWERVE_KINEMATICS.toSwerveModuleStates(goalVel);
+    if (goalVel.toTwist2d().epsilonEquals(new Twist2d())) {
+      for (int i = 0; i < modules.length; i++) {
+        goalModuleStates[i].angle = lastGoalModuleStates[i].angle;
+        goalModuleStates[i].speedMetersPerSecond = 0.0;
+      }
+    }
+
+    var optimizedGoalModuleStates = new SwerveModuleState[4];
+    var optimizedGoalModuleTorques = new SwerveModuleState[4];
+    for (int i = 0; i < modules.length; i++) {
+      // Optimize setpoints
+      optimizedGoalModuleStates[i] = goalModuleStates[i];
+      optimizedGoalModuleStates[i].optimize(modules[i].getState().angle);
+
+      optimizedGoalModuleTorques[i] =
+          new SwerveModuleState(0.0, optimizedGoalModuleStates[i].angle);
+      modules[i].setState(optimizedGoalModuleStates[i]);
+    }
+
+    lastGoalModuleStates = goalModuleStates;
+
+    Logger.recordOutput("Swerve/SwerveStates/GoalModuleStates", goalModuleStates);
+    Logger.recordOutput("Swerve/FinalGoalVel", goalVel);
+    Logger.recordOutput("Swerve/SwerveStates/OptimizedGoalModuleStates", optimizedGoalModuleStates);
+    Logger.recordOutput(
+        "Swerve/SwerveStates/OptimizedGoalModuleTorques", optimizedGoalModuleTorques);
+  }
+
+  public SwerveModulePosition[] getPositions() {
+    SwerveModulePosition[] positions = new SwerveModulePosition[modules.length];
+    for (int i = 0; i < modules.length; i++) {
+      positions[i] = modules[i].getPosition();
+    }
+    return positions;
+  }
+
+  @AutoLogOutput(key = "Swerve/ModuleStates")
+  public SwerveModuleState[] getStates() {
+    SwerveModuleState[] states = new SwerveModuleState[modules.length];
+    for (int i = 0; i < modules.length; i++) {
+      states[i] = modules[i].getState();
+    }
+    return states;
+  }
+
+  public ChassisSpeeds getCurrentVel() {
+    return SwerveConfig.SWERVE_KINEMATICS.toChassisSpeeds(getStates());
+  }
+
+  private ChassisSpeeds applyAccelLimitation(
+      final ChassisSpeeds currentVel, final ChassisSpeeds goalVel) {
+    var currentTranslationVel =
+        new Translation2d(currentVel.vxMetersPerSecond, currentVel.vyMetersPerSecond);
+
+    var goalTranslationVel =
+        new Translation2d(goalVel.vxMetersPerSecond, goalVel.vyMetersPerSecond);
+
+    var rawAccelPerLoop =
+        goalTranslationVel.minus(currentTranslationVel).div(Config.LOOP_PERIOD_SEC);
+
+    var customMaxTiltAccelScaleVal = customMaxTiltAccelScale.get();
+    Logger.recordOutput("Swerve/customMaxTiltAccelScale", customMaxTiltAccelScaleVal);
+    var maxTiltAccelXPerLoop = maxTiltAccelXMeterPerSecPerLoop.get() * customMaxTiltAccelScaleVal;
+    var maxTiltAccelYPerLoop = maxTiltAccelYMeterPerSecPerLoop.get() * customMaxTiltAccelScaleVal;
+
+    var tiltLimitedAccelPerLoop =
+        new Translation2d(
+            MathUtil.clamp(rawAccelPerLoop.getX(), -maxTiltAccelXPerLoop, maxTiltAccelXPerLoop),
+            MathUtil.clamp(rawAccelPerLoop.getY(), -maxTiltAccelYPerLoop, maxTiltAccelYPerLoop));
+
+    var skidLimitedAccelPerLoop = new Translation2d();
+
+    if (!EqualsUtil.epsilonEquals(tiltLimitedAccelPerLoop.getNorm(), 0.0)) {
+      skidLimitedAccelPerLoop =
+          new Translation2d(
+              MathUtil.clamp(
+                  tiltLimitedAccelPerLoop.getNorm(),
+                  -maxSkidAccelMeterPerSecPerLoop.get(),
+                  maxSkidAccelMeterPerSecPerLoop.get()),
+              tiltLimitedAccelPerLoop.toRotation2d());
+    }
+
+    var calculatedDeltaVel = skidLimitedAccelPerLoop.times(Config.LOOP_PERIOD_SEC);
+
+    var limitedGoalVelTranslation = currentTranslationVel.plus(calculatedDeltaVel);
+
+    return new ChassisSpeeds(
+        limitedGoalVelTranslation.getX(),
+        limitedGoalVelTranslation.getY(),
+        goalVel.omegaRadiansPerSecond);
+  }
 
   public static Swerve createSim() {
     DCMotorIO flDriveIO,
@@ -242,167 +421,5 @@ public class Swerve extends SubsystemBase {
         new DCMotorIO() {},
         new DCMotorIO() {},
         new GyroIO() {});
-  }
-
-  private Swerve(
-      DCMotorIO flDriveIO,
-      DCMotorIO flSteerIO,
-      DCMotorIO frDriveIO,
-      DCMotorIO frSteerIO,
-      DCMotorIO blDriveIO,
-      DCMotorIO blSteerIO,
-      DCMotorIO brDriveIO,
-      DCMotorIO brSteerIO,
-      GyroIO gyroIO) {
-    this.gyroIO = gyroIO;
-
-    modules[0] = new SwerveModule(flDriveIO, flSteerIO, "ModuleFL");
-    modules[1] = new SwerveModule(blDriveIO, blSteerIO, "ModuleBL");
-    modules[2] = new SwerveModule(brDriveIO, brSteerIO, "ModuleBR");
-    modules[3] = new SwerveModule(frDriveIO, frSteerIO, "ModuleFR");
-
-    for (int i = 0; i < modules.length; i++) {
-      lastModulePositions[i] = modules[i].getPosition();
-    }
-    lastGyroYaw = gyroIO.getYaw();
-  }
-
-  @Override
-  public void periodic() {
-    gyroIO.updateInputs(gyroInputs);
-    Logger.processInputs("Swerve/Gyro", gyroInputs);
-    gyroOfflineAlert.set(!gyroInputs.connected);
-
-    for (SwerveModule module : modules) {
-      module.updateInputs();
-    }
-
-    // Update wheeled pose
-    var modulePositions = getPositions();
-    var twist = SwerveConfig.SWERVE_KINEMATICS.toTwist2d(lastModulePositions, modulePositions);
-    lastModulePositions = modulePositions.clone();
-
-    if (lastGyroYaw != null) {
-      var gyroYaw = gyroIO.getYaw();
-      twist = new Twist2d(twist.dx, twist.dy, gyroYaw.minus(lastGyroYaw).getRadians());
-      lastGyroYaw = gyroYaw;
-    }
-
-    wheeledPose = wheeledPose.exp(twist);
-
-    ChassisSpeeds currentVel = getCurrentVel();
-    ChassisSpeeds goalVel = controller.getChassisSpeeds();
-
-    if (EqualsUtil.epsilonEquals(goalVel.vxMetersPerSecond, 0.0)
-        && EqualsUtil.epsilonEquals(goalVel.vyMetersPerSecond, 0.0)
-        && EqualsUtil.epsilonEquals(goalVel.omegaRadiansPerSecond, 0.0)) {
-      for (int i = 0; i < modules.length; ++i) {
-        modules[i].stop();
-      }
-    }
-
-    var rawGoalModuleStates = SwerveConfig.SWERVE_KINEMATICS.toSwerveModuleStates(goalVel);
-    SwerveDriveKinematics.desaturateWheelSpeeds(
-        rawGoalModuleStates, SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC);
-    goalVel = SwerveConfig.SWERVE_KINEMATICS.toChassisSpeeds(rawGoalModuleStates);
-
-    // 1690 Orbit accel limitation
-    goalVel = applyAccelLimitation(currentVel, goalVel);
-
-    // Dynamics compensation
-    goalVel = ChassisSpeeds.discretize(goalVel, Config.LOOP_PERIOD_SEC);
-
-    // Use last goal angle for module if chassis want stop completely
-    var goalModuleStates = SwerveConfig.SWERVE_KINEMATICS.toSwerveModuleStates(goalVel);
-    if (goalVel.toTwist2d().epsilonEquals(new Twist2d())) {
-      for (int i = 0; i < modules.length; i++) {
-        goalModuleStates[i].angle = lastGoalModuleStates[i].angle;
-        goalModuleStates[i].speedMetersPerSecond = 0.0;
-      }
-    }
-
-    var optimizedGoalModuleStates = new SwerveModuleState[4];
-    var optimizedGoalModuleTorques = new SwerveModuleState[4];
-    for (int i = 0; i < modules.length; i++) {
-      // Optimize setpoints
-      optimizedGoalModuleStates[i] = goalModuleStates[i];
-      optimizedGoalModuleStates[i].optimize(modules[i].getState().angle);
-
-      optimizedGoalModuleTorques[i] =
-          new SwerveModuleState(0.0, optimizedGoalModuleStates[i].angle);
-      modules[i].setState(optimizedGoalModuleStates[i]);
-    }
-
-    lastGoalModuleStates = goalModuleStates;
-
-    Logger.recordOutput("Swerve/SwerveStates/GoalModuleStates", goalModuleStates);
-    Logger.recordOutput("Swerve/FinalGoalVel", goalVel);
-    Logger.recordOutput("Swerve/SwerveStates/OptimizedGoalModuleStates", optimizedGoalModuleStates);
-    Logger.recordOutput(
-        "Swerve/SwerveStates/OptimizedGoalModuleTorques", optimizedGoalModuleTorques);
-  }
-
-  public SwerveModulePosition[] getPositions() {
-    SwerveModulePosition[] positions = new SwerveModulePosition[modules.length];
-    for (int i = 0; i < modules.length; i++) {
-      positions[i] = modules[i].getPosition();
-    }
-    return positions;
-  }
-
-  @AutoLogOutput(key = "Swerve/ModuleStates")
-  public SwerveModuleState[] getStates() {
-    SwerveModuleState[] states = new SwerveModuleState[modules.length];
-    for (int i = 0; i < modules.length; i++) {
-      states[i] = modules[i].getState();
-    }
-    return states;
-  }
-
-  public ChassisSpeeds getCurrentVel() {
-    return SwerveConfig.SWERVE_KINEMATICS.toChassisSpeeds(getStates());
-  }
-
-  private ChassisSpeeds applyAccelLimitation(
-      final ChassisSpeeds currentVel, final ChassisSpeeds goalVel) {
-    var currentTranslationVel =
-        new Translation2d(currentVel.vxMetersPerSecond, currentVel.vyMetersPerSecond);
-
-    var goalTranslationVel =
-        new Translation2d(goalVel.vxMetersPerSecond, goalVel.vyMetersPerSecond);
-
-    var rawAccelPerLoop =
-        goalTranslationVel.minus(currentTranslationVel).div(Config.LOOP_PERIOD_SEC);
-
-    var customMaxTiltAccelScaleVal = customMaxTiltAccelScale.get();
-    Logger.recordOutput("Swerve/customMaxTiltAccelScale", customMaxTiltAccelScaleVal);
-    var maxTiltAccelXPerLoop = maxTiltAccelXMeterPerSecPerLoop.get() * customMaxTiltAccelScaleVal;
-    var maxTiltAccelYPerLoop = maxTiltAccelYMeterPerSecPerLoop.get() * customMaxTiltAccelScaleVal;
-
-    var tiltLimitedAccelPerLoop =
-        new Translation2d(
-            MathUtil.clamp(rawAccelPerLoop.getX(), -maxTiltAccelXPerLoop, maxTiltAccelXPerLoop),
-            MathUtil.clamp(rawAccelPerLoop.getY(), -maxTiltAccelYPerLoop, maxTiltAccelYPerLoop));
-
-    var skidLimitedAccelPerLoop = new Translation2d();
-
-    if (!EqualsUtil.epsilonEquals(tiltLimitedAccelPerLoop.getNorm(), 0.0)) {
-      skidLimitedAccelPerLoop =
-          new Translation2d(
-              MathUtil.clamp(
-                  tiltLimitedAccelPerLoop.getNorm(),
-                  -maxSkidAccelMeterPerSecPerLoop.get(),
-                  maxSkidAccelMeterPerSecPerLoop.get()),
-              tiltLimitedAccelPerLoop.toRotation2d());
-    }
-
-    var calculatedDeltaVel = skidLimitedAccelPerLoop.times(Config.LOOP_PERIOD_SEC);
-
-    var limitedGoalVelTranslation = currentTranslationVel.plus(calculatedDeltaVel);
-
-    return new ChassisSpeeds(
-        limitedGoalVelTranslation.getX(),
-        limitedGoalVelTranslation.getY(),
-        goalVel.omegaRadiansPerSecond);
   }
 }

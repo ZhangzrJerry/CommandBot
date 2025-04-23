@@ -25,4 +25,8 @@ public interface SwerveController {
   default Boolean positionAtGoal() {
     return false;
   }
+
+  default String getName() {
+    return "SwerveController";
+  }
 }

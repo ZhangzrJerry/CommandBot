@@ -83,4 +83,9 @@ public class AlongWaypointsController implements SwerveController {
             .minus(currentPoseSupplier.get().getRotation())
             .getRadians());
   }
+
+  @Override
+  public String getName() {
+    return "Along Waypoints";
+  }
 }

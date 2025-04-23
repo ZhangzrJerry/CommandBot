@@ -21,4 +21,9 @@ public class TeleopHeadlessController extends TeleopHeaderController {
         .rotateBy(yawSupplier.get().unaryMinus())
         .rotateBy(FieldUtil.isRedAlliance() ? Rotation2d.kPi : Rotation2d.kZero);
   }
+
+  @Override
+  public String getName() {
+    return "Headless Control";
+  }
 }

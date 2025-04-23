@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.virtuals.VirtualSubsystem;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -99,7 +98,6 @@ public class Robot extends LoggedRobot {
     }
 
     CommandScheduler.getInstance().run();
-    VirtualSubsystem.periodicAll();
 
     Threads.setCurrentThreadPriority(true, 10);
   }

@@ -1,20 +1,8 @@
 package frc.robot.virtuals;
 
-import java.util.ArrayList;
-import java.util.List;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public abstract class VirtualSubsystem {
-  private static final List<VirtualSubsystem> subsystems = new ArrayList<>();
-
-  public VirtualSubsystem() {
-    subsystems.add(this);
-  }
-
-  public static void periodicAll() {
-    for (VirtualSubsystem subsystem : subsystems) {
-      subsystem.periodic();
-    }
-  }
+public abstract class VirtualSubsystem extends SubsystemBase {
 
   public abstract void periodic();
 }

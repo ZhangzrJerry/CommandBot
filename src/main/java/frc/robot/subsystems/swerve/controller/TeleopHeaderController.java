@@ -50,4 +50,9 @@ public class TeleopHeaderController implements SwerveController {
     return Math.copySign(
         magnitude * magnitude * SwerveConfig.MAX_ANGULAR_VEL_RAD_PER_SEC, magnitude);
   }
+
+  @Override
+  public String getName() {
+    return "Header Control";
+  }
 }

@@ -50,7 +50,7 @@ public class Visualizer extends VirtualSubsystem {
    *
    * @param visualizeComponent the component to register
    */
-  public void register(VisualizeComponent visualizeComponent) {
+  public void registerComponent(VisualizeComponent visualizeComponent) {
     for (VisualizeComponent component : components) {
       if (component.componentId() == visualizeComponent.componentId()) {
         throw new IllegalArgumentException("componentId already exists");
