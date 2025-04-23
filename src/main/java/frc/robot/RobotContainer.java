@@ -35,7 +35,7 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    swerve.setDefaultCommand(swerveHeadlessControlCommand);
+    swerve.setDefaultCommand(swerveHeadlessControlCommand());
 
     joystick
         .a()
