@@ -38,407 +38,426 @@ import lombok.experimental.ExtensionMethod;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
-@ExtensionMethod({ GeomUtil.class, EqualsUtil.GeomExtensions.class })
+@ExtensionMethod({GeomUtil.class, EqualsUtil.GeomExtensions.class})
 public class Swerve extends SubsystemBase {
-    private final LoggedTunableNumber maxTiltAccelXMeterPerSecPerLoop = new LoggedTunableNumber(
-            "Swerve/MaxTiltAccelXMeterPerSecPerLoop", 80.0);
-    private final LoggedTunableNumber maxTiltAccelYMeterPerSecPerLoop = new LoggedTunableNumber(
-            "Swerve/MaxTiltAccelYMeterPerSecPerLoop", 80.0);
-    private final LoggedTunableNumber maxSkidAccelMeterPerSecPerLoop = new LoggedTunableNumber(
-            "Swerve/MaxSkidAccelMeterPerSecPerLoop",
-            SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC * 2.0 / Config.LOOP_PERIOD_SEC);
+  private final LoggedTunableNumber maxTiltAccelXMeterPerSecPerLoop =
+      new LoggedTunableNumber("Swerve/MaxTiltAccelXMeterPerSecPerLoop", 80.0);
+  private final LoggedTunableNumber maxTiltAccelYMeterPerSecPerLoop =
+      new LoggedTunableNumber("Swerve/MaxTiltAccelYMeterPerSecPerLoop", 80.0);
+  private final LoggedTunableNumber maxSkidAccelMeterPerSecPerLoop =
+      new LoggedTunableNumber(
+          "Swerve/MaxSkidAccelMeterPerSecPerLoop",
+          SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC * 2.0 / Config.LOOP_PERIOD_SEC);
 
-    private final SwerveModule[] modules = new SwerveModule[4];
+  private final SwerveModule[] modules = new SwerveModule[4];
 
-    private final GyroIO gyroIO;
-    private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
-    private final AlertUtil gyroOfflineAlert = new AlertUtil("Gyro offline!", AlertUtil.AlertType.WARNING);
+  private final GyroIO gyroIO;
+  private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
+  private final AlertUtil gyroOfflineAlert =
+      new AlertUtil("Gyro offline!", AlertUtil.AlertType.WARNING);
 
-    private SwerveController controller = new SwerveController() {
-    };
-    @Setter
-    private Supplier<Double> customMaxTiltAccelScale = () -> 1.0;
+  private SwerveController controller = new SwerveController() {};
+  @Setter private Supplier<Double> customMaxTiltAccelScale = () -> 1.0;
 
-    private SwerveModuleState[] lastGoalModuleStates = new SwerveModuleState[] {
-            new SwerveModuleState(),
-            new SwerveModuleState(),
-            new SwerveModuleState(),
-            new SwerveModuleState(),
-    };
+  private SwerveModuleState[] lastGoalModuleStates =
+      new SwerveModuleState[] {
+        new SwerveModuleState(),
+        new SwerveModuleState(),
+        new SwerveModuleState(),
+        new SwerveModuleState(),
+      };
 
-    @AutoLogOutput(key = "Swerve/WheeledPose")
-    @Getter
-    private Pose2d wheeledPose = new Pose2d();
+  @AutoLogOutput(key = "Swerve/WheeledPose")
+  @Getter
+  private Pose2d wheeledPose = new Pose2d();
 
-    @Getter
-    private Matrix<N3, N3> wheeledPoseCovariance = Matrix.eye(Nat.N3());
+  @Getter private Matrix<N3, N3> wheeledPoseCovariance = Matrix.eye(Nat.N3());
 
-    private SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[4];
-    private Rotation2d lastGyroYaw = new Rotation2d();
+  private SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[4];
+  private Rotation2d lastGyroYaw = new Rotation2d();
 
-    private Swerve(
-            DCMotorIO flDriveIO,
-            DCMotorIO flSteerIO,
-            DCMotorIO frDriveIO,
-            DCMotorIO frSteerIO,
-            DCMotorIO blDriveIO,
-            DCMotorIO blSteerIO,
-            DCMotorIO brDriveIO,
-            DCMotorIO brSteerIO,
-            GyroIO gyroIO) {
-        this.gyroIO = gyroIO;
+  private Swerve(
+      DCMotorIO flDriveIO,
+      DCMotorIO flSteerIO,
+      DCMotorIO frDriveIO,
+      DCMotorIO frSteerIO,
+      DCMotorIO blDriveIO,
+      DCMotorIO blSteerIO,
+      DCMotorIO brDriveIO,
+      DCMotorIO brSteerIO,
+      GyroIO gyroIO) {
+    this.gyroIO = gyroIO;
 
-        modules[0] = new SwerveModule(flDriveIO, flSteerIO, "ModuleFL");
-        modules[1] = new SwerveModule(blDriveIO, blSteerIO, "ModuleBL");
-        modules[2] = new SwerveModule(brDriveIO, brSteerIO, "ModuleBR");
-        modules[3] = new SwerveModule(frDriveIO, frSteerIO, "ModuleFR");
+    modules[0] = new SwerveModule(flDriveIO, flSteerIO, "ModuleFL");
+    modules[1] = new SwerveModule(blDriveIO, blSteerIO, "ModuleBL");
+    modules[2] = new SwerveModule(brDriveIO, brSteerIO, "ModuleBR");
+    modules[3] = new SwerveModule(frDriveIO, frSteerIO, "ModuleFR");
 
-        for (int i = 0; i < modules.length; i++) {
-            lastModulePositions[i] = modules[i].getPosition();
-        }
-        lastGyroYaw = gyroIO.getYaw();
+    for (int i = 0; i < modules.length; i++) {
+      lastModulePositions[i] = modules[i].getPosition();
     }
+    lastGyroYaw = gyroIO.getYaw();
+  }
 
-    public Command setControllerCommand(SwerveController controller) {
-        return Commands.run(
-                () -> {
-                    this.controller = controller;
-                },
-                this)
-                .withName("[Swerve] set controller: " + controller.getName());
-    }
+  public Command setControllerCommand(SwerveController controller) {
+    return Commands.run(
+            () -> {
+              this.controller = controller;
+            },
+            this)
+        .withName("[Swerve] Set Controller: " + controller.getName());
+  }
 
-    public Command resetWheeledPoseCommand(Pose2d pose, Matrix<N3, N3> cov) {
-        return Commands.runOnce(() -> {
-            this.wheeledPose = pose;
-            this.wheeledPoseCovariance = cov;
-            if (lastGyroYaw != null) {
+  public Command resetWheeledPoseCommand(Pose2d pose, Matrix<N3, N3> cov) {
+    return Commands.runOnce(
+            () -> {
+              this.wheeledPose = pose;
+              this.wheeledPoseCovariance = cov;
+              if (lastGyroYaw != null) {
                 lastGyroYaw = pose.getRotation();
                 gyroIO.setYaw(lastGyroYaw);
-            }
-        }).withName("[Swerve] reset wheeled pose");
-    }
+              }
+            })
+        .withName("[Swerve] Reset Wheeled Pose");
+  }
 
-    public Command resetGyroHeadingCommand(Rotation2d yaw) {
-        return Commands.runOnce(() -> {
-            this.wheeledPose = new Pose2d(this.wheeledPose.getTranslation(), yaw);
-            this.wheeledPoseCovariance.set(2, 2, 1);
-            if (lastGyroYaw != null) {
+  public Command resetGyroHeadingCommand(Rotation2d yaw) {
+    return Commands.runOnce(
+            () -> {
+              this.wheeledPose = new Pose2d(this.wheeledPose.getTranslation(), yaw);
+              this.wheeledPoseCovariance.set(2, 2, 1);
+              if (lastGyroYaw != null) {
                 lastGyroYaw = yaw;
                 gyroIO.setYaw(lastGyroYaw);
-            }
-        }).withName("[Swerve] reset gyro heading");
+              }
+            })
+        .withName("[Swerve] Reset Gyro Heading");
+  }
+
+  @Override
+  public void periodic() {
+    gyroIO.updateInputs(gyroInputs);
+    Logger.processInputs("Swerve/Gyro", gyroInputs);
+    gyroOfflineAlert.set(!gyroInputs.connected);
+
+    for (SwerveModule module : modules) {
+      module.updateInputs();
     }
 
-    @Override
-    public void periodic() {
-        gyroIO.updateInputs(gyroInputs);
-        Logger.processInputs("Swerve/Gyro", gyroInputs);
-        gyroOfflineAlert.set(!gyroInputs.connected);
+    // Update wheeled pose, lock wheeled pose
+    var modulePositions = getPositions();
+    var twist = SwerveConfig.SWERVE_KINEMATICS.toTwist2d(lastModulePositions, modulePositions);
+    lastModulePositions = modulePositions.clone();
 
-        for (SwerveModule module : modules) {
-            module.updateInputs();
-        }
-
-        // Update wheeled pose, lock wheeled pose
-        var modulePositions = getPositions();
-        var twist = SwerveConfig.SWERVE_KINEMATICS.toTwist2d(lastModulePositions, modulePositions);
-        lastModulePositions = modulePositions.clone();
-
-        if (lastGyroYaw != null) {
-            var gyroYaw = gyroIO.getYaw();
-            twist = new Twist2d(twist.dx, twist.dy, gyroYaw.minus(lastGyroYaw).getRadians());
-            lastGyroYaw = gyroYaw;
-        }
-
-        wheeledPose = wheeledPose.exp(twist);
-
-        ChassisSpeeds currentVel = getCurrentVel();
-
-        double currentVelMeterPerSec = Math.sqrt(
-                currentVel.vxMetersPerSecond * currentVel.vxMetersPerSecond
-                        + currentVel.vyMetersPerSecond * currentVel.vyMetersPerSecond);
-
-        wheeledPoseCovariance.set(0, 0, wheeledPoseCovariance.get(0, 0) + currentVelMeterPerSec / 100);
-        wheeledPoseCovariance.set(1, 1, wheeledPoseCovariance.get(1, 1) + currentVelMeterPerSec / 100);
-        wheeledPoseCovariance.set(2, 2, wheeledPoseCovariance.get(2, 2) + currentVel.omegaRadiansPerSecond / 25);
-        LoggedUtil.logMatrix("Swerve/WheeledPoseCovariance", wheeledPoseCovariance);
-
-        ChassisSpeeds goalVel = controller.getChassisSpeeds();
-
-        if (EqualsUtil.epsilonEquals(goalVel.vxMetersPerSecond, 0.0)
-                && EqualsUtil.epsilonEquals(goalVel.vyMetersPerSecond, 0.0)
-                && EqualsUtil.epsilonEquals(goalVel.omegaRadiansPerSecond, 0.0)) {
-            for (int i = 0; i < modules.length; ++i) {
-                modules[i].stop();
-            }
-        }
-
-        var rawGoalModuleStates = SwerveConfig.SWERVE_KINEMATICS.toSwerveModuleStates(goalVel);
-        SwerveDriveKinematics.desaturateWheelSpeeds(
-                rawGoalModuleStates, SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC);
-        goalVel = SwerveConfig.SWERVE_KINEMATICS.toChassisSpeeds(rawGoalModuleStates);
-
-        // 1690 Orbit accel limitation
-        goalVel = applyAccelLimitation(currentVel, goalVel);
-
-        // Dynamics compensation
-        goalVel = ChassisSpeeds.discretize(goalVel, Config.LOOP_PERIOD_SEC);
-
-        // Use last goal angle for module if chassis want stop completely
-        var goalModuleStates = SwerveConfig.SWERVE_KINEMATICS.toSwerveModuleStates(goalVel);
-        if (goalVel.toTwist2d().epsilonEquals(new Twist2d())) {
-            for (int i = 0; i < modules.length; i++) {
-                goalModuleStates[i].angle = lastGoalModuleStates[i].angle;
-                goalModuleStates[i].speedMetersPerSecond = 0.0;
-            }
-        }
-
-        var optimizedGoalModuleStates = new SwerveModuleState[4];
-        var optimizedGoalModuleTorques = new SwerveModuleState[4];
-        for (int i = 0; i < modules.length; i++) {
-            // Optimize setpoints
-            optimizedGoalModuleStates[i] = goalModuleStates[i];
-            optimizedGoalModuleStates[i].optimize(modules[i].getState().angle);
-
-            optimizedGoalModuleTorques[i] = new SwerveModuleState(0.0, optimizedGoalModuleStates[i].angle);
-            modules[i].setState(optimizedGoalModuleStates[i]);
-        }
-
-        lastGoalModuleStates = goalModuleStates;
-
-        Logger.recordOutput("Swerve/SwerveStates/GoalModuleStates", goalModuleStates);
-        Logger.recordOutput("Swerve/FinalGoalVel", goalVel);
-        Logger.recordOutput("Swerve/SwerveStates/OptimizedGoalModuleStates", optimizedGoalModuleStates);
-        Logger.recordOutput(
-                "Swerve/SwerveStates/OptimizedGoalModuleTorques", optimizedGoalModuleTorques);
+    if (lastGyroYaw != null) {
+      var gyroYaw = gyroIO.getYaw();
+      twist = new Twist2d(twist.dx, twist.dy, gyroYaw.minus(lastGyroYaw).getRadians());
+      lastGyroYaw = gyroYaw;
     }
 
-    public SwerveModulePosition[] getPositions() {
-        SwerveModulePosition[] positions = new SwerveModulePosition[modules.length];
-        for (int i = 0; i < modules.length; i++) {
-            positions[i] = modules[i].getPosition();
-        }
-        return positions;
+    wheeledPose = wheeledPose.exp(twist);
+
+    ChassisSpeeds currentVel = getCurrentVel();
+
+    double currentVelMeterPerSec =
+        Math.sqrt(
+            currentVel.vxMetersPerSecond * currentVel.vxMetersPerSecond
+                + currentVel.vyMetersPerSecond * currentVel.vyMetersPerSecond);
+
+    wheeledPoseCovariance.set(0, 0, wheeledPoseCovariance.get(0, 0) + currentVelMeterPerSec / 100);
+    wheeledPoseCovariance.set(1, 1, wheeledPoseCovariance.get(1, 1) + currentVelMeterPerSec / 100);
+    wheeledPoseCovariance.set(
+        2, 2, wheeledPoseCovariance.get(2, 2) + currentVel.omegaRadiansPerSecond / 25);
+    LoggedUtil.logMatrix("Swerve/WheeledPoseCovariance", wheeledPoseCovariance);
+
+    ChassisSpeeds goalVel = controller.getChassisSpeeds();
+
+    if (EqualsUtil.epsilonEquals(goalVel.vxMetersPerSecond, 0.0)
+        && EqualsUtil.epsilonEquals(goalVel.vyMetersPerSecond, 0.0)
+        && EqualsUtil.epsilonEquals(goalVel.omegaRadiansPerSecond, 0.0)) {
+      for (int i = 0; i < modules.length; ++i) {
+        modules[i].stop();
+      }
     }
 
-    @AutoLogOutput(key = "Swerve/ModuleStates")
-    public SwerveModuleState[] getStates() {
-        SwerveModuleState[] states = new SwerveModuleState[modules.length];
-        for (int i = 0; i < modules.length; i++) {
-            states[i] = modules[i].getState();
-        }
-        return states;
+    var rawGoalModuleStates = SwerveConfig.SWERVE_KINEMATICS.toSwerveModuleStates(goalVel);
+    SwerveDriveKinematics.desaturateWheelSpeeds(
+        rawGoalModuleStates, SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC);
+    goalVel = SwerveConfig.SWERVE_KINEMATICS.toChassisSpeeds(rawGoalModuleStates);
+
+    // 1690 Orbit accel limitation
+    goalVel = applyAccelLimitation(currentVel, goalVel);
+
+    // Dynamics compensation
+    goalVel = ChassisSpeeds.discretize(goalVel, Config.LOOP_PERIOD_SEC);
+
+    // Use last goal angle for module if chassis want stop completely
+    var goalModuleStates = SwerveConfig.SWERVE_KINEMATICS.toSwerveModuleStates(goalVel);
+    if (goalVel.toTwist2d().epsilonEquals(new Twist2d())) {
+      for (int i = 0; i < modules.length; i++) {
+        goalModuleStates[i].angle = lastGoalModuleStates[i].angle;
+        goalModuleStates[i].speedMetersPerSecond = 0.0;
+      }
     }
 
-    public ChassisSpeeds getCurrentVel() {
-        return SwerveConfig.SWERVE_KINEMATICS.toChassisSpeeds(getStates());
+    var optimizedGoalModuleStates = new SwerveModuleState[4];
+    var optimizedGoalModuleTorques = new SwerveModuleState[4];
+    for (int i = 0; i < modules.length; i++) {
+      // Optimize setpoints
+      optimizedGoalModuleStates[i] = goalModuleStates[i];
+      optimizedGoalModuleStates[i].optimize(modules[i].getState().angle);
+
+      optimizedGoalModuleTorques[i] =
+          new SwerveModuleState(0.0, optimizedGoalModuleStates[i].angle);
+      modules[i].setState(optimizedGoalModuleStates[i]);
     }
 
-    private ChassisSpeeds applyAccelLimitation(
-            final ChassisSpeeds currentVel, final ChassisSpeeds goalVel) {
-        var currentTranslationVel = new Translation2d(currentVel.vxMetersPerSecond, currentVel.vyMetersPerSecond);
+    lastGoalModuleStates = goalModuleStates;
 
-        var goalTranslationVel = new Translation2d(goalVel.vxMetersPerSecond, goalVel.vyMetersPerSecond);
+    Logger.recordOutput("Swerve/SwerveStates/GoalModuleStates", goalModuleStates);
+    Logger.recordOutput("Swerve/FinalGoalVel", goalVel);
+    Logger.recordOutput("Swerve/SwerveStates/OptimizedGoalModuleStates", optimizedGoalModuleStates);
+    Logger.recordOutput(
+        "Swerve/SwerveStates/OptimizedGoalModuleTorques", optimizedGoalModuleTorques);
+  }
 
-        var rawAccelPerLoop = goalTranslationVel.minus(currentTranslationVel).div(Config.LOOP_PERIOD_SEC);
+  public SwerveModulePosition[] getPositions() {
+    SwerveModulePosition[] positions = new SwerveModulePosition[modules.length];
+    for (int i = 0; i < modules.length; i++) {
+      positions[i] = modules[i].getPosition();
+    }
+    return positions;
+  }
 
-        var customMaxTiltAccelScaleVal = customMaxTiltAccelScale.get();
-        Logger.recordOutput("Swerve/customMaxTiltAccelScale", customMaxTiltAccelScaleVal);
-        var maxTiltAccelXPerLoop = maxTiltAccelXMeterPerSecPerLoop.get() * customMaxTiltAccelScaleVal;
-        var maxTiltAccelYPerLoop = maxTiltAccelYMeterPerSecPerLoop.get() * customMaxTiltAccelScaleVal;
+  @AutoLogOutput(key = "Swerve/ModuleStates")
+  public SwerveModuleState[] getStates() {
+    SwerveModuleState[] states = new SwerveModuleState[modules.length];
+    for (int i = 0; i < modules.length; i++) {
+      states[i] = modules[i].getState();
+    }
+    return states;
+  }
 
-        var tiltLimitedAccelPerLoop = new Translation2d(
-                MathUtil.clamp(rawAccelPerLoop.getX(), -maxTiltAccelXPerLoop, maxTiltAccelXPerLoop),
-                MathUtil.clamp(rawAccelPerLoop.getY(), -maxTiltAccelYPerLoop, maxTiltAccelYPerLoop));
+  public ChassisSpeeds getCurrentVel() {
+    return SwerveConfig.SWERVE_KINEMATICS.toChassisSpeeds(getStates());
+  }
 
-        var skidLimitedAccelPerLoop = new Translation2d();
+  private ChassisSpeeds applyAccelLimitation(
+      final ChassisSpeeds currentVel, final ChassisSpeeds goalVel) {
+    var currentTranslationVel =
+        new Translation2d(currentVel.vxMetersPerSecond, currentVel.vyMetersPerSecond);
 
-        if (!EqualsUtil.epsilonEquals(tiltLimitedAccelPerLoop.getNorm(), 0.0)) {
-            skidLimitedAccelPerLoop = new Translation2d(
-                    MathUtil.clamp(
-                            tiltLimitedAccelPerLoop.getNorm(),
-                            -maxSkidAccelMeterPerSecPerLoop.get(),
-                            maxSkidAccelMeterPerSecPerLoop.get()),
-                    tiltLimitedAccelPerLoop.toRotation2d());
-        }
+    var goalTranslationVel =
+        new Translation2d(goalVel.vxMetersPerSecond, goalVel.vyMetersPerSecond);
 
-        var calculatedDeltaVel = skidLimitedAccelPerLoop.times(Config.LOOP_PERIOD_SEC);
+    var rawAccelPerLoop =
+        goalTranslationVel.minus(currentTranslationVel).div(Config.LOOP_PERIOD_SEC);
 
-        var limitedGoalVelTranslation = currentTranslationVel.plus(calculatedDeltaVel);
+    var customMaxTiltAccelScaleVal = customMaxTiltAccelScale.get();
+    Logger.recordOutput("Swerve/customMaxTiltAccelScale", customMaxTiltAccelScaleVal);
+    var maxTiltAccelXPerLoop = maxTiltAccelXMeterPerSecPerLoop.get() * customMaxTiltAccelScaleVal;
+    var maxTiltAccelYPerLoop = maxTiltAccelYMeterPerSecPerLoop.get() * customMaxTiltAccelScaleVal;
 
-        return new ChassisSpeeds(
-                limitedGoalVelTranslation.getX(),
-                limitedGoalVelTranslation.getY(),
-                goalVel.omegaRadiansPerSecond);
+    var tiltLimitedAccelPerLoop =
+        new Translation2d(
+            MathUtil.clamp(rawAccelPerLoop.getX(), -maxTiltAccelXPerLoop, maxTiltAccelXPerLoop),
+            MathUtil.clamp(rawAccelPerLoop.getY(), -maxTiltAccelYPerLoop, maxTiltAccelYPerLoop));
+
+    var skidLimitedAccelPerLoop = new Translation2d();
+
+    if (!EqualsUtil.epsilonEquals(tiltLimitedAccelPerLoop.getNorm(), 0.0)) {
+      skidLimitedAccelPerLoop =
+          new Translation2d(
+              MathUtil.clamp(
+                  tiltLimitedAccelPerLoop.getNorm(),
+                  -maxSkidAccelMeterPerSecPerLoop.get(),
+                  maxSkidAccelMeterPerSecPerLoop.get()),
+              tiltLimitedAccelPerLoop.toRotation2d());
     }
 
-    public static Swerve createSim() {
-        DCMotorIO flDriveIO,
-                flSteerIO,
-                frDriveIO,
-                frSteerIO,
-                blDriveIO,
-                blSteerIO,
-                brDriveIO,
-                brSteerIO;
+    var calculatedDeltaVel = skidLimitedAccelPerLoop.times(Config.LOOP_PERIOD_SEC);
 
-        UnitConverter driveRatioConverter = UnitConverter.scale(SwerveConfig.WHEEL_RADIUS_METER).withUnits("rad", "m");
-        UnitConverter steerRatioConverter = UnitConverter.identity().withUnits("rad", "rad");
+    var limitedGoalVelTranslation = currentTranslationVel.plus(calculatedDeltaVel);
 
-        flDriveIO = new DCMotorIOSim(
-                DCMotor.getKrakenX60(1),
-                0.025,
-                SwerveConfig.DRIVE_REDUCTION,
-                driveRatioConverter,
-                SwerveConfig.DRIVE_GAINS);
-        flSteerIO = new DCMotorIOSim(
-                DCMotor.getKrakenX60(1),
-                0.004,
-                SwerveConfig.STEER_REDUCTION,
-                steerRatioConverter,
-                SwerveConfig.STEER_GAINS);
-        frDriveIO = new DCMotorIOSim(
-                DCMotor.getKrakenX60(1),
-                0.025,
-                SwerveConfig.DRIVE_REDUCTION,
-                driveRatioConverter,
-                SwerveConfig.DRIVE_GAINS);
-        frSteerIO = new DCMotorIOSim(
-                DCMotor.getKrakenX60(1),
-                0.004,
-                SwerveConfig.STEER_REDUCTION,
-                steerRatioConverter,
-                SwerveConfig.STEER_GAINS);
-        blDriveIO = new DCMotorIOSim(
-                DCMotor.getKrakenX60(1),
-                0.025,
-                SwerveConfig.DRIVE_REDUCTION,
-                driveRatioConverter,
-                SwerveConfig.DRIVE_GAINS);
-        blSteerIO = new DCMotorIOSim(
-                DCMotor.getKrakenX60(1),
-                0.004,
-                SwerveConfig.STEER_REDUCTION,
-                steerRatioConverter,
-                SwerveConfig.STEER_GAINS);
-        brDriveIO = new DCMotorIOSim(
-                DCMotor.getKrakenX60(1),
-                0.025,
-                SwerveConfig.DRIVE_REDUCTION,
-                driveRatioConverter,
-                SwerveConfig.DRIVE_GAINS);
-        brSteerIO = new DCMotorIOSim(
-                DCMotor.getKrakenX60(1),
-                0.004,
-                SwerveConfig.STEER_REDUCTION,
-                steerRatioConverter,
-                SwerveConfig.STEER_GAINS);
+    return new ChassisSpeeds(
+        limitedGoalVelTranslation.getX(),
+        limitedGoalVelTranslation.getY(),
+        goalVel.omegaRadiansPerSecond);
+  }
 
-        GyroIO gyroIO = new GyroIO() {
-        };
+  public static Swerve createSim() {
+    DCMotorIO flDriveIO,
+        flSteerIO,
+        frDriveIO,
+        frSteerIO,
+        blDriveIO,
+        blSteerIO,
+        brDriveIO,
+        brSteerIO;
 
-        return new Swerve(
-                flDriveIO, flSteerIO, frDriveIO, frSteerIO, blDriveIO, blSteerIO, brDriveIO, brSteerIO,
-                gyroIO);
-    }
+    UnitConverter driveRatioConverter =
+        UnitConverter.scale(SwerveConfig.WHEEL_RADIUS_METER).withUnits("rad", "m");
+    UnitConverter steerRatioConverter = UnitConverter.identity().withUnits("rad", "rad");
 
-    public static Swerve createReal() {
-        DCMotorIO flDriveIO,
-                flSteerIO,
-                frDriveIO,
-                frSteerIO,
-                blDriveIO,
-                blSteerIO,
-                brDriveIO,
-                brSteerIO;
+    flDriveIO =
+        new DCMotorIOSim(
+            DCMotor.getKrakenX60(1),
+            0.025,
+            SwerveConfig.DRIVE_REDUCTION,
+            driveRatioConverter,
+            SwerveConfig.DRIVE_GAINS);
+    flSteerIO =
+        new DCMotorIOSim(
+            DCMotor.getKrakenX60(1),
+            0.004,
+            SwerveConfig.STEER_REDUCTION,
+            steerRatioConverter,
+            SwerveConfig.STEER_GAINS);
+    frDriveIO =
+        new DCMotorIOSim(
+            DCMotor.getKrakenX60(1),
+            0.025,
+            SwerveConfig.DRIVE_REDUCTION,
+            driveRatioConverter,
+            SwerveConfig.DRIVE_GAINS);
+    frSteerIO =
+        new DCMotorIOSim(
+            DCMotor.getKrakenX60(1),
+            0.004,
+            SwerveConfig.STEER_REDUCTION,
+            steerRatioConverter,
+            SwerveConfig.STEER_GAINS);
+    blDriveIO =
+        new DCMotorIOSim(
+            DCMotor.getKrakenX60(1),
+            0.025,
+            SwerveConfig.DRIVE_REDUCTION,
+            driveRatioConverter,
+            SwerveConfig.DRIVE_GAINS);
+    blSteerIO =
+        new DCMotorIOSim(
+            DCMotor.getKrakenX60(1),
+            0.004,
+            SwerveConfig.STEER_REDUCTION,
+            steerRatioConverter,
+            SwerveConfig.STEER_GAINS);
+    brDriveIO =
+        new DCMotorIOSim(
+            DCMotor.getKrakenX60(1),
+            0.025,
+            SwerveConfig.DRIVE_REDUCTION,
+            driveRatioConverter,
+            SwerveConfig.DRIVE_GAINS);
+    brSteerIO =
+        new DCMotorIOSim(
+            DCMotor.getKrakenX60(1),
+            0.004,
+            SwerveConfig.STEER_REDUCTION,
+            steerRatioConverter,
+            SwerveConfig.STEER_GAINS);
 
-        UnitConverter driveRatioConverter = UnitConverter.scale(2 * Math.PI * SwerveConfig.WHEEL_RADIUS_METER)
-                .withUnits("rot", "m");
-        UnitConverter steerRatioConverter = UnitConverter.scale(2 * Math.PI).withUnits("rot", "rad");
+    GyroIO gyroIO = new GyroIO() {};
 
-        flDriveIO = new DCMotorIOKraken(
-                "flDrive",
-                Ports.Can.FL_DRIVE_MOTOR,
-                SwerveConfig.getX2DriveTalonConfig(),
-                driveRatioConverter);
-        flSteerIO = new DCMotorIOKrakenCancoder(
-                "flSteer",
-                Ports.Can.FL_STEER_MOTOR,
-                SwerveConfig.getX2SteerTalonNoEncoderConfig(),
-                Ports.Can.FL_STEER_SENSOR,
-                SwerveConfig.FL_CANCODER_CONFIG,
-                steerRatioConverter,
-                UnitConverter.offset(SwerveConfig.FL_CANCODER_OFFSET).withUnits("rot", "rot"));
+    return new Swerve(
+        flDriveIO, flSteerIO, frDriveIO, frSteerIO, blDriveIO, blSteerIO, brDriveIO, brSteerIO,
+        gyroIO);
+  }
 
-        frDriveIO = new DCMotorIOKraken(
-                "frDrive",
-                Ports.Can.FR_DRIVE_MOTOR,
-                SwerveConfig.getX2DriveTalonConfig(),
-                driveRatioConverter);
-        frSteerIO = new DCMotorIOKrakenCancoder(
-                "frSteer",
-                Ports.Can.FR_STEER_MOTOR,
-                SwerveConfig.getX2SteerTalonNoEncoderConfig(),
-                Ports.Can.FR_STEER_SENSOR,
-                SwerveConfig.FR_CANCODER_CONFIG,
-                steerRatioConverter,
-                UnitConverter.offset(SwerveConfig.FR_CANCODER_OFFSET).withUnits("rot", "rot"));
+  public static Swerve createReal() {
+    DCMotorIO flDriveIO,
+        flSteerIO,
+        frDriveIO,
+        frSteerIO,
+        blDriveIO,
+        blSteerIO,
+        brDriveIO,
+        brSteerIO;
 
-        blDriveIO = new DCMotorIOKraken(
-                "blDrive",
-                Ports.Can.BL_DRIVE_MOTOR,
-                SwerveConfig.getX2DriveTalonConfig(),
-                driveRatioConverter);
-        blSteerIO = new DCMotorIOKrakenCancoder(
-                "blSteer",
-                Ports.Can.BL_STEER_MOTOR,
-                SwerveConfig.getX2SteerTalonNoEncoderConfig(),
-                Ports.Can.BL_STEER_SENSOR,
-                SwerveConfig.BL_CANCODER_CONFIG,
-                steerRatioConverter,
-                UnitConverter.offset(SwerveConfig.BL_CANCODER_OFFSET).withUnits("rot", "rot"));
+    UnitConverter driveRatioConverter =
+        UnitConverter.scale(2 * Math.PI * SwerveConfig.WHEEL_RADIUS_METER).withUnits("rot", "m");
+    UnitConverter steerRatioConverter = UnitConverter.scale(2 * Math.PI).withUnits("rot", "rad");
 
-        brDriveIO = new DCMotorIOKraken(
-                "brDrive",
-                Ports.Can.BR_DRIVE_MOTOR,
-                SwerveConfig.getX2DriveTalonConfig(),
-                driveRatioConverter);
-        brSteerIO = new DCMotorIOKrakenCancoder(
-                "brSteer",
-                Ports.Can.BR_STEER_MOTOR,
-                SwerveConfig.getX2SteerTalonNoEncoderConfig(),
-                Ports.Can.BR_STEER_SENSOR,
-                SwerveConfig.BR_CANCODER_CONFIG,
-                steerRatioConverter,
-                UnitConverter.offset(SwerveConfig.BR_CANCODER_OFFSET).withUnits("rot", "rot"));
+    flDriveIO =
+        new DCMotorIOKraken(
+            "flDrive",
+            Ports.Can.FL_DRIVE_MOTOR,
+            SwerveConfig.getX2DriveTalonConfig(),
+            driveRatioConverter);
+    flSteerIO =
+        new DCMotorIOKrakenCancoder(
+            "flSteer",
+            Ports.Can.FL_STEER_MOTOR,
+            SwerveConfig.getX2SteerTalonNoEncoderConfig(),
+            Ports.Can.FL_STEER_SENSOR,
+            SwerveConfig.FL_CANCODER_CONFIG,
+            steerRatioConverter,
+            UnitConverter.offset(SwerveConfig.FL_CANCODER_OFFSET).withUnits("rot", "rot"));
 
-        GyroIO gyroIO = new GyroIOPigeon2(Ports.Can.CHASSIS_PIGEON);
+    frDriveIO =
+        new DCMotorIOKraken(
+            "frDrive",
+            Ports.Can.FR_DRIVE_MOTOR,
+            SwerveConfig.getX2DriveTalonConfig(),
+            driveRatioConverter);
+    frSteerIO =
+        new DCMotorIOKrakenCancoder(
+            "frSteer",
+            Ports.Can.FR_STEER_MOTOR,
+            SwerveConfig.getX2SteerTalonNoEncoderConfig(),
+            Ports.Can.FR_STEER_SENSOR,
+            SwerveConfig.FR_CANCODER_CONFIG,
+            steerRatioConverter,
+            UnitConverter.offset(SwerveConfig.FR_CANCODER_OFFSET).withUnits("rot", "rot"));
 
-        return new Swerve(
-                flDriveIO, flSteerIO, frDriveIO, frSteerIO, blDriveIO, blSteerIO, brDriveIO, brSteerIO,
-                gyroIO);
-    }
+    blDriveIO =
+        new DCMotorIOKraken(
+            "blDrive",
+            Ports.Can.BL_DRIVE_MOTOR,
+            SwerveConfig.getX2DriveTalonConfig(),
+            driveRatioConverter);
+    blSteerIO =
+        new DCMotorIOKrakenCancoder(
+            "blSteer",
+            Ports.Can.BL_STEER_MOTOR,
+            SwerveConfig.getX2SteerTalonNoEncoderConfig(),
+            Ports.Can.BL_STEER_SENSOR,
+            SwerveConfig.BL_CANCODER_CONFIG,
+            steerRatioConverter,
+            UnitConverter.offset(SwerveConfig.BL_CANCODER_OFFSET).withUnits("rot", "rot"));
 
-    public static Swerve createIO() {
-        return new Swerve(
-                new DCMotorIO() {
-                },
-                new DCMotorIO() {
-                },
-                new DCMotorIO() {
-                },
-                new DCMotorIO() {
-                },
-                new DCMotorIO() {
-                },
-                new DCMotorIO() {
-                },
-                new DCMotorIO() {
-                },
-                new DCMotorIO() {
-                },
-                new GyroIO() {
-                });
-    }
+    brDriveIO =
+        new DCMotorIOKraken(
+            "brDrive",
+            Ports.Can.BR_DRIVE_MOTOR,
+            SwerveConfig.getX2DriveTalonConfig(),
+            driveRatioConverter);
+    brSteerIO =
+        new DCMotorIOKrakenCancoder(
+            "brSteer",
+            Ports.Can.BR_STEER_MOTOR,
+            SwerveConfig.getX2SteerTalonNoEncoderConfig(),
+            Ports.Can.BR_STEER_SENSOR,
+            SwerveConfig.BR_CANCODER_CONFIG,
+            steerRatioConverter,
+            UnitConverter.offset(SwerveConfig.BR_CANCODER_OFFSET).withUnits("rot", "rot"));
+
+    GyroIO gyroIO = new GyroIOPigeon2(Ports.Can.CHASSIS_PIGEON);
+
+    return new Swerve(
+        flDriveIO, flSteerIO, frDriveIO, frSteerIO, blDriveIO, blSteerIO, brDriveIO, brSteerIO,
+        gyroIO);
+  }
+
+  public static Swerve createIO() {
+    return new Swerve(
+        new DCMotorIO() {},
+        new DCMotorIO() {},
+        new DCMotorIO() {},
+        new DCMotorIO() {},
+        new DCMotorIO() {},
+        new DCMotorIO() {},
+        new DCMotorIO() {},
+        new DCMotorIO() {},
+        new GyroIO() {});
+  }
 }

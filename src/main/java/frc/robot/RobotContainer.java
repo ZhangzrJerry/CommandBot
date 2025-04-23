@@ -1,10 +1,10 @@
 package frc.robot;
 
 import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -37,8 +37,7 @@ public class RobotContainer {
     configureVisualizer();
   }
 
-  private void configureSubsystems() {
-  }
+  private void configureSubsystems() {}
 
   private void configureJoystick() {
     swerve.setDefaultCommand(
@@ -49,7 +48,12 @@ public class RobotContainer {
                 () -> -joystick.getRightX())));
 
     joystick.a().onTrue(swerve.resetGyroHeadingCommand(new Rotation2d()));
-    joystick.b().onTrue(swerve.resetWheeledPoseCommand(new Pose2d(), new Matrix<N3, N3>(N3.instance, N3.instance)));
+    joystick
+        .b()
+        .onTrue(
+            swerve.resetWheeledPoseCommand(
+                new Pose2d(), new Matrix<N3, N3>(N3.instance, N3.instance)));
+    joystick.x().onTrue(joystickHumbleCommand(0.3));
   }
 
   private void configureOdometry() {
@@ -61,10 +65,17 @@ public class RobotContainer {
             () -> Timer.getFPGATimestamp()));
   }
 
-  private void configureVisualizer() {
-  }
+  private void configureVisualizer() {}
 
   public Command getAutonomousCommand() {
     return Commands.none();
+  }
+
+  private Command joystickHumbleCommand(double seconds) {
+    return Commands.startEnd(
+            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
+            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
+        .withTimeout(seconds)
+        .withName("[Joystick] Rumble " + Math.round(seconds * 10) / 10.0 + "s");
   }
 }

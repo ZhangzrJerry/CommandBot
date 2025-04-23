@@ -14,13 +14,11 @@ public interface GyroIO {
     public double temperature = 35.0;
   }
 
-  default void updateInputs(GyroIOInputs inputs) {
-  }
+  default void updateInputs(GyroIOInputs inputs) {}
 
   default Rotation2d getYaw() {
     return null;
   }
 
-  default void setYaw(Rotation2d yaw) {
-  }
+  default void setYaw(Rotation2d yaw) {}
 }

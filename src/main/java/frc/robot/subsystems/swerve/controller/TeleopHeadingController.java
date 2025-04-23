@@ -8,8 +8,8 @@ import java.util.function.Supplier;
 
 public class TeleopHeadingController extends TeleopHeadlessController {
   private final HeadingController headingController;
-  private final LoggedTunableGains<PidGains> headingGains = new LoggedTunableGains<>(
-      "TeleopHeadingController/headingGains", new PidGains(2, 0, 0));
+  private final LoggedTunableGains<PidGains> headingGains =
+      new LoggedTunableGains<>("TeleopHeadingController/headingGains", new PidGains(2, 0, 0));
 
   public TeleopHeadingController(
       DoubleSupplier x,
