@@ -6,10 +6,10 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import frc.robot.hardware.communication.CanDevice;
 import frc.robot.utils.math.UnitConverter;
 
-public class DCMotorIOKrakenCancoder extends DCMotorIOKraken {
+public class DCMotorIOTalonfxCancoder extends DCMotorIOTalonfx {
   CANcoder cancoder;
 
-  public DCMotorIOKrakenCancoder(
+  public DCMotorIOTalonfxCancoder(
       String name,
       CanDevice device,
       TalonFXConfiguration motorConfig,

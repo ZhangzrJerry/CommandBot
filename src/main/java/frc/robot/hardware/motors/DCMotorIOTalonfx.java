@@ -22,7 +22,7 @@ import frc.robot.hardware.communication.CanDevice;
 import frc.robot.hardware.communication.phoenix.PhoenixConfigurator;
 import frc.robot.utils.math.UnitConverter;
 
-public class DCMotorIOKraken implements DCMotorIO {
+public class DCMotorIOTalonfx implements DCMotorIO {
   private final TalonFX motor;
   private final TalonFXConfiguration config;
 
@@ -37,7 +37,7 @@ public class DCMotorIOKraken implements DCMotorIO {
   private final StatusSignal<Current> supplyCurrent;
   private final StatusSignal<Temperature> temperature;
 
-  public DCMotorIOKraken(
+  public DCMotorIOTalonfx(
       String name,
       CanDevice kraken,
       TalonFXConfiguration config,

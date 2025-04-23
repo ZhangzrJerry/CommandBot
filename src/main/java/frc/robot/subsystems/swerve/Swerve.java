@@ -19,9 +19,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.Ports;
 import frc.robot.hardware.motors.DCMotorIO;
-import frc.robot.hardware.motors.DCMotorIOKraken;
-import frc.robot.hardware.motors.DCMotorIOKrakenCancoder;
 import frc.robot.hardware.motors.DCMotorIOSim;
+import frc.robot.hardware.motors.DCMotorIOTalonfx;
+import frc.robot.hardware.motors.DCMotorIOTalonfxCancoder;
 import frc.robot.hardware.sensors.gyro.GyroIO;
 import frc.robot.hardware.sensors.gyro.GyroIOInputsAutoLogged;
 import frc.robot.hardware.sensors.gyro.GyroIOPigeon2;
@@ -355,13 +355,13 @@ public class Swerve extends SubsystemBase {
     UnitConverter steerRatioConverter = UnitConverter.scale(2 * Math.PI).withUnits("rot", "rad");
 
     flDriveIO =
-        new DCMotorIOKraken(
+        new DCMotorIOTalonfx(
             "flDrive",
             Ports.Can.FL_DRIVE_MOTOR,
             SwerveConfig.getX2DriveTalonConfig(),
             driveRatioConverter);
     flSteerIO =
-        new DCMotorIOKrakenCancoder(
+        new DCMotorIOTalonfxCancoder(
             "flSteer",
             Ports.Can.FL_STEER_MOTOR,
             SwerveConfig.getX2SteerTalonNoEncoderConfig(),
@@ -371,13 +371,13 @@ public class Swerve extends SubsystemBase {
             UnitConverter.offset(SwerveConfig.FL_CANCODER_OFFSET).withUnits("rot", "rot"));
 
     frDriveIO =
-        new DCMotorIOKraken(
+        new DCMotorIOTalonfx(
             "frDrive",
             Ports.Can.FR_DRIVE_MOTOR,
             SwerveConfig.getX2DriveTalonConfig(),
             driveRatioConverter);
     frSteerIO =
-        new DCMotorIOKrakenCancoder(
+        new DCMotorIOTalonfxCancoder(
             "frSteer",
             Ports.Can.FR_STEER_MOTOR,
             SwerveConfig.getX2SteerTalonNoEncoderConfig(),
@@ -387,13 +387,13 @@ public class Swerve extends SubsystemBase {
             UnitConverter.offset(SwerveConfig.FR_CANCODER_OFFSET).withUnits("rot", "rot"));
 
     blDriveIO =
-        new DCMotorIOKraken(
+        new DCMotorIOTalonfx(
             "blDrive",
             Ports.Can.BL_DRIVE_MOTOR,
             SwerveConfig.getX2DriveTalonConfig(),
             driveRatioConverter);
     blSteerIO =
-        new DCMotorIOKrakenCancoder(
+        new DCMotorIOTalonfxCancoder(
             "blSteer",
             Ports.Can.BL_STEER_MOTOR,
             SwerveConfig.getX2SteerTalonNoEncoderConfig(),
@@ -403,13 +403,13 @@ public class Swerve extends SubsystemBase {
             UnitConverter.offset(SwerveConfig.BL_CANCODER_OFFSET).withUnits("rot", "rot"));
 
     brDriveIO =
-        new DCMotorIOKraken(
+        new DCMotorIOTalonfx(
             "brDrive",
             Ports.Can.BR_DRIVE_MOTOR,
             SwerveConfig.getX2DriveTalonConfig(),
             driveRatioConverter);
     brSteerIO =
-        new DCMotorIOKrakenCancoder(
+        new DCMotorIOTalonfxCancoder(
             "brSteer",
             Ports.Can.BR_STEER_MOTOR,
             SwerveConfig.getX2SteerTalonNoEncoderConfig(),
