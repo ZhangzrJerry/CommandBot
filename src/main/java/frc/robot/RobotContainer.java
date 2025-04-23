@@ -26,9 +26,10 @@ public class RobotContainer {
       // physical subsystems
       swerve = Swerve.createReal();
     } else if (Robot.isSimulation()) {
-      //
+      // simulation subsystems
       swerve = Swerve.createSim();
     } else {
+      // dummy subsystems
       swerve = Swerve.createIO();
     }
 
