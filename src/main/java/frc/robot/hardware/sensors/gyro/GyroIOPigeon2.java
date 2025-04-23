@@ -11,20 +11,24 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Temperature;
 import frc.robot.hardware.communication.CanDevice;
 import frc.robot.hardware.communication.phoenix.PhoenixConfigurator;
+import lombok.Getter;
 
 public class GyroIOPigeon2 implements GyroIO {
   private final Pigeon2 pigeon;
 
-  private final StatusSignal<Angle> yaw;
-  private final StatusSignal<AngularVelocity> omega;
-  private final StatusSignal<Temperature> temp;
+  @Getter
+  private final StatusSignal<Angle> yawSignal;
+  @Getter
+  private final StatusSignal<AngularVelocity> omegaSignal;
+  @Getter
+  private final StatusSignal<Temperature> tempSignal;
 
   public GyroIOPigeon2(CanDevice gyro) {
     pigeon = new Pigeon2(gyro.id(), gyro.bus());
 
-    yaw = pigeon.getYaw();
-    omega = pigeon.getAngularVelocityZWorld();
-    temp = pigeon.getTemperature();
+    yawSignal = pigeon.getYaw();
+    omegaSignal = pigeon.getAngularVelocityZWorld();
+    tempSignal = pigeon.getTemperature();
 
     PhoenixConfigurator.configure(
         "Gyro config", () -> pigeon.getConfigurator().apply(new Pigeon2Configuration()));
@@ -33,24 +37,24 @@ public class GyroIOPigeon2 implements GyroIO {
 
     PhoenixConfigurator.configure(
         "Gyro set yaw vel signal update frequency",
-        () -> BaseStatusSignal.setUpdateFrequencyForAll(100., yaw, omega));
+        () -> BaseStatusSignal.setUpdateFrequencyForAll(100., yawSignal, omegaSignal));
 
     PhoenixConfigurator.configure("Gyro optimize CAN utilization", pigeon::optimizeBusUtilization);
   }
 
   @Override
   public void updateInputs(GyroIOInputs inputs) {
-    inputs.connected = BaseStatusSignal.refreshAll(yaw, omega).isOK();
+    inputs.connected = BaseStatusSignal.refreshAll(yawSignal, omegaSignal).isOK();
 
-    inputs.yaw = Rotation2d.fromDegrees(yaw.getValueAsDouble());
-    inputs.omegaRadPerSec = Units.degreesToRadians(omega.getValueAsDouble());
+    inputs.yaw = Rotation2d.fromDegrees(yawSignal.getValueAsDouble());
+    inputs.omegaRadPerSec = Units.degreesToRadians(omegaSignal.getValueAsDouble());
 
-    inputs.temperature = temp.getValueAsDouble();
+    inputs.temperature = tempSignal.getValueAsDouble();
   }
 
   @Override
   public Rotation2d getYaw() {
-    return Rotation2d.fromDegrees(yaw.getValueAsDouble());
+    return Rotation2d.fromDegrees(yawSignal.getValueAsDouble());
   }
 
   @Override

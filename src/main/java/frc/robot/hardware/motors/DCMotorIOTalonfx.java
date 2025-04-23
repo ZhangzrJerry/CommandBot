@@ -21,6 +21,7 @@ import edu.wpi.first.units.measure.Voltage;
 import frc.robot.hardware.communication.CanDevice;
 import frc.robot.hardware.communication.phoenix.PhoenixConfigurator;
 import frc.robot.utils.math.UnitConverter;
+import lombok.Getter;
 
 public class DCMotorIOTalonfx implements DCMotorIO {
   private final TalonFX motor;
@@ -29,21 +30,28 @@ public class DCMotorIOTalonfx implements DCMotorIO {
   private UnitConverter ratioConverter = UnitConverter.identity();
   private UnitConverter positionConvertor = UnitConverter.identity();
 
-  private final StatusSignal<Angle> rawPosition;
-  private final StatusSignal<AngularVelocity> rawVelocity;
-  private final StatusSignal<AngularAcceleration> rawAcceleration;
-  private final StatusSignal<Voltage> outputVoltage;
-  private final StatusSignal<Current> statorCurrent;
-  private final StatusSignal<Current> supplyCurrent;
-  private final StatusSignal<Temperature> temperature;
+  @Getter
+  private final StatusSignal<Angle> rawPositionSignal;
+  @Getter
+  private final StatusSignal<AngularVelocity> rawVelocitySignal;
+  @Getter
+  private final StatusSignal<AngularAcceleration> rawAccelerationSignal;
+  @Getter
+  private final StatusSignal<Voltage> outputVoltageSignal;
+  @Getter
+  private final StatusSignal<Current> statorCurrentSignal;
+  @Getter
+  private final StatusSignal<Current> supplyCurrentSignal;
+  @Getter
+  private final StatusSignal<Temperature> temperatureSignal;
 
   public DCMotorIOTalonfx(
       String name,
-      CanDevice kraken,
+      CanDevice talonfx,
       TalonFXConfiguration config,
       UnitConverter ratioConverter,
       UnitConverter... offsetConverter) {
-    this.motor = new TalonFX(kraken.id(), kraken.bus());
+    this.motor = new TalonFX(talonfx.id(), talonfx.bus());
     this.config = config;
     setUnitConvertor(ratioConverter, offsetConverter);
 
@@ -52,46 +60,44 @@ public class DCMotorIOTalonfx implements DCMotorIO {
     PhoenixConfigurator.configure(
         wrappedName + " config", () -> motor.getConfigurator().apply(config));
 
-    rawPosition = motor.getPosition();
-    rawVelocity = motor.getVelocity();
-    rawAcceleration = motor.getAcceleration();
-    outputVoltage = motor.getMotorVoltage();
-    statorCurrent = motor.getStatorCurrent();
-    supplyCurrent = motor.getSupplyCurrent();
-    temperature = motor.getDeviceTemp();
+    rawPositionSignal = motor.getPosition();
+    rawVelocitySignal = motor.getVelocity();
+    rawAccelerationSignal = motor.getAcceleration();
+    outputVoltageSignal = motor.getMotorVoltage();
+    statorCurrentSignal = motor.getStatorCurrent();
+    supplyCurrentSignal = motor.getSupplyCurrent();
+    temperatureSignal = motor.getDeviceTemp();
 
     PhoenixConfigurator.configure(
         wrappedName + " set signals update frequency",
-        () ->
-            BaseStatusSignal.setUpdateFrequencyForAll(
-                100.0,
-                rawPosition,
-                rawVelocity,
-                rawAcceleration,
-                outputVoltage,
-                supplyCurrent,
-                statorCurrent,
-                temperature));
+        () -> BaseStatusSignal.setUpdateFrequencyForAll(
+            100.0,
+            rawPositionSignal,
+            rawVelocitySignal,
+            rawAccelerationSignal,
+            outputVoltageSignal,
+            supplyCurrentSignal,
+            statorCurrentSignal,
+            temperatureSignal));
     PhoenixConfigurator.configure(
         wrappedName + " optimize CAN utilization", motor::optimizeBusUtilization);
   }
 
   public void updateInputs(DCMotorIOInputs inputs) {
-    inputs.connected =
-        BaseStatusSignal.refreshAll(
-                rawPosition,
-                rawVelocity,
-                rawAcceleration,
-                outputVoltage,
-                supplyCurrent,
-                statorCurrent,
-                temperature)
-            .isOK();
+    inputs.connected = BaseStatusSignal.refreshAll(
+        rawPositionSignal,
+        rawVelocitySignal,
+        rawAccelerationSignal,
+        outputVoltageSignal,
+        supplyCurrentSignal,
+        statorCurrentSignal,
+        temperatureSignal)
+        .isOK();
 
     // mechanism, rotated units
-    inputs.rawPosition = rawPosition.getValueAsDouble();
-    inputs.rawVelocity = rawVelocity.getValueAsDouble();
-    inputs.rawAcceleration = rawVelocity.getValueAsDouble();
+    inputs.rawPosition = rawPositionSignal.getValueAsDouble();
+    inputs.rawVelocity = rawVelocitySignal.getValueAsDouble();
+    inputs.rawAcceleration = rawAccelerationSignal.getValueAsDouble();
     inputs.rawUnit = ratioConverter.getFromUnits();
 
     // mechanism, applied units
@@ -100,10 +106,10 @@ public class DCMotorIOTalonfx implements DCMotorIO {
     inputs.appliedAcceleration = ratioConverter.applyAsDouble(inputs.rawAcceleration);
     inputs.appliedUnit = ratioConverter.getToUnits();
 
-    inputs.outputVoltageVolts = outputVoltage.getValueAsDouble();
-    inputs.supplyCurrentAmps = supplyCurrent.getValueAsDouble();
-    inputs.statorCurrentAmps = statorCurrent.getValueAsDouble();
-    inputs.temperatureCelsius = temperature.getValueAsDouble();
+    inputs.outputVoltageVolts = outputVoltageSignal.getValueAsDouble();
+    inputs.supplyCurrentAmps = supplyCurrentSignal.getValueAsDouble();
+    inputs.statorCurrentAmps = statorCurrentSignal.getValueAsDouble();
+    inputs.temperatureCelsius = temperatureSignal.getValueAsDouble();
   }
 
   @Override
@@ -150,10 +156,10 @@ public class DCMotorIOTalonfx implements DCMotorIO {
       double position, double velocity, double acceleration, double feedforward) {
     motor.setControl(
         new DynamicMotionMagicTorqueCurrentFOC(
-                ratioConverter.convertInverse(position),
-                ratioConverter.convertInverse(velocity),
-                ratioConverter.convertInverse(acceleration),
-                0.0)
+            ratioConverter.convertInverse(position),
+            ratioConverter.convertInverse(velocity),
+            ratioConverter.convertInverse(acceleration),
+            0.0)
             .withFeedForward(feedforward));
   }
 
@@ -208,27 +214,27 @@ public class DCMotorIOTalonfx implements DCMotorIO {
 
   @Override
   public double getVoltage() {
-    return outputVoltage.getValueAsDouble();
+    return outputVoltageSignal.getValueAsDouble();
   }
 
   @Override
   public double getCurrent() {
-    return supplyCurrent.getValueAsDouble();
+    return supplyCurrentSignal.getValueAsDouble();
   }
 
   @Override
   public double getAppliedPosition() {
-    return positionConvertor.applyAsDouble(rawPosition.getValueAsDouble());
+    return positionConvertor.applyAsDouble(rawPositionSignal.getValueAsDouble());
   }
 
   @Override
   public double getAppliedVelocity() {
-    return ratioConverter.applyAsDouble(rawVelocity.getValueAsDouble());
+    return ratioConverter.applyAsDouble(rawVelocitySignal.getValueAsDouble());
   }
 
   @Override
   public double getAppliedAcceleration() {
-    return ratioConverter.applyAsDouble(rawAcceleration.getValueAsDouble());
+    return ratioConverter.applyAsDouble(rawAccelerationSignal.getValueAsDouble());
   }
 
   @Override
@@ -242,5 +248,9 @@ public class DCMotorIOTalonfx implements DCMotorIO {
     config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
     PhoenixConfigurator.configure(
         wrappedName + " config fused cancoder mode", () -> motor.getConfigurator().apply(config));
+  }
+
+  public StatusSignal<Angle> getPositionSignal() {
+    return motor.getPosition();
   }
 }

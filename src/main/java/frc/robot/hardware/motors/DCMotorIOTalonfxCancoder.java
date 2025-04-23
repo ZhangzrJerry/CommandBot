@@ -11,14 +11,14 @@ public class DCMotorIOTalonfxCancoder extends DCMotorIOTalonfx {
 
   public DCMotorIOTalonfxCancoder(
       String name,
-      CanDevice device,
+      CanDevice talonfx,
       TalonFXConfiguration motorConfig,
-      CanDevice coder,
+      CanDevice cancoder,
       CANcoderConfiguration coderConfig,
       UnitConverter ratioConverter,
       UnitConverter... offsetConverter) {
-    super(name, device, motorConfig, ratioConverter, offsetConverter);
-    this.cancoder = new CANcoder(coder.id(), coder.bus());
-    withCancoder(name, coder.id());
+    super(name, talonfx, motorConfig, ratioConverter, offsetConverter);
+    this.cancoder = new CANcoder(cancoder.id(), cancoder.bus());
+    withCancoder(name, cancoder.id());
   }
 }
