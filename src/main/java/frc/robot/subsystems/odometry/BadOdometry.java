@@ -14,20 +14,20 @@ import java.util.function.Supplier;
 import lombok.Getter;
 import org.littletonrobotics.junction.Logger;
 
-/** A subsystem that fuses multiple pose observations with covariance tracking. */
-public class Odometry extends VirtualSubsystem {
+/**
+ * A subsystem that fuses multiple pose observations with covariance tracking.
+ */
+public class BadOdometry extends VirtualSubsystem {
   private final List<PoseObservation> observations = new ArrayList<>();
   private final List<IncrementalUpdate> incrementalUpdates = new ArrayList<>();
 
   @Getter
-  private UncertainPose2d estimatedPose =
-      new UncertainPose2d(new Pose2d(), 0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f);
+  private UncertainPose2d estimatedPose = new UncertainPose2d(new Pose2d(), 0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f);
 
   private double lastUpdateTime = Timer.getFPGATimestamp();
 
   // Time decay parameters
-  private static final double HALF_LIFE_SECONDS =
-      1.0; // Observations decay to half weight after this time
+  private static final double HALF_LIFE_SECONDS = 1.0; // Observations decay to half weight after this time
   private static final double MIN_WEIGHT = 0.1; // Minimum weight for any observation
   private static final double STALE_THRESHOLD_SECONDS = 0.3; // Consider stale after 2 seconds
   private static final double COVARIANCE_GROWTH_RATE = 1.2; // Covariance growth factor per second
@@ -94,17 +94,17 @@ public class Odometry extends VirtualSubsystem {
   /** Registers a new pose observation source */
   public Command registerObservation(PoseObservation observation) {
     return Commands.runOnce(
-            () -> {
-              if (observations.stream().anyMatch(obs -> obs.name().equals(observation.name()))) {
-                throw new IllegalArgumentException(
-                    "Observation with name '" + observation.name() + "' already exists");
-              }
-              observations.add(observation);
-              // bestEstimatedPose =
-              // bestEstimatedPose.isBetterThan(observation.poseSupplier.get())
-              // ? observation.poseSupplier.get()
-              // : bestEstimatedPose;
-            })
+        () -> {
+          if (observations.stream().anyMatch(obs -> obs.name().equals(observation.name()))) {
+            throw new IllegalArgumentException(
+                "Observation with name '" + observation.name() + "' already exists");
+          }
+          observations.add(observation);
+          // bestEstimatedPose =
+          // bestEstimatedPose.isBetterThan(observation.poseSupplier.get())
+          // ? observation.poseSupplier.get()
+          // : bestEstimatedPose;
+        })
         .withName("[Odometry] Register Observation: " + observation.name());
   }
 
@@ -114,16 +114,15 @@ public class Odometry extends VirtualSubsystem {
       Supplier<UncertainTransform2d> transformSupplier,
       Supplier<Double> startTimeSupplier,
       Supplier<Double> endTimeSupplier) {
-    IncrementalUpdate update =
-        new IncrementalUpdate(name, transformSupplier, startTimeSupplier, endTimeSupplier);
+    IncrementalUpdate update = new IncrementalUpdate(name, transformSupplier, startTimeSupplier, endTimeSupplier);
     return Commands.runOnce(
-            () -> {
-              if (incrementalUpdates.stream().anyMatch(u -> u.name().equals(name))) {
-                throw new IllegalArgumentException(
-                    "Incremental update with name '" + name + "' already exists");
-              }
-              incrementalUpdates.add(update);
-            })
+        () -> {
+          if (incrementalUpdates.stream().anyMatch(u -> u.name().equals(name))) {
+            throw new IllegalArgumentException(
+                "Incremental update with name '" + name + "' already exists");
+          }
+          incrementalUpdates.add(update);
+        })
         .withName("[Odometry] Register Incremental Update: " + name);
   }
 
@@ -148,12 +147,11 @@ public class Odometry extends VirtualSubsystem {
       }
 
       // Apply the transform to our estimated pose
-      estimatedPose =
-          new UncertainPose2d(
-              estimatedPose.getPose().transformBy(transform.getTransform()),
-              estimatedPose
-                  .getCovariance()
-                  .plus(transform.getCovariance().times(timeSinceLastUpdate / duration)));
+      estimatedPose = new UncertainPose2d(
+          estimatedPose.getPose().transformBy(transform.getTransform()),
+          estimatedPose
+              .getCovariance()
+              .plus(transform.getCovariance().times(timeSinceLastUpdate / duration)));
 
       // Log the application of this update
       Logger.recordOutput("Odometry/IncrementalUpdate/" + update.name() + "/Applied", true);
@@ -191,10 +189,9 @@ public class Odometry extends VirtualSubsystem {
       }
       double ageFactor = 1.0 + (age / HALF_LIFE_SECONDS);
 
-      estimatedPose =
-          estimatedPose.fusedWith(
-              new UncertainPose2d(
-                  currentPose.getPose(), currentPose.getCovariance().times(ageFactor / weight)));
+      estimatedPose = estimatedPose.fusedWith(
+          new UncertainPose2d(
+              currentPose.getPose(), currentPose.getCovariance().times(ageFactor / weight)));
     }
 
     Logger.recordOutput("Odometry/EstimatedPose", estimatedPose.getPose());

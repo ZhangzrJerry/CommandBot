@@ -12,20 +12,19 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 /**
- * Visualization subsystem that helps visualize robot components in Advantage Scope. Maintains a
+ * Visualization subsystem that helps visualize robot components in Advantage
+ * Scope. Maintains a
  * transform tree and updates component poses periodically.
  */
 public class Visualization extends VirtualSubsystem {
   private static final List<VisualizationComponent> components = new ArrayList<>();
   private static final Boolean isStrictBigEndian = true;
 
-  public Visualization() {}
-
   /**
    * Component record for visualization system.
    *
-   * @param componentId the id of the component (0 to N)
-   * @param parentId the id of the parent component (-1 for robot frame)
+   * @param componentId       the id of the component (0 to N)
+   * @param parentId          the id of the parent component (-1 for robot frame)
    * @param transformSupplier supplier of transform from parent to this component
    */
   public record VisualizationComponent(
@@ -52,28 +51,24 @@ public class Visualization extends VirtualSubsystem {
    *
    * @param visualizeComponent the component to register
    */
-  public Command registerVisualizationComponentCommand(
+  public void registerVisualizationComponent(
       VisualizationComponent visualizationComponent) {
-    return Commands.runOnce(
-            () -> {
-              for (VisualizationComponent component : components) {
-                if (component.componentId() == visualizationComponent.componentId()) {
-                  throw new IllegalArgumentException("componentId already exists");
-                }
-              }
-              components.add(visualizationComponent);
-              components.sort(Comparator.comparingInt(VisualizationComponent::componentId));
+    for (VisualizationComponent component : components) {
+      if (component.componentId() == visualizationComponent.componentId()) {
+        throw new IllegalArgumentException("componentId already exists");
+      }
+    }
+    components.add(visualizationComponent);
+    components.sort(Comparator.comparingInt(VisualizationComponent::componentId));
 
-              // Validate component IDs are continuous
-              for (int i = 0; i < components.size(); ++i) {
-                if (components.get(i).componentId() != i) {
-                  throw new IllegalArgumentException("componentId should be continuous");
-                }
-              }
-            })
-        .withName(
-            "[Visualization] Register Visualization Component: "
-                + visualizationComponent.componentId());
+    // Validate component IDs are continuous
+    for (int i = 0; i < components.size(); ++i) {
+      if (components.get(i).componentId() != i) {
+        throw new IllegalArgumentException("componentId should be continuous");
+      }
+    }
+    System.out.println("[Visualization] Register Visualization Component: "
+        + visualizationComponent.componentId());
   }
 
   @Override
@@ -93,6 +88,18 @@ public class Visualization extends VirtualSubsystem {
       }
     }
 
-    Logger.recordOutput("Visualize/Component", poses);
+    Logger.recordOutput("Visualization/Component", poses);
+  }
+
+  private Visualization() {
+  }
+
+  private Visualization instance;
+
+  public Visualization getInstance() {
+    if (instance == null) {
+      instance = new Visualization();
+    }
+    return instance;
   }
 }
