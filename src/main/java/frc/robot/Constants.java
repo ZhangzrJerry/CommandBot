@@ -11,7 +11,7 @@ public final class Constants {
       public static final int ROBOT_FRAME = -1;
       public static final int SWERVE_FL = 0;
       public static final int SWERVE_BL = 1;
-      public static final int SWERVE_BR = 3;
+      public static final int SWERVE_BR = 2;
       public static final int SWERVE_FR = 3;
       public static final int ELEVATOR_L2 = 4;
       public static final int ELEVATOR_L3 = 5;

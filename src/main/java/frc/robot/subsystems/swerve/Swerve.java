@@ -133,10 +133,6 @@ public class Swerve extends SubsystemBase {
     // signalLock.unlock();
     // }
 
-    if (poseSupplier.get().isBetterThan(odometry.getPose())) {
-      odometry.resetWheeledPose(poseSupplier.get());
-    }
-
     ChassisSpeeds currentVel = getCurrentVel();
     ChassisSpeeds goalVel = controller.getChassisSpeeds();
 
