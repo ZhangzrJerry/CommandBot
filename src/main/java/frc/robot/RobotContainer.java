@@ -1,12 +1,10 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.arm.Arm;
-import frc.robot.subsystems.odometry.BadOdometry;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.controller.TeleopHeaderController;
 import frc.robot.subsystems.vision.AtagVision;
@@ -16,8 +14,6 @@ public class RobotContainer {
   private final Swerve swerve;
   private final Arm arm;
   private final AtagVision vision;
-
-  private final BadOdometry odometry = new BadOdometry();
 
   private final CommandXboxController joystick =
       new CommandXboxController(Constants.Ports.Joystick.DRIVER);
@@ -59,16 +55,9 @@ public class RobotContainer {
   public Command getInitializationCommand() {
     return Commands.sequence(
             // swerve
-            swerve.setCustomMaxTiltAccelScaleCommand(() -> arm.getCOGHeightPercent()),
-            // swerve.registerBetterPoseCommandSupplier(() -> odometry.getEstimatedPose()),
+            swerve.setCustomMaxTiltAccelScaleCommand(() -> arm.getCOGHeightPercent()))
+        // swerve.registerBetterPoseCommandSupplier(() -> odometry.getEstimatedPose()),
 
-            // odometry
-            odometry.registerObservation(
-                new BadOdometry.PoseObservation(
-                    "Wheeled", swerve::getUncertainPose2d, () -> Timer.getFPGATimestamp(), 0.8)),
-            odometry.registerObservation(
-                new BadOdometry.PoseObservation(
-                    "AtagVision", () -> vision.getLatestPose(), () -> vision.getLatestTimestamp())))
         .withName("### Robot Initialization ...")
         .ignoringDisable(true);
   }

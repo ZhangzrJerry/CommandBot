@@ -1,11 +1,22 @@
 package frc.robot.interfaces.services;
 
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 
 /** 里程计服务接口，提供机器人位置和姿态信息 */
 public interface OdometryService extends Service {
+  /** 变换观测记录，表示相对运动 */
+  public record TransformObservation(
+      double startTimestamp, double endTimestamp, Transform2d transform, Matrix<N3, N1> stdDevs) {}
+
+  /** 位姿观测记录，表示绝对位置 */
+  public record PoseObservation(double timestamp, Pose2d pose, Matrix<N3, N1> stdDevs) {}
+
   /**
    * 获取当前机器人位置
    *
@@ -58,4 +69,18 @@ public interface OdometryService extends Service {
   default double getHeadingAccuracy() {
     return Math.toRadians(1.0); // 默认1度
   }
+
+  /**
+   * 添加变换观测
+   *
+   * @param observation 变换观测
+   */
+  void addTransformObservation(TransformObservation observation);
+
+  /**
+   * 添加位姿观测
+   *
+   * @param observation 位姿观测
+   */
+  void addPoseObservation(PoseObservation observation);
 }

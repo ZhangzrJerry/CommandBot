@@ -54,16 +54,21 @@ public final class Constants {
       public static final CanDevice FR_STEER_SENSOR = new CanDevice(12, CHASSIS_CANIVORE_BUS);
 
       // Ground Intake
-      public static final CanDevice ALGAE_GROUND_INTAKE_ROLLER = new CanDevice(2, SUPERSTRUCTURE_CANIVORE_BUS);
-      public static final CanDevice ALGAE_GROUND_INTAKE_ARM = new CanDevice(3, SUPERSTRUCTURE_CANIVORE_BUS);
+      public static final CanDevice ALGAE_GROUND_INTAKE_ROLLER =
+          new CanDevice(2, SUPERSTRUCTURE_CANIVORE_BUS);
+      public static final CanDevice ALGAE_GROUND_INTAKE_ARM =
+          new CanDevice(3, SUPERSTRUCTURE_CANIVORE_BUS);
 
       // End Effector
-      public static final CanDevice CORAL_END_EFFECTOR = new CanDevice(4, SUPERSTRUCTURE_CANIVORE_BUS);
-      public static final CanDevice ALGAE_END_EFFECTOR = new CanDevice(5, SUPERSTRUCTURE_CANIVORE_BUS);
+      public static final CanDevice CORAL_END_EFFECTOR =
+          new CanDevice(4, SUPERSTRUCTURE_CANIVORE_BUS);
+      public static final CanDevice ALGAE_END_EFFECTOR =
+          new CanDevice(5, SUPERSTRUCTURE_CANIVORE_BUS);
 
       // Arm
       public static final CanDevice ARM_ELBOW = new CanDevice(8, SUPERSTRUCTURE_CANIVORE_BUS);
-      public static final CanDevice ARM_ELBOW_CANCODER = new CanDevice(9, SUPERSTRUCTURE_CANIVORE_BUS);
+      public static final CanDevice ARM_ELBOW_CANCODER =
+          new CanDevice(9, SUPERSTRUCTURE_CANIVORE_BUS);
       public static final CanDevice ARM_CANDI = new CanDevice(11, SUPERSTRUCTURE_CANIVORE_BUS);
 
       // Climber
@@ -83,8 +88,7 @@ public final class Constants {
       public static final int DRIVER = 0;
     }
 
-    private Ports() {
-    }
+    private Ports() {}
   }
 
   public static final class Components {
@@ -102,10 +106,8 @@ public final class Constants {
     public static final int ALGAE = 10;
     public static final int CORAL = 11;
 
-    private Components() {
-    }
+    private Components() {}
   }
 
-  private Constants() {
-  }
+  private Constants() {}
 }

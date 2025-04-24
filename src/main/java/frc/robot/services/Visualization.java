@@ -7,13 +7,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Supplier;
-import lombok.Getter;
-import lombok.Setter;
 import org.littletonrobotics.junction.Logger;
 
 /**
- * Visualization service for robot components in Advantage Scope. Maintains a
- * transform tree and
+ * Visualization service for robot components in Advantage Scope. Maintains a transform tree and
  * updates component poses periodically.
  */
 public class Visualization implements Service {
@@ -25,13 +22,12 @@ public class Visualization implements Service {
   /**
    * Component record for visualization system.
    *
-   * @param componentId       Component identifier (0 to N)
-   * @param parentId          Parent component identifier (-1 for robot frame)
+   * @param componentId Component identifier (0 to N)
+   * @param parentId Parent component identifier (-1 for robot frame)
    * @param transformSupplier Transform supplier from parent to this component
    */
   private record VisualizationComponent(
-      int componentId, int parentId, Supplier<Transform3d> transformSupplier) {
-  }
+      int componentId, int parentId, Supplier<Transform3d> transformSupplier) {}
 
   @Override
   public void init() {
@@ -42,8 +38,7 @@ public class Visualization implements Service {
   public void update() {
     state = Service.ServiceState.RUNNING;
 
-    if (components.isEmpty())
-      return;
+    if (components.isEmpty()) return;
 
     Pose3d[] poses = new Pose3d[components.size()];
     Transform3d[] transforms = new Transform3d[components.size()];
@@ -145,6 +140,5 @@ public class Visualization implements Service {
   private void logErrorMsg() {
     Logger.recordOutput(LOG_PREFIX + "ErrorMsg", errorMsg);
     System.err.println(errorMsg);
-
   }
 }
