@@ -7,6 +7,8 @@ import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.services.ServiceManager;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -17,6 +19,9 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 public class Robot extends LoggedRobot {
   private final RobotContainer robotContainer;
+  private final ServiceManager serviceManager = ServiceManager.getInstance();
+  private final CommandScheduler commandScheduler = CommandScheduler.getInstance();
+
   private Command autoCmd;
   private Command initCmd;
 
@@ -54,7 +59,7 @@ public class Robot extends LoggedRobot {
       }
     }
 
-    CommandScheduler.getInstance().run();
+    commandScheduler.run();
 
     Threads.setCurrentThreadPriority(true, 10);
   }
@@ -67,7 +72,8 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+  }
 
   @Override
   public void autonomousInit() {
@@ -81,7 +87,8 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+  }
 
   @Override
   public void teleopInit() {
@@ -91,21 +98,25 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void teleopPeriodic() {}
-
-  @Override
-  public void testInit() {
-    CommandScheduler.getInstance().cancelAll();
+  public void teleopPeriodic() {
   }
 
   @Override
-  public void testPeriodic() {}
+  public void testInit() {
+    commandScheduler.cancelAll();
+  }
 
   @Override
-  public void simulationInit() {}
+  public void testPeriodic() {
+  }
 
   @Override
-  public void simulationPeriodic() {}
+  public void simulationInit() {
+  }
+
+  @Override
+  public void simulationPeriodic() {
+  }
 
   private void configureCtreLogger() {
     if (Robot.isReal()) {
@@ -127,31 +138,30 @@ public class Robot extends LoggedRobot {
     Logger.start();
 
     Map<String, Integer> commandCounts = new HashMap<>();
-    BiConsumer<Command, Boolean> logCommandFunction =
-        (Command command, Boolean active) -> {
-          String name = command.getName();
-          int count = commandCounts.getOrDefault(name, 0) + (active ? 1 : -1);
-          commandCounts.put(name, count);
-          Logger.recordOutput(
-              "CommandsUnique/" + name + "_" + Integer.toHexString(command.hashCode()), active);
-          Logger.recordOutput("CommandsAll/" + name, count > 0);
-        };
+    BiConsumer<Command, Boolean> logCommandFunction = (Command command, Boolean active) -> {
+      String name = command.getName();
+      int count = commandCounts.getOrDefault(name, 0) + (active ? 1 : -1);
+      commandCounts.put(name, count);
+      Logger.recordOutput(
+          "CommandsUnique/" + name + "_" + Integer.toHexString(command.hashCode()), active);
+      Logger.recordOutput("CommandsAll/" + name, count > 0);
+    };
 
-    CommandScheduler.getInstance()
+    commandScheduler
         .onCommandInitialize(
             (Command command) -> {
               System.out.println("" + command.getName() + "");
               logCommandFunction.accept(command, true);
             });
 
-    CommandScheduler.getInstance()
+    commandScheduler
         .onCommandFinish(
             (Command command) -> {
               System.out.println("\u001B[32m" + command.getName() + "\u001B[0m");
               logCommandFunction.accept(command, false);
             });
 
-    CommandScheduler.getInstance()
+    commandScheduler
         .onCommandInterrupt(
             (Command command) -> {
               System.out.println("\u001B[31m" + command.getName() + "\u001B[0m");
