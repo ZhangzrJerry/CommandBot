@@ -3,6 +3,8 @@ package frc.robot.subsystems.swerve;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -24,6 +26,8 @@ import frc.robot.interfaces.hardwares.sensors.gyro.GyroIOPigeon2;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometryPhoenixThread;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometrySimThread;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometryThread;
+import frc.robot.services.ServiceManager;
+import frc.robot.services.Visualization;
 import frc.robot.utils.logging.LoggedTunableNumber;
 import frc.robot.utils.math.EqualsUtil;
 import frc.robot.utils.math.GeomUtil;
@@ -450,5 +454,39 @@ public class Swerve extends SubsystemBase {
     modules[2] = new SwerveModule(brDriveIO, brSteerIO, "ModuleBR");
     modules[3] = new SwerveModule(frDriveIO, frSteerIO, "ModuleFR");
     odometry = new SwerveOdometry(gyroIO, odometryThread.start());
+
+    Visualization visualization =
+        ServiceManager.getInstance().getService(Visualization.class, "Visualization");
+
+    if (visualization != null) {
+      visualization.registerVisualizationComponent(
+          Constants.Ascope.Component.SWERVE_FL,
+          Constants.Ascope.Component.ROBOT_FRAME,
+          () ->
+              SwerveConfig.FL_ZEROED_TF.plus(
+                  new Transform3d(
+                      0, 0, 0, new Rotation3d(0, modules[0].getState().angle.getRadians(), 0))));
+      visualization.registerVisualizationComponent(
+          Constants.Ascope.Component.SWERVE_BL,
+          Constants.Ascope.Component.ROBOT_FRAME,
+          () ->
+              SwerveConfig.BL_ZEROED_TF.plus(
+                  new Transform3d(
+                      0, 0, 0, new Rotation3d(0, modules[1].getState().angle.getRadians(), 0))));
+      visualization.registerVisualizationComponent(
+          Constants.Ascope.Component.SWERVE_BR,
+          Constants.Ascope.Component.ROBOT_FRAME,
+          () ->
+              SwerveConfig.BR_ZEROED_TF.plus(
+                  new Transform3d(
+                      0, 0, 0, new Rotation3d(0, modules[2].getState().angle.getRadians(), 0))));
+      visualization.registerVisualizationComponent(
+          Constants.Ascope.Component.SWERVE_FR,
+          Constants.Ascope.Component.ROBOT_FRAME,
+          () ->
+              SwerveConfig.FR_ZEROED_TF.plus(
+                  new Transform3d(
+                      0, 0, 0, new Rotation3d(0, modules[3].getState().angle.getRadians(), 0))));
+    }
   }
 }

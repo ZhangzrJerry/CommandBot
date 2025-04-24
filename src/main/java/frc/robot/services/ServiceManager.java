@@ -1,169 +1,245 @@
 package frc.robot.services;
 
 import frc.robot.interfaces.services.Service;
+import frc.robot.utils.logging.AlertUtil;
+
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
-/** Service manager for managing service lifecycles */
+/** 服务管理器，负责管理所有服务的生命周期 */
 public class ServiceManager {
-  private static ServiceManager instance;
-  private final List<Service> services = new ArrayList<>();
-  private final Map<Class<? extends Service>, Service> serviceMap = new ConcurrentHashMap<>();
-  private boolean isInitialized = false;
+    private static ServiceManager instance;
+    private final Map<String, Service> services = new ConcurrentHashMap<>();
+    private final List<Service> serviceList = new ArrayList<>();
+    private final List<AlertUtil> alertList = new ArrayList<>();
 
-  /** Custom exception for service-related errors */
-  public static class ServiceException extends RuntimeException {
-    public ServiceException(String message) {
-      super(message);
+    @AutoLogOutput(key = "Services/Initialized")
+    private boolean isInitialized = false;
+
+    private ServiceManager() {
     }
 
-    public ServiceException(String message, Throwable cause) {
-      super(message, cause);
-    }
-  }
-
-  private ServiceManager() {}
-
-  /** Get the singleton instance */
-  public static ServiceManager getInstance() {
-    if (instance == null) {
-      instance = new ServiceManager();
-    }
-    return instance;
-  }
-
-  /**
-   * Register a service
-   *
-   * @param service Service to register
-   * @throws ServiceException If service registration fails
-   */
-  public void registerService(Service service) {
-    if (isInitialized) {
-      throw new ServiceException("Cannot register service after initialization");
+    /**
+     * 获取 ServiceManager 的单例实例
+     *
+     * @return ServiceManager 实例
+     */
+    public static ServiceManager getInstance() {
+        if (instance == null) {
+            instance = new ServiceManager();
+        }
+        return instance;
     }
 
-    if (service == null) {
-      throw new ServiceException("Service cannot be null");
+    /**
+     * 注册服务
+     *
+     * @param service 要注册的服务
+     * @throws IllegalArgumentException 如果服务名称为空或已存在同名服务
+     */
+    public void registerService(Service service) {
+        if (service == null) {
+            throw new IllegalArgumentException("Service cannot be null");
+        }
+
+        String name = service.getName();
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Service name cannot be null or empty");
+        }
+
+        if (services.containsKey(name)) {
+            throw new IllegalArgumentException("Service with name '" + name + "' already exists");
+        }
+
+        services.put(name, service);
+        serviceList.add(service);
+        serviceList.sort((s1, s2) -> Integer.compare(s1.getPriority(), s2.getPriority()));
+        alertList.add(new AlertUtil(name + " ERRORED", AlertUtil.AlertType.ERROR));
+
+        logServicesStatus();
     }
 
-    if (serviceMap.containsKey(service.getClass())) {
-      throw new ServiceException("Service " + service.getClass().getName() + " already registered");
+    /**
+     * 获取指定名称的服务
+     *
+     * @param name 服务名称
+     * @return 服务实例，如果不存在则返回 null
+     */
+    public Service getService(String name) {
+        return services.get(name);
     }
 
-    for (Class<? extends Service> dependency : service.getDependencies()) {
-      if (!serviceMap.containsKey(dependency)) {
-        throw new ServiceException(
-            "Missing dependency: "
-                + dependency.getName()
-                + " for service: "
-                + service.getClass().getName());
-      }
+    /**
+     * 获取指定类型的服务
+     *
+     * @param <T>          服务类型
+     * @param serviceClass 服务类
+     * @return 服务实例，如果不存在则返回 null
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Service> T getService(Class<T> serviceClass) {
+        for (Service service : serviceList) {
+            if (serviceClass.isInstance(service)) {
+                return (T) service;
+            }
+        }
+        return null;
     }
 
-    services.add(service);
-    serviceMap.put(service.getClass(), service);
-  }
-
-  /** Initialize all services */
-  public void initializeAll() {
-    if (isInitialized) {
-      return;
+    /**
+     * 获取指定类型和名称的服务
+     *
+     * @param <T>          服务类型
+     * @param serviceClass 服务类
+     * @param name         服务名称
+     * @return 服务实例，如果不存在则返回 null
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Service> T getService(Class<T> serviceClass, String name) {
+        Service service = services.get(name);
+        if (service != null && serviceClass.isInstance(service)) {
+            return (T) service;
+        }
+        return null;
     }
 
-    Collections.sort(services, Comparator.comparingInt(Service::getPriority));
+    /** 初始化所有服务 */
+    public void initAll() {
+        if (isInitialized) {
+            return;
+        }
 
-    for (Service service : services) {
-      executeServiceOperation(service, "initialize", Service::initialize);
+        for (Service service : serviceList) {
+            try {
+                service.init();
+            } catch (Exception e) {
+                System.err.println(
+                        "Error initializing service " + service.getName() + ": " + e.getMessage());
+            }
+        }
+        isInitialized = true;
+        System.out.println(getServiceStatus());
     }
 
-    isInitialized = true;
-  }
+    /** 更新所有服务 */
+    public void updateAll() {
+        if (!isInitialized) {
+            return;
+        }
 
-  /** Update all running services */
-  public void updateAll() {
-    if (!isInitialized) {
-      return;
+        for (Service service : serviceList) {
+            try {
+                if (service.getState() == Service.ServiceState.RUNNING
+                        || service.getState() == Service.ServiceState.INITIALIZED) {
+                    service.update();
+                }
+            } catch (Exception e) {
+                System.err.println("Error updating service " + service.getName() + ": " + e.getMessage());
+            }
+        }
+        logServicesStatus();
     }
 
-    for (Service service : services) {
-      if (service.getState() == Service.ServiceState.RUNNING) {
-        executeServiceOperation(service, "update", Service::update);
-      }
+    public void stopAll() {
+        if (!isInitialized) {
+            return;
+        }
+
+        for (Service service : serviceList) {
+            try {
+                if (service.getState() == Service.ServiceState.RUNNING) {
+                    service.update();
+                }
+            } catch (Exception e) {
+                System.err.println("Error updating service " + service.getName() + ": " + e.getMessage());
+            }
+        }
+        System.out.println(getServiceStatus());
     }
-  }
 
-  /** Stop all services in reverse priority order */
-  public void stopAll() {
-    if (!isInitialized) {
-      return;
+    /**
+     * 获取所有已注册的服务
+     *
+     * @return 服务列表
+     */
+    public List<Service> getAllServices() {
+        return new ArrayList<>(serviceList);
     }
 
-    List<Service> reversedServices = new ArrayList<>(services);
-    Collections.reverse(reversedServices);
+    /**
+     * 获取服务状态统计信息
+     *
+     * @return 状态统计信息字符串
+     */
+    public String getServiceStatus() {
+        StringBuilder status = new StringBuilder("服务状态统计:\n");
+        status.append("----------------------------------------\n");
+        status.append(String.format("%-20s %-15s %-10s\n", "服务名称", "状态", "优先级"));
+        status.append("----------------------------------------\n");
 
-    for (Service service : reversedServices) {
-      executeServiceOperation(service, "stop", Service::stop);
+        for (Service service : serviceList) {
+            status.append(
+                    String.format(
+                            "%-20s %-15s %-10d\n", service.getName(), service.getState(), service.getPriority()));
+        }
+
+        // 添加统计信息
+        Map<Service.ServiceState, Long> stateCounts = serviceList.stream()
+                .collect(Collectors.groupingBy(Service::getState, Collectors.counting()));
+
+        status.append("\n状态统计:\n");
+        for (Service.ServiceState state : Service.ServiceState.values()) {
+            status.append(String.format("%-15s: %d\n", state, stateCounts.getOrDefault(state, 0L)));
+        }
+
+        return status.toString();
     }
-  }
 
-  /**
-   * Get service by type
-   *
-   * @param serviceClass Service type
-   * @return Service instance or null if not found
-   * @throws ServiceException If service class is null
-   */
-  @SuppressWarnings("unchecked")
-  public <T extends Service> T getService(Class<T> serviceClass) {
-    if (serviceClass == null) {
-      throw new ServiceException("Service class cannot be null");
+    public void logServicesStatus() {
+        for (int i = 0; i < serviceList.size(); ++i) {
+            alertList.get(i).set(serviceList.get(i).getState() == Service.ServiceState.ERROR);
+            Logger.recordOutput("Services/" + serviceList.get(i).getName() + "/Status", serviceList.get(i).getState());
+        }
     }
-    return (T) serviceMap.get(serviceClass);
-  }
 
-  /** Get status string for all services */
-  public String getServiceStatus() {
-    StringBuilder status = new StringBuilder("Service Status:\n");
-    for (Service service : services) {
-      status.append(
-          String.format(
-              "%-30s %-15s Priority: %d\n",
-              service.getName(), service.getState(), service.getPriority()));
+    /**
+     * 暂停指定服务
+     *
+     * @param serviceName 服务名称
+     */
+    public void pauseService(String serviceName) {
+        Service service = services.get(serviceName);
+        if (service != null) {
+            service.pause();
+        }
     }
-    return status.toString();
-  }
 
-  /** Set service state (pause/resume) */
-  public void setServiceState(Class<? extends Service> serviceClass, boolean pause) {
-    Service service = getService(serviceClass);
-    if (service != null) {
-      if (pause) {
-        service.pause();
-      } else {
-        service.resume();
-      }
+    /**
+     * 恢复指定服务
+     *
+     * @param serviceName 服务名称
+     */
+    public void resumeService(String serviceName) {
+        Service service = services.get(serviceName);
+        if (service != null) {
+            service.resume();
+        }
     }
-  }
 
-  private void executeServiceOperation(
-      Service service, String operationName, ServiceOperation operation) {
-    try {
-      operation.execute(service);
-    } catch (ServiceException e) {
-      // Re-throw ServiceException as is
-      throw e;
-    } catch (Exception e) {
-      throw new ServiceException("Error " + operationName + "ing service: " + service.getName(), e);
+    /**
+     * 获取指定状态的服务列表
+     *
+     * @param state 要查询的状态
+     * @return 处于指定状态的服务列表
+     */
+    public List<Service> getServicesByState(Service.ServiceState state) {
+        return serviceList.stream()
+                .filter(service -> service.getState() == state)
+                .collect(Collectors.toList());
     }
-  }
-
-  @FunctionalInterface
-  private interface ServiceOperation {
-    void execute(Service service);
-  }
 }

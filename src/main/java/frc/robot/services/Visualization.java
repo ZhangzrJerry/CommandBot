@@ -7,51 +7,43 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Supplier;
+import lombok.Getter;
+import lombok.Setter;
 import org.littletonrobotics.junction.Logger;
 
 /**
- * Visualization service for robot components in Advantage Scope. Maintains a transform tree and
+ * Visualization service for robot components in Advantage Scope. Maintains a
+ * transform tree and
  * updates component poses periodically.
  */
 public class Visualization implements Service {
   private final List<VisualizationComponent> components = new ArrayList<>();
   private static final String LOG_PREFIX = "Services/Visualization/";
-  private ServiceState state = ServiceState.STOPPED;
+  private Service.ServiceState state = Service.ServiceState.STOPPED;
+  public static String errorMsg = "";
 
   /**
    * Component record for visualization system.
    *
-   * @param componentId Component identifier (0 to N)
-   * @param parentId Parent component identifier (-1 for robot frame)
+   * @param componentId       Component identifier (0 to N)
+   * @param parentId          Parent component identifier (-1 for robot frame)
    * @param transformSupplier Transform supplier from parent to this component
    */
-  public record VisualizationComponent(
+  private record VisualizationComponent(
       int componentId, int parentId, Supplier<Transform3d> transformSupplier) {
-    public VisualizationComponent {
-      validateComponent(componentId, parentId, transformSupplier);
-    }
-
-    private void validateComponent(
-        int componentId, int parentId, Supplier<Transform3d> transformSupplier) {
-      if (componentId < 0)
-        throw new IllegalArgumentException("Invalid componentId: " + componentId);
-      if (parentId < -1) throw new IllegalArgumentException("Invalid parentId: " + parentId);
-      if (parentId >= componentId)
-        throw new IllegalArgumentException("Parent ID must be less than component ID");
-      if (transformSupplier == null)
-        throw new IllegalArgumentException("Transform supplier cannot be null");
-    }
   }
 
   @Override
-  public void initialize() {
-    state = ServiceState.RUNNING;
-    Logger.recordOutput(LOG_PREFIX + "Running", true);
+  public void init() {
+    state = Service.ServiceState.INITIALIZED;
   }
 
   @Override
   public void update() {
-    if (components.isEmpty()) return;
+    state = Service.ServiceState.RUNNING;
+
+    if (components.isEmpty())
+      return;
 
     Pose3d[] poses = new Pose3d[components.size()];
     Transform3d[] transforms = new Transform3d[components.size()];
@@ -69,8 +61,7 @@ public class Visualization implements Service {
 
   @Override
   public void stop() {
-    state = ServiceState.STOPPED;
-    Logger.recordOutput(LOG_PREFIX + "Running", false);
+    state = Service.ServiceState.STOPPED;
   }
 
   @Override
@@ -79,8 +70,13 @@ public class Visualization implements Service {
   }
 
   @Override
-  public ServiceState getState() {
+  public Service.ServiceState getState() {
     return state;
+  }
+
+  @Override
+  public int getPriority() {
+    return 0;
   }
 
   /**
@@ -89,23 +85,66 @@ public class Visualization implements Service {
    * @param component Component to register
    * @throws IllegalArgumentException If component ID is invalid or already exists
    */
-  public void registerVisualizationComponent(VisualizationComponent component) {
-    if (components.stream().anyMatch(c -> c.componentId() == component.componentId())) {
-      throw new IllegalArgumentException("Component ID already exists: " + component.componentId());
+  public void registerVisualizationComponent(
+      int componentId, int parentId, Supplier<Transform3d> transformSupplier) {
+    if (components.stream().anyMatch(c -> c.componentId() == componentId)) {
+      state = Service.ServiceState.ERROR;
+      errorMsg += "Component ID already exists: " + componentId + "\n";
+      logErrorMsg();
+      return;
+    }
+    if (componentId < 0) {
+      state = Service.ServiceState.ERROR;
+      errorMsg += "Invalid componentId: " + componentId + "\n";
+      logErrorMsg();
+      return;
+    }
+    if (parentId < -1) {
+      state = Service.ServiceState.ERROR;
+      errorMsg += "Invalid parentId: " + parentId + "\n";
+      logErrorMsg();
+      return;
+    }
+    if (parentId >= componentId) {
+      state = Service.ServiceState.ERROR;
+      errorMsg += "Parent ID must be less than component ID\n";
+      logErrorMsg();
+      return;
+    }
+    if (transformSupplier == null) {
+      state = Service.ServiceState.ERROR;
+      errorMsg += "Transform supplier cannot be null\n";
+      logErrorMsg();
+      return;
     }
 
-    components.add(component);
+    components.add(new VisualizationComponent(componentId, parentId, transformSupplier));
     components.sort(Comparator.comparingInt(VisualizationComponent::componentId));
 
-    validateComponentIds();
+    for (int i = 0; i < components.size(); i++) {
+      if (components.get(i).componentId() != i) {
+        state = Service.ServiceState.ERROR;
+        errorMsg += "Component IDs must be continuous, missing ID: " + i + "\n";
+        logErrorMsg();
+        return;
+      }
+    }
     Logger.recordOutput(LOG_PREFIX + "ComponentCount", components.size());
   }
 
-  private void validateComponentIds() {
-    for (int i = 0; i < components.size(); i++) {
-      if (components.get(i).componentId() != i) {
-        throw new IllegalArgumentException("Component IDs must be continuous, missing ID: " + i);
-      }
-    }
+  @Override
+  public void pause() {
+    state = Service.ServiceState.PAUSED;
+  }
+
+  @Override
+  public void resume() {
+    state = Service.ServiceState.RUNNING;
+  }
+
+  private void logErrorMsg() {
+    Logger.recordOutput(LOG_PREFIX + "ErrorMsg", errorMsg);
+    System.err.println(errorMsg);
+
   }
 }
