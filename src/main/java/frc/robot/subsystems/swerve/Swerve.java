@@ -252,56 +252,56 @@ public class Swerve extends SubsystemBase {
             0.025,
             SwerveConfig.DRIVE_REDUCTION,
             driveRatioConverter,
-            SwerveConfig.DRIVE_GAINS);
+            SwerveConfig.SIM_DRIVE_GAINS);
     DCMotorIO flSteerIO =
         new DCMotorIOSim(
             DCMotor.getKrakenX60(1),
             0.004,
             SwerveConfig.STEER_REDUCTION,
             steerRatioConverter,
-            SwerveConfig.STEER_GAINS);
+            SwerveConfig.SIM_STEER_GAINS);
     DCMotorIO frDriveIO =
         new DCMotorIOSim(
             DCMotor.getKrakenX60(1),
             0.025,
             SwerveConfig.DRIVE_REDUCTION,
             driveRatioConverter,
-            SwerveConfig.DRIVE_GAINS);
+            SwerveConfig.SIM_DRIVE_GAINS);
     DCMotorIO frSteerIO =
         new DCMotorIOSim(
             DCMotor.getKrakenX60(1),
             0.004,
             SwerveConfig.STEER_REDUCTION,
             steerRatioConverter,
-            SwerveConfig.STEER_GAINS);
+            SwerveConfig.SIM_STEER_GAINS);
     DCMotorIO blDriveIO =
         new DCMotorIOSim(
             DCMotor.getKrakenX60(1),
             0.025,
             SwerveConfig.DRIVE_REDUCTION,
             driveRatioConverter,
-            SwerveConfig.DRIVE_GAINS);
+            SwerveConfig.SIM_DRIVE_GAINS);
     DCMotorIO blSteerIO =
         new DCMotorIOSim(
             DCMotor.getKrakenX60(1),
             0.004,
             SwerveConfig.STEER_REDUCTION,
             steerRatioConverter,
-            SwerveConfig.STEER_GAINS);
+            SwerveConfig.SIM_STEER_GAINS);
     DCMotorIO brDriveIO =
         new DCMotorIOSim(
             DCMotor.getKrakenX60(1),
             0.025,
             SwerveConfig.DRIVE_REDUCTION,
             driveRatioConverter,
-            SwerveConfig.DRIVE_GAINS);
+            SwerveConfig.SIM_DRIVE_GAINS);
     DCMotorIO brSteerIO =
         new DCMotorIOSim(
             DCMotor.getKrakenX60(1),
             0.004,
             SwerveConfig.STEER_REDUCTION,
             steerRatioConverter,
-            SwerveConfig.STEER_GAINS);
+            SwerveConfig.SIM_STEER_GAINS);
 
     GyroIO gyroIO = new GyroIO() {};
     WheeledOdometrySimThread thread =

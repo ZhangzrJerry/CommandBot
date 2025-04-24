@@ -11,7 +11,6 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
-import frc.robot.Robot;
 import frc.robot.utils.GainsUtil.PdsGains;
 
 public class SwerveConfig {
@@ -72,10 +71,11 @@ public class SwerveConfig {
   static final double DRIVE_FF_KT =
       DCMotor.getKrakenX60Foc(1).withReduction(DRIVE_REDUCTION).KtNMPerAmp;
 
-  static PdsGains STEER_GAINS =
-      Robot.isReal() ? new PdsGains(2000.0, 60.0, 0.0) : new PdsGains(10.0, 2.0, 0.0);
-  static PdsGains DRIVE_GAINS =
-      Robot.isReal() ? new PdsGains(7.0, 0.0, 0.0) : new PdsGains(0.3, 0.0, 0.0);
+  static PdsGains SIM_STEER_GAINS = new PdsGains(10.0, 2.0, 0.0);
+  static PdsGains SIM_DRIVE_GAINS = new PdsGains(0.3, 0.0, 0.0);
+
+  static PdsGains STEER_GAINS = new PdsGains(2000.0, 60.0, 0.0);
+  static PdsGains DRIVE_GAINS = new PdsGains(7.0, 0.0, 0.0);
 
   static TalonFXConfiguration getX2DriveTalonConfig() {
     var config = new TalonFXConfiguration();
