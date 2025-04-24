@@ -1,6 +1,5 @@
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Timer;
@@ -11,7 +10,6 @@ import frc.robot.subsystems.odometry.Odometry;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.controller.TeleopHeaderController;
 import frc.robot.subsystems.vision.AtagVision;
-import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 
 public class RobotContainer {
   // physical subsystems
@@ -20,7 +18,8 @@ public class RobotContainer {
 
   private final Odometry odometry = new Odometry();
 
-  private final CommandXboxController joystick = new CommandXboxController(Constants.Ports.Joystick.DRIVER);
+  private final CommandXboxController joystick =
+      new CommandXboxController(Constants.Ports.Joystick.DRIVER);
 
   public RobotContainer() {
     if (Robot.isReal()) {
@@ -54,15 +53,15 @@ public class RobotContainer {
 
   public Command getInitializationCommand() {
     return Commands.sequence(
-        // swerve
-        // swerve.registerBetterPoseCommandSupplier(() -> odometry.getEstimatedPose()),
-        // odometry
-        odometry.registerObservation(
-            new Odometry.PoseObservation(
-                "Wheeled", swerve::getUncertainPose2d, () -> Timer.getFPGATimestamp(), 0.8)),
-        odometry.registerObservation(
-            new Odometry.PoseObservation(
-                "AtagVision", () -> vision.getLatestPose(), () -> vision.getLatestTimestamp())))
+            // swerve
+            // swerve.registerBetterPoseCommandSupplier(() -> odometry.getEstimatedPose()),
+            // odometry
+            odometry.registerObservation(
+                new Odometry.PoseObservation(
+                    "Wheeled", swerve::getUncertainPose2d, () -> Timer.getFPGATimestamp(), 0.8)),
+            odometry.registerObservation(
+                new Odometry.PoseObservation(
+                    "AtagVision", () -> vision.getLatestPose(), () -> vision.getLatestTimestamp())))
         .withName("### Robot Initialization ...")
         .ignoringDisable(true);
   }
@@ -73,8 +72,8 @@ public class RobotContainer {
 
   private Command joystickRumbleCommand(double seconds) {
     return Commands.startEnd(
-        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
-        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
+            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
+            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
         .withTimeout(seconds)
         .withName("[Joystick] Rumble " + Math.round(seconds * 10) / 10.0 + "s");
   }

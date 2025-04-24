@@ -14,23 +14,22 @@ import java.util.function.Supplier;
 import lombok.Getter;
 import org.littletonrobotics.junction.Logger;
 
-/**
- * A subsystem that fuses multiple pose observations with covariance tracking.
- */
+/** A subsystem that fuses multiple pose observations with covariance tracking. */
 public class Odometry extends VirtualSubsystem {
   private final List<PoseObservation> observations = new ArrayList<>();
 
-  @Getter
-  private UncertainPose2d estimatedPose = new UncertainPose2d(new Pose2d());
-  private UncertainPose2d bestEstimatedPose = new UncertainPose2d(
-      new Pose2d(),
-      Double.POSITIVE_INFINITY,
-      Double.POSITIVE_INFINITY,
-      Double.POSITIVE_INFINITY);
+  @Getter private UncertainPose2d estimatedPose = new UncertainPose2d(new Pose2d());
+  private UncertainPose2d bestEstimatedPose =
+      new UncertainPose2d(
+          new Pose2d(),
+          Double.POSITIVE_INFINITY,
+          Double.POSITIVE_INFINITY,
+          Double.POSITIVE_INFINITY);
   private double lastUpdateTime = Timer.getFPGATimestamp();
 
   // Time decay parameters
-  private static final double HALF_LIFE_SECONDS = 1.0; // Observations decay to half weight after this time
+  private static final double HALF_LIFE_SECONDS =
+      1.0; // Observations decay to half weight after this time
   private static final double MIN_WEIGHT = 0.1; // Minimum weight for any observation
   private static final double STALE_THRESHOLD_SECONDS = 0.3; // Consider stale after 2 seconds
   private static final double COVARIANCE_GROWTH_RATE = 1.2; // Covariance growth factor per second
@@ -70,16 +69,17 @@ public class Odometry extends VirtualSubsystem {
   /** Registers a new pose observation source */
   public Command registerObservation(PoseObservation observation) {
     return Commands.runOnce(
-        () -> {
-          if (observations.stream().anyMatch(obs -> obs.name().equals(observation.name()))) {
-            throw new IllegalArgumentException(
-                "Observation with name '" + observation.name() + "' already exists");
-          }
-          observations.add(observation);
-          bestEstimatedPose = bestEstimatedPose.isBetterThan(observation.poseSupplier.get())
-              ? observation.poseSupplier.get()
-              : bestEstimatedPose;
-        })
+            () -> {
+              if (observations.stream().anyMatch(obs -> obs.name().equals(observation.name()))) {
+                throw new IllegalArgumentException(
+                    "Observation with name '" + observation.name() + "' already exists");
+              }
+              observations.add(observation);
+              bestEstimatedPose =
+                  bestEstimatedPose.isBetterThan(observation.poseSupplier.get())
+                      ? observation.poseSupplier.get()
+                      : bestEstimatedPose;
+            })
         .withName("[Odometry] Register Observation: " + observation.name());
   }
 
@@ -93,15 +93,16 @@ public class Odometry extends VirtualSubsystem {
     double timeSinceLastUpdate = currentTime - lastUpdateTime;
     lastUpdateTime = currentTime;
 
-    estimatedPose = observations.stream()
-        .max(Comparator.comparingDouble(observation -> observation.getTimeWeight(currentTime)))
-        .map(observation -> observation.poseSupplier.get())
-        .orElseGet(
-            () -> {
-              return new UncertainPose2d(
-                  estimatedPose.getPose(),
-                  estimatedPose.getCovariance().times(COVARIANCE_GROWTH_RATE));
-            });
+    estimatedPose =
+        observations.stream()
+            .max(Comparator.comparingDouble(observation -> observation.getTimeWeight(currentTime)))
+            .map(observation -> observation.poseSupplier.get())
+            .orElseGet(
+                () -> {
+                  return new UncertainPose2d(
+                      estimatedPose.getPose(),
+                      estimatedPose.getCovariance().times(COVARIANCE_GROWTH_RATE));
+                });
 
     for (PoseObservation observation : observations) {
       UncertainPose2d currentPose = observation.poseSupplier.get();
@@ -118,9 +119,10 @@ public class Odometry extends VirtualSubsystem {
       }
       double ageFactor = 1.0 + (age / HALF_LIFE_SECONDS);
 
-      estimatedPose = estimatedPose.fusedWith(
-          new UncertainPose2d(
-              currentPose.getPose(), currentPose.getCovariance().times(ageFactor / weight)));
+      estimatedPose =
+          estimatedPose.fusedWith(
+              new UncertainPose2d(
+                  currentPose.getPose(), currentPose.getCovariance().times(ageFactor / weight)));
     }
 
     Logger.recordOutput("Odometry/EstimatedPose", estimatedPose.getPose());
