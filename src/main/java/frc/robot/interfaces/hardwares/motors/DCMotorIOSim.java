@@ -1,4 +1,4 @@
-package frc.robot.interfaces.motors;
+package frc.robot.interfaces.hardwares.motors;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;

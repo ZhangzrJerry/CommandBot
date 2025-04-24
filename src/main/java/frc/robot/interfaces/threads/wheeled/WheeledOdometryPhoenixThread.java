@@ -1,4 +1,4 @@
-package frc.robot.interfaces.odometry.wheeled;
+package frc.robot.interfaces.threads.wheeled;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;

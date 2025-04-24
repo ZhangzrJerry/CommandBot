@@ -2,7 +2,6 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -13,8 +12,6 @@ import frc.robot.subsystems.odometry.BadOdometry;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.controller.TeleopHeaderController;
 import frc.robot.subsystems.vision.AtagVision;
-import frc.robot.subsystems.visualization.Visualization;
-import frc.robot.subsystems.visualization.Visualization.VisualizationComponent;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 
 public class RobotContainer {
@@ -25,7 +22,8 @@ public class RobotContainer {
 
   private final BadOdometry odometry = new BadOdometry();
 
-  private final CommandXboxController joystick = new CommandXboxController(Constants.Ports.Joystick.DRIVER);
+  private final CommandXboxController joystick =
+      new CommandXboxController(Constants.Ports.Joystick.DRIVER);
 
   public RobotContainer() {
     if (Robot.isReal()) {
@@ -63,17 +61,17 @@ public class RobotContainer {
 
   public Command getInitializationCommand() {
     return Commands.sequence(
-        // swerve
-        swerve.setCustomMaxTiltAccelScaleCommand(() -> arm.getCOGHeightPercent()),
-        // swerve.registerBetterPoseCommandSupplier(() -> odometry.getEstimatedPose()),
+            // swerve
+            swerve.setCustomMaxTiltAccelScaleCommand(() -> arm.getCOGHeightPercent()),
+            // swerve.registerBetterPoseCommandSupplier(() -> odometry.getEstimatedPose()),
 
-        // odometry
-        odometry.registerObservation(
-            new BadOdometry.PoseObservation(
-                "Wheeled", swerve::getUncertainPose2d, () -> Timer.getFPGATimestamp(), 0.8)),
-        odometry.registerObservation(
-            new BadOdometry.PoseObservation(
-                "AtagVision", () -> vision.getLatestPose(), () -> vision.getLatestTimestamp())))
+            // odometry
+            odometry.registerObservation(
+                new BadOdometry.PoseObservation(
+                    "Wheeled", swerve::getUncertainPose2d, () -> Timer.getFPGATimestamp(), 0.8)),
+            odometry.registerObservation(
+                new BadOdometry.PoseObservation(
+                    "AtagVision", () -> vision.getLatestPose(), () -> vision.getLatestTimestamp())))
         .withName("### Robot Initialization ...")
         .ignoringDisable(true);
   }
@@ -84,16 +82,16 @@ public class RobotContainer {
 
   public Command getSimulationConfigureCommand() {
     return Commands.sequence(
-        swerve.resetWheeledPoseCommand(
-            new UncertainPose2d(new Pose2d(5.0, 5.0, Rotation2d.fromDegrees(0)))))
+            swerve.resetWheeledPoseCommand(
+                new UncertainPose2d(new Pose2d(5.0, 5.0, Rotation2d.fromDegrees(0)))))
         .withName("### Robot Simulation Configure ...")
         .ignoringDisable(true);
   }
 
   private Command joystickRumbleCommand(double seconds) {
     return Commands.startEnd(
-        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
-        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
+            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
+            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
         .withTimeout(seconds)
         .withName("[Joystick] Rumble " + Math.round(seconds * 10) / 10.0 + "s");
   }

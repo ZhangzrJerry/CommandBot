@@ -2,7 +2,7 @@ package frc.robot.services;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
-import frc.robot.services.Service;
+import frc.robot.interfaces.services.Service;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -10,99 +10,102 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 /**
- * Visualization service that helps visualize robot components in Advantage
- * Scope.
- * Maintains a transform tree and updates component poses periodically.
- * 
- * This service should be initialized in RobotContainer and injected into
- * subsystems
- * that need visualization capabilities.
+ * Visualization service for robot components in Advantage Scope. Maintains a transform tree and
+ * updates component poses periodically.
  */
 public class Visualization implements Service {
   private final List<VisualizationComponent> components = new ArrayList<>();
-  private final static Boolean IS_STRICT_BIG_ENDIAN = true;
+  private static final String LOG_PREFIX = "Services/Visualization/";
+  private ServiceState state = ServiceState.STOPPED;
 
   /**
    * Component record for visualization system.
    *
-   * @param componentId       the id of the component (0 to N)
-   * @param parentId          the id of the parent component (-1 for robot frame)
-   * @param transformSupplier supplier of transform from parent to this component
+   * @param componentId Component identifier (0 to N)
+   * @param parentId Parent component identifier (-1 for robot frame)
+   * @param transformSupplier Transform supplier from parent to this component
    */
   public record VisualizationComponent(
       int componentId, int parentId, Supplier<Transform3d> transformSupplier) {
     public VisualizationComponent {
-      if (componentId < 0) {
-        throw new IllegalArgumentException("componentId out of index");
-      }
-      if (parentId < -1) {
-        throw new IllegalArgumentException("parentId out of index");
-      }
-      if (IS_STRICT_BIG_ENDIAN && parentId >= componentId) {
-        throw new IllegalArgumentException(
-            "componentId should not be greater than or equal to parentId");
-      }
-      if (transformSupplier == null) {
-        throw new IllegalArgumentException("transformSupplier should not be null");
-      }
+      validateComponent(componentId, parentId, transformSupplier);
+    }
+
+    private void validateComponent(
+        int componentId, int parentId, Supplier<Transform3d> transformSupplier) {
+      if (componentId < 0)
+        throw new IllegalArgumentException("Invalid componentId: " + componentId);
+      if (parentId < -1) throw new IllegalArgumentException("Invalid parentId: " + parentId);
+      if (parentId >= componentId)
+        throw new IllegalArgumentException("Parent ID must be less than component ID");
+      if (transformSupplier == null)
+        throw new IllegalArgumentException("Transform supplier cannot be null");
     }
   }
 
   @Override
   public void initialize() {
-    // 初始化可视化服务
-    Logger.recordOutput("Visualization/Running", true);
+    state = ServiceState.RUNNING;
+    Logger.recordOutput(LOG_PREFIX + "Running", true);
   }
 
   @Override
   public void update() {
+    if (components.isEmpty()) return;
+
     Pose3d[] poses = new Pose3d[components.size()];
-    Transform3d[] tfs = new Transform3d[components.size()];
+    Transform3d[] transforms = new Transform3d[components.size()];
 
-    if (IS_STRICT_BIG_ENDIAN) {
-      for (int i = 0; i < components.size(); ++i) {
-        tfs[i] = components.get(i).transformSupplier().get();
-
-        if (components.get(i).parentId() != -1) {
-          // Propagate the transform matrix
-          tfs[i] = tfs[components.get(i).parentId()].plus(tfs[i]);
-        }
-        poses[i] = new Pose3d(tfs[i].getTranslation(), tfs[i].getRotation());
+    for (int i = 0; i < components.size(); i++) {
+      transforms[i] = components.get(i).transformSupplier().get();
+      if (components.get(i).parentId() != -1) {
+        transforms[i] = transforms[components.get(i).parentId()].plus(transforms[i]);
       }
+      poses[i] = new Pose3d(transforms[i].getTranslation(), transforms[i].getRotation());
     }
 
-    Logger.recordOutput("Visualization/Components", poses);
+    Logger.recordOutput(LOG_PREFIX + "Components", poses);
   }
 
   @Override
   public void stop() {
-    // 清理资源
-    components.clear();
-    Logger.recordOutput("Visualization/Running", false);
+    state = ServiceState.STOPPED;
+    Logger.recordOutput(LOG_PREFIX + "Running", false);
+  }
+
+  @Override
+  public String getName() {
+    return "Visualization";
+  }
+
+  @Override
+  public ServiceState getState() {
+    return state;
   }
 
   /**
-   * Register a component for visualization.
+   * Register a component for visualization
    *
-   * @param visualizeComponent the component to register
+   * @param component Component to register
+   * @throws IllegalArgumentException If component ID is invalid or already exists
    */
-  public void registerVisualizationComponent(
-      VisualizationComponent visualizationComponent) {
-    for (VisualizationComponent component : components) {
-      if (component.componentId() == visualizationComponent.componentId()) {
-        throw new IllegalArgumentException("componentId already exists");
-      }
+  public void registerVisualizationComponent(VisualizationComponent component) {
+    if (components.stream().anyMatch(c -> c.componentId() == component.componentId())) {
+      throw new IllegalArgumentException("Component ID already exists: " + component.componentId());
     }
-    components.add(visualizationComponent);
+
+    components.add(component);
     components.sort(Comparator.comparingInt(VisualizationComponent::componentId));
 
-    // Validate component IDs are continuous
-    for (int i = 0; i < components.size(); ++i) {
+    validateComponentIds();
+    Logger.recordOutput(LOG_PREFIX + "ComponentCount", components.size());
+  }
+
+  private void validateComponentIds() {
+    for (int i = 0; i < components.size(); i++) {
       if (components.get(i).componentId() != i) {
-        throw new IllegalArgumentException("componentId should be continuous");
+        throw new IllegalArgumentException("Component IDs must be continuous, missing ID: " + i);
       }
     }
-    System.out.println("[Visualization] Register Visualization Component: "
-        + visualizationComponent.componentId());
   }
 }

@@ -3,8 +3,8 @@ package frc.robot.subsystems.swerve;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.robot.interfaces.motors.*;
-import frc.robot.interfaces.motors.DCMotorIOInputsAutoLogged;
+import frc.robot.interfaces.hardwares.motors.*;
+import frc.robot.interfaces.hardwares.motors.DCMotorIOInputsAutoLogged;
 import frc.robot.utils.GainsUtil.PdsGains;
 import frc.robot.utils.logging.AlertUtil;
 import frc.robot.utils.logging.LoggedTunableGains;
@@ -49,8 +49,8 @@ public class SwerveModule {
     driveIO.updateInputs(driveInputs);
     steerIO.updateInputs(steerInputs);
 
-    Logger.processInputs("Swerve/" + name + "/Drive", driveInputs);
-    Logger.processInputs("Swerve/" + name + "/Steer", steerInputs);
+    Logger.processInputs("Subsystems/Swerve/" + name + "/Drive", driveInputs);
+    Logger.processInputs("Subsystems/Swerve/" + name + "/Steer", steerInputs);
 
     LoggedTunableGains.ifChanged(hashCode(), () -> driveIO.setPidsg(driveGains.get()), driveGains);
     LoggedTunableGains.ifChanged(hashCode(), () -> steerIO.setPidsg(steerGains.get()), steerGains);

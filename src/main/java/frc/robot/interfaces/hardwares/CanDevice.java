@@ -1,4 +1,4 @@
-package frc.robot.interfaces.can;
+package frc.robot.interfaces.hardwares;
 
 public record CanDevice(int id, String bus) {
   @Override

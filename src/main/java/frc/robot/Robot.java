@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.services.ServiceManager;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -72,8 +71,7 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void disabledPeriodic() {
-  }
+  public void disabledPeriodic() {}
 
   @Override
   public void autonomousInit() {
@@ -87,8 +85,7 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void autonomousPeriodic() {
-  }
+  public void autonomousPeriodic() {}
 
   @Override
   public void teleopInit() {
@@ -98,8 +95,7 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void teleopPeriodic() {
-  }
+  public void teleopPeriodic() {}
 
   @Override
   public void testInit() {
@@ -107,16 +103,13 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void testPeriodic() {
-  }
+  public void testPeriodic() {}
 
   @Override
-  public void simulationInit() {
-  }
+  public void simulationInit() {}
 
   @Override
-  public void simulationPeriodic() {
-  }
+  public void simulationPeriodic() {}
 
   private void configureCtreLogger() {
     if (Robot.isReal()) {
@@ -138,34 +131,32 @@ public class Robot extends LoggedRobot {
     Logger.start();
 
     Map<String, Integer> commandCounts = new HashMap<>();
-    BiConsumer<Command, Boolean> logCommandFunction = (Command command, Boolean active) -> {
-      String name = command.getName();
-      int count = commandCounts.getOrDefault(name, 0) + (active ? 1 : -1);
-      commandCounts.put(name, count);
-      Logger.recordOutput(
-          "CommandsUnique/" + name + "_" + Integer.toHexString(command.hashCode()), active);
-      Logger.recordOutput("CommandsAll/" + name, count > 0);
-    };
+    BiConsumer<Command, Boolean> logCommandFunction =
+        (Command command, Boolean active) -> {
+          String name = command.getName();
+          int count = commandCounts.getOrDefault(name, 0) + (active ? 1 : -1);
+          commandCounts.put(name, count);
+          Logger.recordOutput(
+              "CommandsUnique/" + name + "_" + Integer.toHexString(command.hashCode()), active);
+          Logger.recordOutput("CommandsAll/" + name, count > 0);
+        };
 
-    commandScheduler
-        .onCommandInitialize(
-            (Command command) -> {
-              System.out.println("" + command.getName() + "");
-              logCommandFunction.accept(command, true);
-            });
+    commandScheduler.onCommandInitialize(
+        (Command command) -> {
+          System.out.println("" + command.getName() + "");
+          logCommandFunction.accept(command, true);
+        });
 
-    commandScheduler
-        .onCommandFinish(
-            (Command command) -> {
-              System.out.println("\u001B[32m" + command.getName() + "\u001B[0m");
-              logCommandFunction.accept(command, false);
-            });
+    commandScheduler.onCommandFinish(
+        (Command command) -> {
+          System.out.println("\u001B[32m" + command.getName() + "\u001B[0m");
+          logCommandFunction.accept(command, false);
+        });
 
-    commandScheduler
-        .onCommandInterrupt(
-            (Command command) -> {
-              System.out.println("\u001B[31m" + command.getName() + "\u001B[0m");
-              logCommandFunction.accept(command, false);
-            });
+    commandScheduler.onCommandInterrupt(
+        (Command command) -> {
+          System.out.println("\u001B[31m" + command.getName() + "\u001B[0m");
+          logCommandFunction.accept(command, false);
+        });
   }
 }

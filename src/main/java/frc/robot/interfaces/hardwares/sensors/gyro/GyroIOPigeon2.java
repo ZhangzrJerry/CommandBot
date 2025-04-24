@@ -1,4 +1,4 @@
-package frc.robot.interfaces.sensors.gyro;
+package frc.robot.interfaces.hardwares.sensors.gyro;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -9,8 +9,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Temperature;
-import frc.robot.interfaces.can.CanDevice;
-import frc.robot.interfaces.can.PhoenixConfigurator;
+import frc.robot.interfaces.hardwares.CanDevice;
+import frc.robot.interfaces.hardwares.PhoenixConfigurator;
 import lombok.Getter;
 
 public class GyroIOPigeon2 implements GyroIO {

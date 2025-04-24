@@ -4,10 +4,10 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import frc.robot.interfaces.odometry.wheeled.WheeledOdometryThread;
-import frc.robot.interfaces.odometry.wheeled.WheeledOdometryThread.WheeledObservation;
-import frc.robot.interfaces.sensors.gyro.GyroIO;
-import frc.robot.interfaces.sensors.gyro.GyroIOInputsAutoLogged;
+import frc.robot.interfaces.hardwares.sensors.gyro.GyroIO;
+import frc.robot.interfaces.hardwares.sensors.gyro.GyroIOInputsAutoLogged;
+import frc.robot.interfaces.threads.wheeled.WheeledOdometryThread;
+import frc.robot.interfaces.threads.wheeled.WheeledOdometryThread.WheeledObservation;
 import frc.robot.utils.logging.AlertUtil;
 import frc.robot.utils.logging.LoggedUtil;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
@@ -45,7 +45,7 @@ public class SwerveOdometry {
 
   public void updateInputs() {
     gyroIO.updateInputs(gyroInputs);
-    Logger.processInputs("Swerve/Gyro", gyroInputs);
+    Logger.processInputs("Subsystems/Swerve/Gyro", gyroInputs);
     gyroOfflineAlert.set(!gyroInputs.connected);
 
     var wheeledObservationArray =
@@ -56,15 +56,16 @@ public class SwerveOdometry {
       updatePose(wheeledObservationArray[i]);
     }
 
-    Logger.recordOutput("Swerve/Odometry/EstimatedPose", pose.getPose());
-    LoggedUtil.logMatrix("Swerve/Odometry/EstimatedPoseCovariance", pose.getCovariance());
+    Logger.recordOutput("Subsystems/Swerve/Odometry/EstimatedPose", pose.getPose());
+    LoggedUtil.logMatrix(
+        "Subsystems/Swerve/Odometry/EstimatedPoseCovariance", pose.getCovariance());
   }
 
   private void updatePose(WheeledOdometryThread.WheeledObservation observation) {
     SwerveModulePosition[] modulePositions = observation.wheelPositions();
     Rotation2d gyroYaw = observation.yaw();
 
-    Logger.recordOutput("Swerve/Odometry/ModulePositions", modulePositions);
+    Logger.recordOutput("Subsystems/Swerve/Odometry/ModulePositions", modulePositions);
     Twist2d twist = SwerveConfig.SWERVE_KINEMATICS.toTwist2d(lastModulePositions, modulePositions);
     lastModulePositions = modulePositions;
 

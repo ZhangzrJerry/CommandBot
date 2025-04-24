@@ -1,4 +1,4 @@
-package frc.robot.interfaces.motors;
+package frc.robot.interfaces.hardwares.motors;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -18,8 +18,8 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
-import frc.robot.interfaces.can.CanDevice;
-import frc.robot.interfaces.can.PhoenixConfigurator;
+import frc.robot.interfaces.hardwares.CanDevice;
+import frc.robot.interfaces.hardwares.PhoenixConfigurator;
 import frc.robot.utils.math.UnitConverter;
 import lombok.Getter;
 

@@ -1,4 +1,4 @@
-package frc.robot.interfaces.odometry.wheeled;
+package frc.robot.interfaces.threads.wheeled;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;

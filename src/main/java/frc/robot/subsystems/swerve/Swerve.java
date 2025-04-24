@@ -15,15 +15,15 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.Ports;
-import frc.robot.interfaces.motors.DCMotorIO;
-import frc.robot.interfaces.motors.DCMotorIOSim;
-import frc.robot.interfaces.motors.DCMotorIOTalonfx;
-import frc.robot.interfaces.motors.DCMotorIOTalonfxCancoder;
-import frc.robot.interfaces.odometry.wheeled.WheeledOdometryPhoenixThread;
-import frc.robot.interfaces.odometry.wheeled.WheeledOdometrySimThread;
-import frc.robot.interfaces.odometry.wheeled.WheeledOdometryThread;
-import frc.robot.interfaces.sensors.gyro.GyroIO;
-import frc.robot.interfaces.sensors.gyro.GyroIOPigeon2;
+import frc.robot.interfaces.hardwares.motors.DCMotorIO;
+import frc.robot.interfaces.hardwares.motors.DCMotorIOSim;
+import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfx;
+import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfxCancoder;
+import frc.robot.interfaces.hardwares.sensors.gyro.GyroIO;
+import frc.robot.interfaces.hardwares.sensors.gyro.GyroIOPigeon2;
+import frc.robot.interfaces.threads.wheeled.WheeledOdometryPhoenixThread;
+import frc.robot.interfaces.threads.wheeled.WheeledOdometrySimThread;
+import frc.robot.interfaces.threads.wheeled.WheeledOdometryThread;
 import frc.robot.utils.logging.LoggedTunableNumber;
 import frc.robot.utils.math.EqualsUtil;
 import frc.robot.utils.math.GeomUtil;
@@ -178,11 +178,12 @@ public class Swerve extends SubsystemBase {
 
     lastGoalModuleStates = goalModuleStates;
 
-    Logger.recordOutput("Swerve/SwerveStates/GoalModuleStates", goalModuleStates);
-    Logger.recordOutput("Swerve/FinalGoalVel", goalVel);
-    Logger.recordOutput("Swerve/SwerveStates/OptimizedGoalModuleStates", optimizedGoalModuleStates);
+    Logger.recordOutput("Subsystems/Swerve/SwerveStates/GoalModuleStates", goalModuleStates);
+    Logger.recordOutput("Subsystems/Swerve/FinalGoalVel", goalVel);
     Logger.recordOutput(
-        "Swerve/SwerveStates/OptimizedGoalModuleTorques", optimizedGoalModuleTorques);
+        "Subsystems/Swerve/SwerveStates/OptimizedGoalModuleStates", optimizedGoalModuleStates);
+    Logger.recordOutput(
+        "Subsystems/Swerve/SwerveStates/OptimizedGoalModuleTorques", optimizedGoalModuleTorques);
   }
 
   public SwerveModulePosition[] getPositions() {
@@ -193,7 +194,7 @@ public class Swerve extends SubsystemBase {
     return positions;
   }
 
-  @AutoLogOutput(key = "Swerve/ModuleStates")
+  @AutoLogOutput(key = "Subsystems/Swerve/ModuleStates")
   public SwerveModuleState[] getStates() {
     SwerveModuleState[] states = new SwerveModuleState[modules.length];
     for (int i = 0; i < modules.length; i++) {
@@ -218,7 +219,7 @@ public class Swerve extends SubsystemBase {
         goalTranslationVel.minus(currentTranslationVel).div(Constants.LOOP_PERIOD_SEC);
 
     var customMaxTiltAccelScaleVal = customMaxTiltAccelScale.getAsDouble();
-    Logger.recordOutput("Swerve/customMaxTiltAccelScale", customMaxTiltAccelScaleVal);
+    Logger.recordOutput("Subsystems/Swerve/customMaxTiltAccelScale", customMaxTiltAccelScaleVal);
     var maxTiltAccelXPerLoop = maxTiltAccelXMeterPerSecPerLoop.get() * customMaxTiltAccelScaleVal;
     var maxTiltAccelYPerLoop = maxTiltAccelYMeterPerSecPerLoop.get() * customMaxTiltAccelScaleVal;
 
