@@ -29,8 +29,8 @@ import frc.robot.utils.math.EqualsUtil;
 import frc.robot.utils.math.GeomUtil;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 import frc.robot.utils.math.UnitConverter;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
-import lombok.Setter;
 import lombok.experimental.ExtensionMethod;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -58,7 +58,7 @@ public class Swerve extends SubsystemBase {
               Double.POSITIVE_INFINITY,
               Double.POSITIVE_INFINITY);
 
-  @Setter private Supplier<Double> customMaxTiltAccelScale = () -> 1.0;
+  private DoubleSupplier customMaxTiltAccelScale = () -> 1.0;
   private SwerveModuleState[] lastGoalModuleStates =
       new SwerveModuleState[] {
         new SwerveModuleState(),
@@ -66,6 +66,14 @@ public class Swerve extends SubsystemBase {
         new SwerveModuleState(),
         new SwerveModuleState()
       };
+
+  public Command setCustomMaxTiltAccelScaleCommand(DoubleSupplier scaleSupplier) {
+    return Commands.runOnce(
+            () -> {
+              this.customMaxTiltAccelScale = scaleSupplier;
+            })
+        .withName("[Swerve] Set Custom");
+  }
 
   public Command registerControllerCommand(SwerveController controller) {
     return Commands.run(
@@ -209,7 +217,7 @@ public class Swerve extends SubsystemBase {
     var rawAccelPerLoop =
         goalTranslationVel.minus(currentTranslationVel).div(Constants.LOOP_PERIOD_SEC);
 
-    var customMaxTiltAccelScaleVal = customMaxTiltAccelScale.get();
+    var customMaxTiltAccelScaleVal = customMaxTiltAccelScale.getAsDouble();
     Logger.recordOutput("Swerve/customMaxTiltAccelScale", customMaxTiltAccelScaleVal);
     var maxTiltAccelXPerLoop = maxTiltAccelXMeterPerSecPerLoop.get() * customMaxTiltAccelScaleVal;
     var maxTiltAccelYPerLoop = maxTiltAccelYMeterPerSecPerLoop.get() * customMaxTiltAccelScaleVal;

@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.odometry.Odometry;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.controller.TeleopHeaderController;
@@ -16,6 +17,7 @@ import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 public class RobotContainer {
   // physical subsystems
   private final Swerve swerve;
+  private final Arm arm;
   private final AtagVision vision;
 
   private final Odometry odometry = new Odometry();
@@ -27,14 +29,17 @@ public class RobotContainer {
     if (Robot.isReal()) {
       // physical subsystems
       swerve = Swerve.createReal();
+      arm = Arm.createReal();
       vision = AtagVision.createReal();
     } else if (Robot.isSimulation()) {
       // simulation subsystems
       swerve = Swerve.createSim();
+      arm = Arm.createSim();
       vision = AtagVision.createSim(() -> swerve.getPose());
     } else {
       // dummy subsystems
       swerve = Swerve.createIO();
+      arm = Arm.createIO();
       vision = AtagVision.createIO();
     }
 
@@ -56,6 +61,7 @@ public class RobotContainer {
   public Command getInitializationCommand() {
     return Commands.sequence(
             // swerve
+            swerve.setCustomMaxTiltAccelScaleCommand(() -> arm.getCOGHeightPercent()),
             // swerve.registerBetterPoseCommandSupplier(() -> odometry.getEstimatedPose()),
             // odometry
             odometry.registerObservation(

@@ -235,20 +235,15 @@ public interface DCMotorIO {
    *
    * @param position New position in radians
    */
-  default void resetPosition(double position) {}
+  default void resetAppliedPosition(double position) {}
+
+  /** */
+  default void resetRawPosition(double position) {}
 
   /** Stop the motor */
   default void stop() {
     setVoltage(0);
   }
-
-  /**
-   * Configures this motor to follow another motor.
-   *
-   * @param motor The motor to follow
-   * @param isInverted Whether to follow inverted
-   */
-  default void follow(DCMotorIO motor, Boolean isInverted) {}
 
   // ========== Status Methods ==========
 

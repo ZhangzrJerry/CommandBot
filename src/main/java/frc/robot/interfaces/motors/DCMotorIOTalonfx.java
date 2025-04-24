@@ -198,13 +198,13 @@ public class DCMotorIOTalonfx implements DCMotorIO {
   }
 
   @Override
-  public void resetPosition(double positionRad) {
-    motor.set(positionRad);
+  public void resetRawPosition(double position) {
+    motor.setPosition(position);
   }
 
   @Override
-  public void follow(DCMotorIO motor, Boolean isInverted) {
-    this.motor.setControl(new Follower(motor.getDeviceID(), isInverted));
+  public void resetAppliedPosition(double position) {
+    motor.setPosition(positionConvertor.convertInverse(position));
   }
 
   @Override
@@ -262,5 +262,13 @@ public class DCMotorIOTalonfx implements DCMotorIO {
 
   public StatusSignal<Angle> getPositionSignal() {
     return motor.getPosition();
+  }
+
+  public DCMotorIOTalonfx withFollower(CanDevice follower, boolean isInverted) {
+    // TODO: dangerous, to be fixed
+    try (TalonFX talon = new TalonFX(follower.id(), follower.bus())) {
+      talon.setControl(new Follower(getDeviceID(), isInverted));
+    }
+    return this;
   }
 }

@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Constants;
 import frc.robot.utils.GainsUtil.Gains;
 import frc.robot.utils.math.UnitConverter;
-import java.util.function.DoubleSupplier;
 
 public class DCMotorIOSim implements DCMotorIO {
   private final DCMotorSim sim;
@@ -41,8 +40,10 @@ public class DCMotorIOSim implements DCMotorIO {
     setGains(gains);
   }
 
-  public DCMotorIOSim(LinearSystem<N2, N1, N2> system, DCMotor motor) {
+  public DCMotorIOSim(
+      LinearSystem<N2, N1, N2> system, DCMotor motor, UnitConverter ratioConverter) {
     sim = new DCMotorSim(system, motor);
+    setUnitConvertor(ratioConverter);
   }
 
   @Override
@@ -132,10 +133,6 @@ public class DCMotorIOSim implements DCMotorIO {
     }
   }
 
-  public void setVoltage(DoubleSupplier volts) {
-    setVoltage(volts.getAsDouble());
-  }
-
   @Override
   public void setCurrent(double amps) {
     double resistance = 0.1; // Simulated motor resistance
@@ -145,13 +142,13 @@ public class DCMotorIOSim implements DCMotorIO {
   }
 
   @Override
-  public void resetPosition(double position) {
-    sim.setState(position, sim.getAngularVelocityRadPerSec());
+  public void resetRawPosition(double position) {
+    sim.setAngle(position);
   }
 
   @Override
-  public void follow(DCMotorIO motor, Boolean isInverted) {
-    setVoltage(() -> (isInverted ? -motor.getVoltage() : motor.getVoltage()));
+  public void resetAppliedPosition(double position) {
+    sim.setAngle(positionConvertor.convertInverse(position));
   }
 
   @Override
