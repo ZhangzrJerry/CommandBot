@@ -89,4 +89,14 @@ public class WheeledOdometryPhoenixThread implements WheeledOdometryThread {
         Units.rotationsToRadians(rawDrivePosition) * wheeledRadius,
         Rotation2d.fromRotations(rawSteerPosition));
   }
+
+  @Override
+  public void stop() {
+    isRunning = false;
+    try {
+      thread.join();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+  }
 }

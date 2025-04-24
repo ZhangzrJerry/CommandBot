@@ -76,4 +76,14 @@ public class WheeledOdometrySimThread implements WheeledOdometryThread {
       double appliedDrivePosition, double rawSteerPosition) {
     return new SwerveModulePosition(appliedDrivePosition, Rotation2d.fromRadians(rawSteerPosition));
   }
+
+  @Override
+  public void stop() {
+    isRunning = false;
+    try {
+      thread.join();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+  }
 }
