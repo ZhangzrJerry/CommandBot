@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.utils.VirtualSubsystem;
 import frc.robot.utils.logging.LoggedUtil;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
+import frc.robot.utils.math.PoseUtil.UncertainTransform2d;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -16,6 +17,7 @@ import org.littletonrobotics.junction.Logger;
 /** A subsystem that fuses multiple pose observations with covariance tracking. */
 public class Odometry extends VirtualSubsystem {
   private final List<PoseObservation> observations = new ArrayList<>();
+  private final List<IncrementalUpdate> incrementalUpdates = new ArrayList<>();
 
   @Getter
   private UncertainPose2d estimatedPose =
@@ -62,6 +64,33 @@ public class Odometry extends VirtualSubsystem {
     }
   }
 
+  /** Represents a timed incremental update with start and end timestamps */
+  public record IncrementalUpdate(
+      String name,
+      Supplier<UncertainTransform2d> transformSupplier,
+      Supplier<Double> startTimeSupplier,
+      Supplier<Double> endTimeSupplier) {
+    public IncrementalUpdate {
+      if (name == null || name.isEmpty()) {
+        throw new IllegalArgumentException("Update name cannot be null or empty");
+      }
+      if (transformSupplier == null) {
+        throw new IllegalArgumentException("Transform supplier cannot be null");
+      }
+      if (startTimeSupplier == null || endTimeSupplier == null) {
+        throw new IllegalArgumentException("Timestamp suppliers cannot be null");
+      }
+    }
+
+    public double getDuration() {
+      return endTimeSupplier.get() - startTimeSupplier.get();
+    }
+
+    public boolean isStale(double currentTime) {
+      return (currentTime - endTimeSupplier.get()) > STALE_THRESHOLD_SECONDS;
+    }
+  }
+
   /** Registers a new pose observation source */
   public Command registerObservation(PoseObservation observation) {
     return Commands.runOnce(
@@ -79,28 +108,73 @@ public class Odometry extends VirtualSubsystem {
         .withName("[Odometry] Register Observation: " + observation.name());
   }
 
+  /** Registers a new incremental update source with timing information */
+  public Command registerIncrementalUpdate(
+      String name,
+      Supplier<UncertainTransform2d> transformSupplier,
+      Supplier<Double> startTimeSupplier,
+      Supplier<Double> endTimeSupplier) {
+    IncrementalUpdate update =
+        new IncrementalUpdate(name, transformSupplier, startTimeSupplier, endTimeSupplier);
+    return Commands.runOnce(
+            () -> {
+              if (incrementalUpdates.stream().anyMatch(u -> u.name().equals(name))) {
+                throw new IllegalArgumentException(
+                    "Incremental update with name '" + name + "' already exists");
+              }
+              incrementalUpdates.add(update);
+            })
+        .withName("[Odometry] Register Incremental Update: " + name);
+  }
+
   @Override
   public void periodic() {
-    if (observations.isEmpty()) {
-      return;
-    }
-
     double currentTime = Timer.getFPGATimestamp();
     double timeSinceLastUpdate = currentTime - lastUpdateTime;
     lastUpdateTime = currentTime;
 
-    estimatedPose.setCovariance(estimatedPose.getCovariance().times(COVARIANCE_GROWTH_RATE));
+    // Apply incremental updates first
+    for (IncrementalUpdate update : incrementalUpdates) {
+      if (update.isStale(currentTime)) {
+        Logger.recordOutput("Odometry/IncrementalUpdate/" + update.name() + "/Applied", false);
+        continue;
+      }
 
-    // estimatedPose = observations.stream()
-    // .max(Comparator.comparingDouble(observation ->
-    // observation.getTimeWeight(currentTime)))
-    // .map(observation -> observation.poseSupplier.get())
-    // .orElseGet(
-    // () -> {
-    // return new UncertainPose2d(
-    // estimatedPose.getPose(),
-    // estimatedPose.getCovariance().times(COVARIANCE_GROWTH_RATE));
-    // });
+      UncertainTransform2d transform = update.transformSupplier.get();
+      double duration = update.getDuration();
+
+      if (duration <= 0) {
+        continue; // Invalid time interval
+      }
+
+      // Apply the transform to our estimated pose
+      estimatedPose =
+          new UncertainPose2d(
+              estimatedPose.getPose().transformBy(transform.getTransform()),
+              estimatedPose
+                  .getCovariance()
+                  .plus(transform.getCovariance().times(timeSinceLastUpdate / duration)));
+
+      // Log the application of this update
+      Logger.recordOutput("Odometry/IncrementalUpdate/" + update.name() + "/Applied", true);
+      Logger.recordOutput(
+          "Odometry/IncrementalUpdate/" + update.name() + "/Transform", transform.getTransform());
+      Logger.recordOutput(
+          "Odometry/IncrementalUpdate/" + update.name() + "/StartTime",
+          update.startTimeSupplier.get());
+      Logger.recordOutput(
+          "Odometry/IncrementalUpdate/" + update.name() + "/EndTime", update.endTimeSupplier.get());
+      LoggedUtil.logMatrix(
+          "Odometry/IncrementalUpdate/" + update.name() + "/Covariance", transform.getCovariance());
+    }
+
+    // Apply covariance growth over time
+    estimatedPose.setCovariance(
+        estimatedPose.getCovariance().times(Math.pow(COVARIANCE_GROWTH_RATE, timeSinceLastUpdate)));
+
+    if (observations.isEmpty()) {
+      return;
+    }
 
     for (PoseObservation observation : observations) {
       UncertainPose2d currentPose = observation.poseSupplier.get();

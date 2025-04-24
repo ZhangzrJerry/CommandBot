@@ -121,8 +121,6 @@ public class Swerve extends SubsystemBase {
     // signalLock.unlock();
     // }
 
-    Logger.recordOutput("getName()", poseSupplier.get().getTotalVariance());
-    Logger.recordOutput("getSubsystem()", odometry.getPose().getTotalVariance());
     if (poseSupplier.get().isBetterThan(odometry.getPose())) {
       odometry.resetWheeledPose(poseSupplier.get());
     }
