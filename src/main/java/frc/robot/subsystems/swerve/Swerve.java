@@ -15,15 +15,15 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.Ports;
-import frc.robot.hardware.motors.DCMotorIO;
-import frc.robot.hardware.motors.DCMotorIOSim;
-import frc.robot.hardware.motors.DCMotorIOTalonfx;
-import frc.robot.hardware.motors.DCMotorIOTalonfxCancoder;
-import frc.robot.hardware.sensors.gyro.GyroIO;
-import frc.robot.hardware.sensors.gyro.GyroIOPigeon2;
-import frc.robot.hardware.sensors.odometry.OdometryThread;
-import frc.robot.hardware.sensors.odometry.PhoenixOdometryThread;
-import frc.robot.hardware.sensors.odometry.SimOdometryThread;
+import frc.robot.interfaces.motors.DCMotorIO;
+import frc.robot.interfaces.motors.DCMotorIOSim;
+import frc.robot.interfaces.motors.DCMotorIOTalonfx;
+import frc.robot.interfaces.motors.DCMotorIOTalonfxCancoder;
+import frc.robot.interfaces.odometry.wheeled.WheeledOdometryPhoenixThread;
+import frc.robot.interfaces.odometry.wheeled.WheeledOdometrySimThread;
+import frc.robot.interfaces.odometry.wheeled.WheeledOdometryThread;
+import frc.robot.interfaces.sensors.gyro.GyroIO;
+import frc.robot.interfaces.sensors.gyro.GyroIOPigeon2;
 import frc.robot.utils.logging.LoggedTunableNumber;
 import frc.robot.utils.math.EqualsUtil;
 import frc.robot.utils.math.GeomUtil;
@@ -304,8 +304,8 @@ public class Swerve extends SubsystemBase {
             SwerveConfig.STEER_GAINS);
 
     GyroIO gyroIO = new GyroIO() {};
-    SimOdometryThread thread =
-        new SimOdometryThread(
+    WheeledOdometrySimThread thread =
+        new WheeledOdometrySimThread(
             () -> flDriveIO.getAppliedPosition(),
             () -> flSteerIO.getAppliedPosition(),
             () -> blDriveIO.getAppliedPosition(),
@@ -391,8 +391,8 @@ public class Swerve extends SubsystemBase {
 
     GyroIOPigeon2 gyroIO = new GyroIOPigeon2(Ports.Can.CHASSIS_PIGEON);
 
-    PhoenixOdometryThread thread =
-        new PhoenixOdometryThread(
+    WheeledOdometryPhoenixThread thread =
+        new WheeledOdometryPhoenixThread(
             flDriveIO.getRawPositionSignal(),
             flSteerIO.getRawPositionSignal(),
             blDriveIO.getRawPositionSignal(),
@@ -421,7 +421,7 @@ public class Swerve extends SubsystemBase {
         new DCMotorIO() {},
         new DCMotorIO() {},
         new GyroIO() {},
-        new OdometryThread() {});
+        new WheeledOdometryThread() {});
   }
 
   private Swerve(
@@ -434,7 +434,7 @@ public class Swerve extends SubsystemBase {
       DCMotorIO frDriveIO,
       DCMotorIO frSteerIO,
       GyroIO gyroIO,
-      OdometryThread odometryThread) {
+      WheeledOdometryThread odometryThread) {
 
     modules[0] = new SwerveModule(flDriveIO, flSteerIO, "ModuleFL");
     modules[1] = new SwerveModule(blDriveIO, blSteerIO, "ModuleBL");

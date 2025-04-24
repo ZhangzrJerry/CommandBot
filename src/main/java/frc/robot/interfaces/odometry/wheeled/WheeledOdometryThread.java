@@ -1,4 +1,4 @@
-package frc.robot.hardware.sensors.odometry;
+package frc.robot.interfaces.odometry.wheeled;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -6,7 +6,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.inputs.LoggableInputs;
 
-public interface OdometryThread {
+public interface WheeledOdometryThread {
   public record WheeledObservation(
       double timestamp, SwerveModulePosition[] wheelPositions, Rotation2d yaw) {}
 

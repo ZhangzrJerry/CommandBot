@@ -11,7 +11,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
-package frc.robot.hardware.sensors.camera;
+package frc.robot.interfaces.sensors.camera;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -22,7 +22,7 @@ import edu.wpi.first.networktables.DoubleArraySubscriber;
 import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.RobotController;
-import frc.robot.hardware.sensors.camera.AtagVisionIO.AtagVisionIOInputs;
+import frc.robot.interfaces.sensors.camera.AtagVisionIO.AtagVisionIOInputs;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package frc.robot.hardware.motors;
+package frc.robot.interfaces.motors;
 
 import frc.robot.utils.GainsUtil.Gains;
 import frc.robot.utils.GainsUtil.PdsGains;

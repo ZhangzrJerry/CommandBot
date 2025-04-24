@@ -1,6 +1,6 @@
 package frc.robot;
 
-import frc.robot.hardware.communication.CanDevice;
+import frc.robot.interfaces.can.CanDevice;
 
 public final class Constants {
   public static final double LOOP_PERIOD_SEC = 0.02;

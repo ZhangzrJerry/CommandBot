@@ -4,10 +4,10 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import frc.robot.hardware.sensors.gyro.GyroIO;
-import frc.robot.hardware.sensors.gyro.GyroIOInputsAutoLogged;
-import frc.robot.hardware.sensors.odometry.OdometryThread;
-import frc.robot.hardware.sensors.odometry.OdometryThread.WheeledObservation;
+import frc.robot.interfaces.odometry.wheeled.WheeledOdometryThread;
+import frc.robot.interfaces.odometry.wheeled.WheeledOdometryThread.WheeledObservation;
+import frc.robot.interfaces.sensors.gyro.GyroIO;
+import frc.robot.interfaces.sensors.gyro.GyroIOInputsAutoLogged;
 import frc.robot.utils.logging.AlertUtil;
 import frc.robot.utils.logging.LoggedUtil;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
@@ -57,7 +57,7 @@ public class SwerveOdometry {
     LoggedUtil.logMatrix("Swerve/Odometry/EstimatedPoseCovariance", pose.getCovariance());
   }
 
-  private void updatePose(OdometryThread.WheeledObservation observation) {
+  private void updatePose(WheeledOdometryThread.WheeledObservation observation) {
     SwerveModulePosition[] modulePositions = observation.wheelPositions();
     Rotation2d gyroYaw = observation.yaw();
 

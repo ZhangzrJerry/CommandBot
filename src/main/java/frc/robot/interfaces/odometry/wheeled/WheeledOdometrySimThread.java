@@ -1,4 +1,4 @@
-package frc.robot.hardware.sensors.odometry;
+package frc.robot.interfaces.odometry.wheeled;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -10,7 +10,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
-public class SimOdometryThread implements OdometryThread {
+public class WheeledOdometrySimThread implements WheeledOdometryThread {
   private final Thread thread;
   private volatile boolean isRunning = false;
   private final List<Supplier<Double>> signals = new ArrayList<>(9);
@@ -18,7 +18,7 @@ public class SimOdometryThread implements OdometryThread {
       new ArrayBlockingQueue<>(20);
   private final Timer timer = new Timer();
 
-  public SimOdometryThread(
+  public WheeledOdometrySimThread(
       Supplier<Double> fl_drive_signal,
       Supplier<Double> fl_steer_signal,
       Supplier<Double> bl_drive_signal,

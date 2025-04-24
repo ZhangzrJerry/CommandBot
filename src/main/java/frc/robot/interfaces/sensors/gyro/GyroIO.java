@@ -1,4 +1,4 @@
-package frc.robot.hardware.sensors.gyro;
+package frc.robot.interfaces.sensors.gyro;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import org.littletonrobotics.junction.AutoLog;

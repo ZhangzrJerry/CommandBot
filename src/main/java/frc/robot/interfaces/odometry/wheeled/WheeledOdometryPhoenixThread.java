@@ -1,4 +1,4 @@
-package frc.robot.hardware.sensors.odometry;
+package frc.robot.interfaces.odometry.wheeled;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -10,7 +10,7 @@ import frc.robot.Constants;
 import java.util.concurrent.ArrayBlockingQueue;
 import org.littletonrobotics.junction.Logger;
 
-public class PhoenixOdometryThread implements OdometryThread {
+public class WheeledOdometryPhoenixThread implements WheeledOdometryThread {
   private final Thread thread;
   private volatile boolean isRunning = false;
   private final BaseStatusSignal[] signals = new BaseStatusSignal[9];
@@ -18,7 +18,7 @@ public class PhoenixOdometryThread implements OdometryThread {
       new ArrayBlockingQueue<>(20);
   private final double frequency, wheeledRadius;
 
-  public PhoenixOdometryThread(
+  public WheeledOdometryPhoenixThread(
       StatusSignal<Angle> fl_drive_signal,
       StatusSignal<Angle> fl_steer_signal,
       StatusSignal<Angle> bl_drive_signal,

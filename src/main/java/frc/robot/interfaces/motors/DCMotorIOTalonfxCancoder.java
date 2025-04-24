@@ -1,9 +1,9 @@
-package frc.robot.hardware.motors;
+package frc.robot.interfaces.motors;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
-import frc.robot.hardware.communication.CanDevice;
+import frc.robot.interfaces.can.CanDevice;
 import frc.robot.utils.math.UnitConverter;
 
 public class DCMotorIOTalonfxCancoder extends DCMotorIOTalonfx {

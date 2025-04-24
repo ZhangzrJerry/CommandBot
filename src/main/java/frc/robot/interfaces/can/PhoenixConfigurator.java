@@ -1,4 +1,4 @@
-package frc.robot.hardware.communication.phoenix;
+package frc.robot.interfaces.can;
 
 import com.ctre.phoenix6.StatusCode;
 import edu.wpi.first.wpilibj.DriverStation;

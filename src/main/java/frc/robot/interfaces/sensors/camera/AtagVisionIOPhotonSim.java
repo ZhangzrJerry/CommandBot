@@ -1,4 +1,4 @@
-package frc.robot.hardware.sensors.camera;
+package frc.robot.interfaces.sensors.camera;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Pose2d;
