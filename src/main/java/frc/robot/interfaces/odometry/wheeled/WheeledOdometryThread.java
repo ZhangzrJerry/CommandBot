@@ -4,20 +4,23 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import java.util.concurrent.ArrayBlockingQueue;
 
-/** 轮式里程计线程接口 定义了轮式里程计数据采集的基本行为 */
+/**
+ * Wheeled odometry thread interface Defines the basic behavior for wheeled odometry data collection
+ */
 public interface WheeledOdometryThread {
+
   public record WheeledObservation(
       double timestamp, SwerveModulePosition[] wheelPositions, Rotation2d yaw) {}
 
   /**
-   * 启动里程计数据采集线程
+   * Starts the odometry data collection thread
    *
-   * @return 用于存储观测数据的阻塞队列
+   * @return A blocking queue used to store observation data
    */
   default ArrayBlockingQueue<WheeledObservation> start() {
     return new ArrayBlockingQueue<WheeledObservation>(1);
   }
 
-  /** 停止里程计数据采集线程 */
+  /** Stops the odometry data collection thread */
   default void stop() {}
 }
