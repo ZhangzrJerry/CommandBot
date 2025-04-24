@@ -7,8 +7,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 /** 轮式里程计线程接口 定义了轮式里程计数据采集的基本行为 */
 public interface WheeledOdometryThread {
   public record WheeledObservation(
-      double timestamp, SwerveModulePosition[] wheelPositions, Rotation2d yaw) {
-  }
+      double timestamp, SwerveModulePosition[] wheelPositions, Rotation2d yaw) {}
 
   /**
    * 启动里程计数据采集线程
@@ -20,6 +19,5 @@ public interface WheeledOdometryThread {
   }
 
   /** 停止里程计数据采集线程 */
-  default void stop() {
-  }
+  default void stop() {}
 }
