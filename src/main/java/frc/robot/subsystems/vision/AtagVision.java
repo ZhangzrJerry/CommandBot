@@ -13,12 +13,9 @@
 
 package frc.robot.subsystems.vision;
 
-import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -27,6 +24,7 @@ import frc.robot.interfaces.sensors.camera.AtagVisionIOInputsAutoLogged;
 import frc.robot.interfaces.sensors.camera.AtagVisionIOPhoton;
 import frc.robot.interfaces.sensors.camera.AtagVisionIOPhotonSim;
 import frc.robot.utils.logging.AlertUtil;
+import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -38,14 +36,9 @@ public class AtagVision extends SubsystemBase {
   private final AtagVisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
 
-  @Getter private Pose2d estimatedPose = new Pose2d();
-
-  @Getter private Matrix<N3, N3> poseCovariance = Matrix.eye(Nat.N3()).times(0.1);
-
   @Getter private double latestTimestamp = 0.0;
 
-  private final Pose2d lastGoodPose = new Pose2d();
-  private final Matrix<N3, N3> lastGoodPoseCovariance = Matrix.eye(Nat.N3()).times(0.1);
+  @Getter private UncertainPose2d latestPose = new UncertainPose2d(new Pose2d());
 
   private final AlertUtil visionOfflineAlert =
       new AlertUtil("Vision offline!", AlertUtil.AlertType.WARNING);
@@ -113,6 +106,8 @@ public class AtagVision extends SubsystemBase {
       io[i].updateInputs(inputs[i]);
       Logger.processInputs("Vision/Camera" + Integer.toString(i), inputs[i]);
     }
+
+    visionOfflineAlert.set(!inputs[0].connected || !inputs[1].connected);
 
     // Initialize logging values
     List<Pose3d> allTagPoses = new LinkedList<>();
@@ -186,10 +181,11 @@ public class AtagVision extends SubsystemBase {
         // Update estimated pose and covariance
         if (robotPosesAccepted.size() > 0) {
           Pose3d bestPose = robotPosesAccepted.get(robotPosesAccepted.size() - 1);
-          estimatedPose =
-              new Pose2d(bestPose.getX(), bestPose.getY(), bestPose.getRotation().toRotation2d());
-          poseCovariance = Matrix.eye(Nat.N3()).times(linearStdDev * linearStdDev);
-          poseCovariance.set(2, 2, angularStdDev * angularStdDev);
+          latestPose.setPose(
+              new Pose2d(bestPose.getX(), bestPose.getY(), bestPose.getRotation().toRotation2d()));
+          latestPose.setXVariance(linearStdDev * linearStdDev);
+          latestPose.setYVariance(linearStdDev * linearStdDev);
+          latestPose.setThetaVariance(angularStdDev * angularStdDev);
           latestTimestamp = observation.timestamp();
         }
       }

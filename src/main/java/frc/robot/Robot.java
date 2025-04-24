@@ -18,6 +18,7 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 public class Robot extends LoggedRobot {
   private final RobotContainer robotContainer;
   private Command autoCmd;
+  private Command initCmd;
 
   private boolean autoMessagePrinted;
   private double autoStart;
@@ -28,56 +29,12 @@ public class Robot extends LoggedRobot {
 
     RobotController.setBrownoutVoltage(6.0);
     robotContainer = new RobotContainer();
-  }
 
-  private void configureCtreLogger() {
-    SignalLogger.enableAutoLogging(false);
-    SignalLogger.stop();
-  }
+    initCmd = robotContainer.getInitializationCommand();
 
-  private void configureAkitLogger() {
-    if (Robot.isReal()) {
-      Logger.addDataReceiver(new WPILOGWriter("/home/lvuser/logs"));
-      if (Constants.IS_LIVE_DEBUG) {
-        Logger.addDataReceiver(new NT4Publisher());
-      }
-    } else {
-      Logger.addDataReceiver(new NT4Publisher());
+    if (initCmd != null) {
+      initCmd.schedule();
     }
-
-    Logger.start();
-
-    Map<String, Integer> commandCounts = new HashMap<>();
-    BiConsumer<Command, Boolean> logCommandFunction =
-        (Command command, Boolean active) -> {
-          String name = command.getName();
-          int count = commandCounts.getOrDefault(name, 0) + (active ? 1 : -1);
-          commandCounts.put(name, count);
-          Logger.recordOutput(
-              "CommandsUnique/" + name + "_" + Integer.toHexString(command.hashCode()), active);
-          Logger.recordOutput("CommandsAll/" + name, count > 0);
-        };
-
-    CommandScheduler.getInstance()
-        .onCommandInitialize(
-            (Command command) -> {
-              System.out.println("" + command.getName() + "");
-              logCommandFunction.accept(command, true);
-            });
-
-    CommandScheduler.getInstance()
-        .onCommandFinish(
-            (Command command) -> {
-              System.out.println("\u001B[32m" + command.getName() + "\u001B[0m");
-              logCommandFunction.accept(command, false);
-            });
-
-    CommandScheduler.getInstance()
-        .onCommandInterrupt(
-            (Command command) -> {
-              System.out.println("\u001B[31m" + command.getName() + "\u001B[0m");
-              logCommandFunction.accept(command, false);
-            });
   }
 
   @Override
@@ -145,4 +102,56 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void simulationPeriodic() {}
+
+  private void configureCtreLogger() {
+    if (Robot.isReal()) {
+      SignalLogger.enableAutoLogging(false);
+      SignalLogger.stop();
+    }
+  }
+
+  private void configureAkitLogger() {
+    if (Robot.isReal()) {
+      Logger.addDataReceiver(new WPILOGWriter("/home/lvuser/logs"));
+      if (Constants.IS_LIVE_DEBUG) {
+        Logger.addDataReceiver(new NT4Publisher());
+      }
+    } else {
+      Logger.addDataReceiver(new NT4Publisher());
+    }
+
+    Logger.start();
+
+    Map<String, Integer> commandCounts = new HashMap<>();
+    BiConsumer<Command, Boolean> logCommandFunction =
+        (Command command, Boolean active) -> {
+          String name = command.getName();
+          int count = commandCounts.getOrDefault(name, 0) + (active ? 1 : -1);
+          commandCounts.put(name, count);
+          Logger.recordOutput(
+              "CommandsUnique/" + name + "_" + Integer.toHexString(command.hashCode()), active);
+          Logger.recordOutput("CommandsAll/" + name, count > 0);
+        };
+
+    CommandScheduler.getInstance()
+        .onCommandInitialize(
+            (Command command) -> {
+              System.out.println("" + command.getName() + "");
+              logCommandFunction.accept(command, true);
+            });
+
+    CommandScheduler.getInstance()
+        .onCommandFinish(
+            (Command command) -> {
+              System.out.println("\u001B[32m" + command.getName() + "\u001B[0m");
+              logCommandFunction.accept(command, false);
+            });
+
+    CommandScheduler.getInstance()
+        .onCommandInterrupt(
+            (Command command) -> {
+              System.out.println("\u001B[31m" + command.getName() + "\u001B[0m");
+              logCommandFunction.accept(command, false);
+            });
+  }
 }

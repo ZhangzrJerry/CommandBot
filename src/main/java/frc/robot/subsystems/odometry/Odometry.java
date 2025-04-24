@@ -1,101 +1,129 @@
 package frc.robot.subsystems.odometry;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.utils.VirtualSubsystem;
+import frc.robot.utils.logging.LoggedUtil;
+import frc.robot.utils.math.PoseUtil.UncertainPose2d;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.function.Supplier;
+import lombok.Getter;
+import org.littletonrobotics.junction.Logger;
 
-/** A subsystem that fuses multiple pose observations with covariance tracking. */
+/**
+ * A subsystem that fuses multiple pose observations with covariance tracking.
+ */
 public class Odometry extends VirtualSubsystem {
+  private final List<PoseObservation> observations = new ArrayList<>();
+
+  @Getter
+  private UncertainPose2d estimatedPose = new UncertainPose2d(new Pose2d());
+  private UncertainPose2d bestEstimatedPose = new UncertainPose2d(
+      new Pose2d(),
+      Double.POSITIVE_INFINITY,
+      Double.POSITIVE_INFINITY,
+      Double.POSITIVE_INFINITY);
+  private double lastUpdateTime = Timer.getFPGATimestamp();
+
+  // Time decay parameters
+  private static final double HALF_LIFE_SECONDS = 1.0; // Observations decay to half weight after this time
+  private static final double MIN_WEIGHT = 0.1; // Minimum weight for any observation
+  private static final double STALE_THRESHOLD_SECONDS = 0.3; // Consider stale after 2 seconds
+  private static final double COVARIANCE_GROWTH_RATE = 1.2; // Covariance growth factor per second
+
+  /** Represents a pose observation source with covariance. */
+  public record PoseObservation(
+      String name,
+      Supplier<UncertainPose2d> poseSupplier,
+      Supplier<Double> timestampSupplier,
+      double baseWeight) {
+    public PoseObservation {
+      if (name == null || name.isEmpty()) {
+        throw new IllegalArgumentException("Observation name cannot be null or empty");
+      }
+      if (poseSupplier == null) {
+        throw new IllegalArgumentException("Pose supplier cannot be null");
+      }
+      if (timestampSupplier == null) {
+        throw new IllegalArgumentException("Timestamp supplier cannot be null");
+      }
+      baseWeight = Math.max(0.0, Math.min(1.0, baseWeight));
+    }
+
+    public PoseObservation(
+        String name, Supplier<UncertainPose2d> poseSupplier, Supplier<Double> timestampSupplier) {
+      this(name, poseSupplier, timestampSupplier, 1.0);
+    }
+
+    public double getTimeWeight(double currentTime) {
+      double age = currentTime - timestampSupplier.get();
+      // Exponential decay based on age
+      double timeWeight = Math.pow(0.5, age / HALF_LIFE_SECONDS);
+      return Math.max(MIN_WEIGHT, timeWeight * baseWeight);
+    }
+  }
+
+  /** Registers a new pose observation source */
+  public Command registerObservation(PoseObservation observation) {
+    return Commands.runOnce(
+        () -> {
+          if (observations.stream().anyMatch(obs -> obs.name().equals(observation.name()))) {
+            throw new IllegalArgumentException(
+                "Observation with name '" + observation.name() + "' already exists");
+          }
+          observations.add(observation);
+          bestEstimatedPose = bestEstimatedPose.isBetterThan(observation.poseSupplier.get())
+              ? observation.poseSupplier.get()
+              : bestEstimatedPose;
+        })
+        .withName("[Odometry] Register Observation: " + observation.name());
+  }
+
   @Override
-  public void periodic() {}
-  // private static final double CONVERGENCE_THRESHOLD = 0.01; // meters
-  // private static final int MAX_ITERATIONS = 10;
-  // private static final double DEFAULT_COVARIANCE = 0.1;
+  public void periodic() {
+    if (observations.isEmpty()) {
+      return;
+    }
 
-  // private final List<PoseObservation> observations = new ArrayList<>();
-  // private final Map<String, Matrix<N3, N3>> observationCovariances = new
-  // HashMap<>();
+    double currentTime = Timer.getFPGATimestamp();
+    double timeSinceLastUpdate = currentTime - lastUpdateTime;
+    lastUpdateTime = currentTime;
 
-  // @AutoLogOutput(key = "Odometry/EstimatedPose")
-  // @Getter
-  // private Pose2d estimatedPose = new Pose2d();
+    estimatedPose = observations.stream()
+        .max(Comparator.comparingDouble(observation -> observation.getTimeWeight(currentTime)))
+        .map(observation -> observation.poseSupplier.get())
+        .orElseGet(
+            () -> {
+              return new UncertainPose2d(
+                  estimatedPose.getPose(),
+                  estimatedPose.getCovariance().times(COVARIANCE_GROWTH_RATE));
+            });
 
-  // @Getter
-  // private Matrix<N3, N3> poseCovariance =
-  // Matrix.eye(Nat.N3()).times(DEFAULT_COVARIANCE);
+    for (PoseObservation observation : observations) {
+      UncertainPose2d currentPose = observation.poseSupplier.get();
+      String baseKey = "Odometry/Observation/" + observation.name();
+      Logger.recordOutput(baseKey + "/Pose", currentPose.getPose());
+      LoggedUtil.logMatrix(baseKey + "/Covariance", currentPose.getCovariance());
+      Logger.recordOutput(baseKey + "/Weight", observation.getTimeWeight(currentTime));
+      Logger.recordOutput(baseKey + "/Age", currentTime - observation.timestampSupplier.get());
 
-  // /** Represents a pose observation source with covariance. */
-  // public record PoseObservation(
-  // String name,
-  // Supplier<UncertainPose2d> poseSupplier,
-  // Supplier<Double> timestampSupplier) {
+      double weight = observation.getTimeWeight(currentTime);
+      double age = currentTime - observation.timestampSupplier.get();
+      if (weight < MIN_WEIGHT * 0.5 || age > STALE_THRESHOLD_SECONDS) {
+        continue; // Skip stale observations
+      }
+      double ageFactor = 1.0 + (age / HALF_LIFE_SECONDS);
 
-  // public PoseObservation {
-  // if (name == null || name.isEmpty()) {
-  // throw new IllegalArgumentException("Observation name cannot be null or
-  // empty");
-  // }
-  // if (poseSupplier == null) {
-  // throw new IllegalArgumentException("Pose supplier cannot be null");
-  // }
-  // if (timestampSupplier == null) {
-  // throw new IllegalArgumentException("Timestamp supplier cannot be null");
-  // }
-  // }
-  // }
+      estimatedPose = estimatedPose.fusedWith(
+          new UncertainPose2d(
+              currentPose.getPose(), currentPose.getCovariance().times(ageFactor / weight)));
+    }
 
-  // /**
-  // * Registers a new pose observation source and returns a supplier that
-  // indicates
-  // * if the fusion is
-  // * better than this source.
-  // */
-  // public BooleanSupplier registerObservation(PoseObservation observation) {
-  // if (observations.stream().anyMatch(obs ->
-  // obs.name().equals(observation.name()))) {
-  // throw new IllegalArgumentException(
-  // "Observation with name '" + observation.name() + "' already exists");
-  // }
-  // observations.add(observation);
-
-  // // 返回一个BooleanSupplier，用于判断融合位姿是否比当前源的位姿估计更好
-  // return () -> {
-  // Matrix<N3, N3> sourceCovariance =
-  // observation.poseSupplier().get().getCovariance();
-  // Matrix<N3, N3> fusedCovariance = poseCovariance;
-
-  // // 比较协方差矩阵的迹（trace），迹越小表示估计越准确
-  // double sourceTrace = sourceCovariance.trace();
-  // double fusedTrace = fusedCovariance.trace();
-
-  // return fusedTrace < sourceTrace;
-  // };
-  // }
-
-  // @Override
-  // public void periodic() {
-  // if (!observations.isEmpty()) {
-  // optimizePoseEstimate();
-  // logObservations();
-  // }
-  // }
-
-  // private void optimizePoseEstimate() {
-  // // 实现位姿优化算法
-  // // 这里可以使用卡尔曼滤波或其他融合算法
-  // }
-
-  // private void logObservations() {
-  // for (PoseObservation observation : observations) {
-  // String baseKey = "Odometry/Observation/" + observation.name();
-  // Logger.recordOutput(baseKey + "/Pose",
-  // observation.poseSupplier().get().getPose());
-  // Logger.recordOutput(baseKey + "/Timestamp",
-  // observation.timestampSupplier.get());
-  // Logger.recordOutput(baseKey + "/var X",
-  // observation.covarianceSupplier.get().get(0, 0));
-  // Logger.recordOutput(baseKey + "/var Y",
-  // observation.covarianceSupplier.get().get(1, 1));
-  // Logger.recordOutput(baseKey + "/var W",
-  // observation.covarianceSupplier.get().get(2, 2));
-  // }
-  // }
+    Logger.recordOutput("Odometry/EstimatedPose", estimatedPose.getPose());
+    LoggedUtil.logMatrix("Odometry/EstimatedCovariance", estimatedPose.getCovariance());
+  }
 }

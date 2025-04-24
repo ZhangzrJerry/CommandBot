@@ -271,31 +271,46 @@ public class PoseUtil {
      * @param other The other pose estimate to fuse with
      * @return The fused pose estimate
      */
-    public UncertainPose2d fuseWith(UncertainPose2d other) {
-      Matrix<N3, N3> invCov1 = covariance.inv();
-      Matrix<N3, N3> invCov2 = other.covariance.inv();
-      Matrix<N3, N3> fusedCov = (invCov1.plus(invCov2)).inv();
+    public UncertainPose2d fusedWith(UncertainPose2d other) {
+      try {
+        Matrix<N3, N3> cov1 = this.covariance;
+        cov1.set(0, 0, 1e-6 + cov1.get(0, 0));
+        cov1.set(1, 1, 1e-6 + cov1.get(1, 1));
+        cov1.set(2, 2, 1e-6 + cov1.get(2, 2));
+        Matrix<N3, N3> invCov1 = cov1.inv();
 
-      Matrix<N3, N1> poseVec1 = new Matrix<>(Nat.N3(), Nat.N1());
-      poseVec1.set(0, 0, pose.getX());
-      poseVec1.set(1, 0, pose.getY());
-      poseVec1.set(2, 0, pose.getRotation().getRadians());
+        Matrix<N3, N3> cov2 = other.covariance;
+        cov2.set(0, 0, 1e-6 + cov2.get(0, 0));
+        cov2.set(1, 1, 1e-6 + cov2.get(1, 1));
+        cov2.set(2, 2, 1e-6 + cov2.get(2, 2));
+        Matrix<N3, N3> invCov2 = cov2.inv();
 
-      Matrix<N3, N1> poseVec2 = new Matrix<>(Nat.N3(), Nat.N1());
-      poseVec2.set(0, 0, other.pose.getX());
-      poseVec2.set(1, 0, other.pose.getY());
-      poseVec2.set(2, 0, other.pose.getRotation().getRadians());
+        Matrix<N3, N3> fusedCov = (invCov1.plus(invCov2)).inv();
 
-      Matrix<N3, N1> fusedPoseVec =
-          fusedCov.times(invCov1.times(poseVec1).plus(invCov2.times(poseVec2)));
+        Matrix<N3, N1> poseVec1 = new Matrix<>(Nat.N3(), Nat.N1());
+        poseVec1.set(0, 0, pose.getX());
+        poseVec1.set(1, 0, pose.getY());
+        poseVec1.set(2, 0, pose.getRotation().getRadians());
 
-      Pose2d fusedPose =
-          new Pose2d(
-              fusedPoseVec.get(0, 0),
-              fusedPoseVec.get(1, 0),
-              new Rotation2d(fusedPoseVec.get(2, 0)));
+        Matrix<N3, N1> poseVec2 = new Matrix<>(Nat.N3(), Nat.N1());
+        poseVec2.set(0, 0, other.pose.getX());
+        poseVec2.set(1, 0, other.pose.getY());
+        poseVec2.set(2, 0, other.pose.getRotation().getRadians());
 
-      return new UncertainPose2d(fusedPose, fusedCov);
+        Matrix<N3, N1> fusedPoseVec =
+            fusedCov.times(invCov1.times(poseVec1).plus(invCov2.times(poseVec2)));
+
+        Pose2d fusedPose =
+            new Pose2d(
+                fusedPoseVec.get(0, 0),
+                fusedPoseVec.get(1, 0),
+                new Rotation2d(fusedPoseVec.get(2, 0)));
+
+        return new UncertainPose2d(fusedPose, fusedCov);
+      } catch (Exception e) {
+        // Fallback to selecting the more certain pose
+        return isBetterThan(other) ? this : other;
+      }
     }
 
     /**
