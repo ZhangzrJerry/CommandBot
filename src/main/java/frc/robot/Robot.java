@@ -60,7 +60,11 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+    if (Robot.isSimulation()) {
+      robotContainer.getSimulationConfigureCommand().schedule();
+    }
+  }
 
   @Override
   public void disabledPeriodic() {}

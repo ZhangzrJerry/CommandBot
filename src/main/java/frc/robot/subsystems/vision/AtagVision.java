@@ -38,7 +38,9 @@ public class AtagVision extends SubsystemBase {
 
   @Getter private double latestTimestamp = 0.0;
 
-  @Getter private UncertainPose2d latestPose = new UncertainPose2d(new Pose2d());
+  @Getter
+  private UncertainPose2d latestPose =
+      new UncertainPose2d(new Pose2d(), 0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f);
 
   private final AlertUtil visionOfflineAlert =
       new AlertUtil("Vision offline!", AlertUtil.AlertType.WARNING);

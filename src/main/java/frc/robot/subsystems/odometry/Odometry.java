@@ -8,7 +8,6 @@ import frc.robot.utils.VirtualSubsystem;
 import frc.robot.utils.logging.LoggedUtil;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Supplier;
 import lombok.Getter;
@@ -18,13 +17,10 @@ import org.littletonrobotics.junction.Logger;
 public class Odometry extends VirtualSubsystem {
   private final List<PoseObservation> observations = new ArrayList<>();
 
-  @Getter private UncertainPose2d estimatedPose = new UncertainPose2d(new Pose2d());
-  private UncertainPose2d bestEstimatedPose =
-      new UncertainPose2d(
-          new Pose2d(),
-          Double.POSITIVE_INFINITY,
-          Double.POSITIVE_INFINITY,
-          Double.POSITIVE_INFINITY);
+  @Getter
+  private UncertainPose2d estimatedPose =
+      new UncertainPose2d(new Pose2d(), 0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f);
+
   private double lastUpdateTime = Timer.getFPGATimestamp();
 
   // Time decay parameters
@@ -75,10 +71,10 @@ public class Odometry extends VirtualSubsystem {
                     "Observation with name '" + observation.name() + "' already exists");
               }
               observations.add(observation);
-              bestEstimatedPose =
-                  bestEstimatedPose.isBetterThan(observation.poseSupplier.get())
-                      ? observation.poseSupplier.get()
-                      : bestEstimatedPose;
+              // bestEstimatedPose =
+              // bestEstimatedPose.isBetterThan(observation.poseSupplier.get())
+              // ? observation.poseSupplier.get()
+              // : bestEstimatedPose;
             })
         .withName("[Odometry] Register Observation: " + observation.name());
   }
@@ -93,16 +89,18 @@ public class Odometry extends VirtualSubsystem {
     double timeSinceLastUpdate = currentTime - lastUpdateTime;
     lastUpdateTime = currentTime;
 
-    estimatedPose =
-        observations.stream()
-            .max(Comparator.comparingDouble(observation -> observation.getTimeWeight(currentTime)))
-            .map(observation -> observation.poseSupplier.get())
-            .orElseGet(
-                () -> {
-                  return new UncertainPose2d(
-                      estimatedPose.getPose(),
-                      estimatedPose.getCovariance().times(COVARIANCE_GROWTH_RATE));
-                });
+    estimatedPose.setCovariance(estimatedPose.getCovariance().times(COVARIANCE_GROWTH_RATE));
+
+    // estimatedPose = observations.stream()
+    // .max(Comparator.comparingDouble(observation ->
+    // observation.getTimeWeight(currentTime)))
+    // .map(observation -> observation.poseSupplier.get())
+    // .orElseGet(
+    // () -> {
+    // return new UncertainPose2d(
+    // estimatedPose.getPose(),
+    // estimatedPose.getCovariance().times(COVARIANCE_GROWTH_RATE));
+    // });
 
     for (PoseObservation observation : observations) {
       UncertainPose2d currentPose = observation.poseSupplier.get();

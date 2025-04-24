@@ -76,7 +76,7 @@ public class Swerve extends SubsystemBase {
         .withName("[Swerve] Register Controller: " + controller.getName());
   }
 
-  private Command resetWheeledPoseCommand(UncertainPose2d pose) {
+  public Command resetWheeledPoseCommand(UncertainPose2d pose) {
     return Commands.runOnce(
             () -> {
               odometry.resetWheeledPose(pose);
@@ -121,6 +121,8 @@ public class Swerve extends SubsystemBase {
     // signalLock.unlock();
     // }
 
+    Logger.recordOutput("getName()", poseSupplier.get().getTotalVariance());
+    Logger.recordOutput("getSubsystem()", odometry.getPose().getTotalVariance());
     if (poseSupplier.get().isBetterThan(odometry.getPose())) {
       odometry.resetWheeledPose(poseSupplier.get());
     }

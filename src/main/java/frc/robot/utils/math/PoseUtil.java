@@ -154,6 +154,10 @@ public class PoseUtil {
       return getTotalVariance() < other.getTotalVariance();
     }
 
+    public boolean isReallyBetterThan(UncertainPose2d other) {
+      return getTotalVariance() < 0.1 * other.getTotalVariance();
+    }
+
     /**
      * Gets the total variance (trace of covariance matrix).
      *

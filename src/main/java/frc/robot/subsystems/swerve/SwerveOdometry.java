@@ -23,7 +23,10 @@ public class SwerveOdometry {
 
   ArrayBlockingQueue<WheeledObservation> odometryCachedWheeledObservationQueue;
 
-  @Getter private UncertainPose2d pose = new UncertainPose2d(new Pose2d());
+  @Getter
+  private UncertainPose2d pose =
+      new UncertainPose2d(new Pose2d(), 0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f);
+
   private Rotation2d lastGyroYaw;
   private SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[4];
 

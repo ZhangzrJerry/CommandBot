@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Timer;
@@ -10,6 +11,7 @@ import frc.robot.subsystems.odometry.Odometry;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.controller.TeleopHeaderController;
 import frc.robot.subsystems.vision.AtagVision;
+import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 
 public class RobotContainer {
   // physical subsystems
@@ -68,6 +70,14 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
     return Commands.none().withName("### Robot Autonomous ...");
+  }
+
+  public Command getSimulationConfigureCommand() {
+    return Commands.sequence(
+            swerve.resetWheeledPoseCommand(
+                new UncertainPose2d(new Pose2d(5.0, 5.0, Rotation2d.fromDegrees(0)))))
+        .withName("### Robot Simulation Configure ...")
+        .ignoringDisable(true);
   }
 
   private Command joystickRumbleCommand(double seconds) {
