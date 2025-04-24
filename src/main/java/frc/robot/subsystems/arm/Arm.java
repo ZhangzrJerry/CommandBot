@@ -462,7 +462,8 @@ public class Arm extends SubsystemBase {
               Logger.recordOutput(
                   "Arm/Shoulder/StaticCharacterizationCurrentOutputAmp",
                   state.characterizationOutput);
-            })
+            },
+            this)
         .until(
             () ->
                 shoulderInputs.appliedVelocity
@@ -477,7 +478,8 @@ public class Arm extends SubsystemBase {
                   state.characterizationOutput);
 
               System.out.println("Calculated Ks: " + state.characterizationOutput + " amps");
-            });
+            })
+        .withName("[Arm] Shoulder kS Characterization");
   }
 
   public Command getElbowKsCharacterizationCmd(double outputCurrentRampRateAmp) {
@@ -494,7 +496,8 @@ public class Arm extends SubsystemBase {
               elbowIO.setCurrent(state.characterizationOutput);
               Logger.recordOutput(
                   "Arm/Elbow/StaticCharacterizationCurrentOutputAmp", state.characterizationOutput);
-            })
+            },
+            this)
         .until(
             () ->
                 elbowInputs.appliedVelocity
@@ -509,7 +512,8 @@ public class Arm extends SubsystemBase {
                   "Arm/Elbow/StaticCharacterizationCurrentOutputAmp", state.characterizationOutput);
 
               System.out.println("Calculated Ks: " + state.characterizationOutput + " amps");
-            });
+            })
+        .withName("[Arm] Elbow kS Characterization");
   }
 
   private static class StaticCharacterizationState {
@@ -535,14 +539,16 @@ public class Arm extends SubsystemBase {
             Commands.waitUntil(() -> this.atGoal() || (!this.atGoal() && hasStall.getAsBoolean())),
             Commands.startRun(
                     () -> isHoming = true,
-                    () -> shoulderIO.setCurrent(shoulderHomingCurrentAmp.get()))
+                    () -> shoulderIO.setCurrent(shoulderHomingCurrentAmp.get()),
+                    this)
                 .until(hasStall),
             Commands.runOnce(() -> shoulderIO.resetAppliedPosition(0.0)))
         .finallyDo(
             () -> {
               setGoal(ArmGoal.IDLE);
               isHoming = false;
-            });
+            })
+        .withName("[Arm] Shoulder Offset Calibrate");
   }
 
   public void increaseShoulderManualOffsetMeter(double val) {

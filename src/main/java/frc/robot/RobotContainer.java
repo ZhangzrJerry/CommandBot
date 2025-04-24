@@ -54,8 +54,9 @@ public class RobotContainer {
                 () -> -joystick.getLeftX(),
                 () -> -joystick.getRightX())));
 
-    joystick.a().onTrue(swerve.resetGyroHeadingCommand(new Rotation2d()));
-    joystick.x().onTrue(joystickRumbleCommand(0.3));
+    joystick.a().onTrue(arm.getElbowKsCharacterizationCmd(1));
+    joystick.x().onTrue(arm.getShoulderKsCharacterizationCmd(2));
+    joystick.y().onTrue(arm.getHomeCmd());
   }
 
   public Command getInitializationCommand() {
