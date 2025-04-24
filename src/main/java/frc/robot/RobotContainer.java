@@ -19,7 +19,8 @@ public class RobotContainer {
 
   private final Odometry odometry = new Odometry();
 
-  private final CommandXboxController joystick = new CommandXboxController(Constants.Ports.Joystick.DRIVER);
+  private final CommandXboxController joystick =
+      new CommandXboxController(Constants.Ports.Joystick.DRIVER);
 
   public RobotContainer() {
     if (Robot.isReal()) {
@@ -41,8 +42,7 @@ public class RobotContainer {
     configureVisualizer();
   }
 
-  private void configureSubsystems() {
-  }
+  private void configureSubsystems() {}
 
   private void configureJoystick() {
     swerve.setDefaultCommand(
@@ -76,8 +76,7 @@ public class RobotContainer {
     // () -> vision.getLatestTimestamp()));
   }
 
-  private void configureVisualizer() {
-  }
+  private void configureVisualizer() {}
 
   public Command getAutonomousCommand() {
     return Commands.none();
@@ -85,8 +84,8 @@ public class RobotContainer {
 
   private Command joystickHumbleCommand(double seconds) {
     return Commands.startEnd(
-        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
-        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
+            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
+            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
         .withTimeout(seconds)
         .withName("[Joystick] Rumble " + Math.round(seconds * 10) / 10.0 + "s");
   }

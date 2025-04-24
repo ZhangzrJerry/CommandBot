@@ -4,7 +4,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.hardware.sensors.gyro.GyroIO;
 import frc.robot.hardware.sensors.gyro.GyroIOInputsAutoLogged;
 import frc.robot.hardware.sensors.odometry.OdometryThread;
@@ -19,12 +18,12 @@ import org.littletonrobotics.junction.Logger;
 public class SwerveOdometry {
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
-  private final AlertUtil gyroOfflineAlert = new AlertUtil("Gyro offline!", AlertUtil.AlertType.WARNING);
+  private final AlertUtil gyroOfflineAlert =
+      new AlertUtil("Gyro offline!", AlertUtil.AlertType.WARNING);
 
   ArrayBlockingQueue<WheeledObservation> odometryCachedWheeledObservationQueue;
 
-  @Getter
-  private UncertainPose2d pose = new UncertainPose2d(new Pose2d());
+  @Getter private UncertainPose2d pose = new UncertainPose2d(new Pose2d());
   private Rotation2d lastGyroYaw;
   private SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[4];
 
@@ -46,7 +45,8 @@ public class SwerveOdometry {
     Logger.processInputs("Swerve/Gyro", gyroInputs);
     gyroOfflineAlert.set(!gyroInputs.connected);
 
-    var wheeledObservationArray = odometryCachedWheeledObservationQueue.toArray(WheeledObservation[]::new);
+    var wheeledObservationArray =
+        odometryCachedWheeledObservationQueue.toArray(WheeledObservation[]::new);
     odometryCachedWheeledObservationQueue.clear();
 
     for (int i = 0; i < wheeledObservationArray.length; i++) {
@@ -63,6 +63,7 @@ public class SwerveOdometry {
 
     Logger.recordOutput("Swerve/Odometry/ModulePositions", modulePositions);
     Twist2d twist = SwerveConfig.SWERVE_KINEMATICS.toTwist2d(lastModulePositions, modulePositions);
+    lastModulePositions = modulePositions;
 
     double translationError = Math.hypot(twist.dx, twist.dy) * 0.01;
     double rotationError = Math.abs(twist.dtheta) * 0.01;
