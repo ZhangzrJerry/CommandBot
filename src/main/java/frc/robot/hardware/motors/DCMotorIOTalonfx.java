@@ -30,20 +30,13 @@ public class DCMotorIOTalonfx implements DCMotorIO {
   private UnitConverter ratioConverter = UnitConverter.identity();
   private UnitConverter positionConvertor = UnitConverter.identity();
 
-  @Getter
-  private final StatusSignal<Angle> rawPositionSignal;
-  @Getter
-  private final StatusSignal<AngularVelocity> rawVelocitySignal;
-  @Getter
-  private final StatusSignal<AngularAcceleration> rawAccelerationSignal;
-  @Getter
-  private final StatusSignal<Voltage> outputVoltageSignal;
-  @Getter
-  private final StatusSignal<Current> statorCurrentSignal;
-  @Getter
-  private final StatusSignal<Current> supplyCurrentSignal;
-  @Getter
-  private final StatusSignal<Temperature> temperatureSignal;
+  @Getter private final StatusSignal<Angle> rawPositionSignal;
+  @Getter private final StatusSignal<AngularVelocity> rawVelocitySignal;
+  @Getter private final StatusSignal<AngularAcceleration> rawAccelerationSignal;
+  @Getter private final StatusSignal<Voltage> outputVoltageSignal;
+  @Getter private final StatusSignal<Current> statorCurrentSignal;
+  @Getter private final StatusSignal<Current> supplyCurrentSignal;
+  @Getter private final StatusSignal<Temperature> temperatureSignal;
 
   public DCMotorIOTalonfx(
       String name,
@@ -70,29 +63,31 @@ public class DCMotorIOTalonfx implements DCMotorIO {
 
     PhoenixConfigurator.configure(
         wrappedName + " set signals update frequency",
-        () -> BaseStatusSignal.setUpdateFrequencyForAll(
-            100.0,
-            rawPositionSignal,
-            rawVelocitySignal,
-            rawAccelerationSignal,
-            outputVoltageSignal,
-            supplyCurrentSignal,
-            statorCurrentSignal,
-            temperatureSignal));
+        () ->
+            BaseStatusSignal.setUpdateFrequencyForAll(
+                100.0,
+                rawPositionSignal,
+                rawVelocitySignal,
+                rawAccelerationSignal,
+                outputVoltageSignal,
+                supplyCurrentSignal,
+                statorCurrentSignal,
+                temperatureSignal));
     PhoenixConfigurator.configure(
         wrappedName + " optimize CAN utilization", motor::optimizeBusUtilization);
   }
 
   public void updateInputs(DCMotorIOInputs inputs) {
-    inputs.connected = BaseStatusSignal.refreshAll(
-        rawPositionSignal,
-        rawVelocitySignal,
-        rawAccelerationSignal,
-        outputVoltageSignal,
-        supplyCurrentSignal,
-        statorCurrentSignal,
-        temperatureSignal)
-        .isOK();
+    inputs.connected =
+        BaseStatusSignal.refreshAll(
+                rawPositionSignal,
+                rawVelocitySignal,
+                rawAccelerationSignal,
+                outputVoltageSignal,
+                supplyCurrentSignal,
+                statorCurrentSignal,
+                temperatureSignal)
+            .isOK();
 
     // mechanism, rotated units
     inputs.rawPosition = rawPositionSignal.getValueAsDouble();
@@ -156,10 +151,10 @@ public class DCMotorIOTalonfx implements DCMotorIO {
       double position, double velocity, double acceleration, double feedforward) {
     motor.setControl(
         new DynamicMotionMagicTorqueCurrentFOC(
-            ratioConverter.convertInverse(position),
-            ratioConverter.convertInverse(velocity),
-            ratioConverter.convertInverse(acceleration),
-            0.0)
+                ratioConverter.convertInverse(position),
+                ratioConverter.convertInverse(velocity),
+                ratioConverter.convertInverse(acceleration),
+                0.0)
             .withFeedForward(feedforward));
   }
 

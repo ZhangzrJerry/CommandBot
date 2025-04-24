@@ -1,9 +1,7 @@
 package frc.robot;
 
-import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -12,6 +10,7 @@ import frc.robot.subsystems.odometry.Odometry;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.controller.TeleopHeaderController;
 import frc.robot.subsystems.vision.AtagVision;
+import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 
 public class RobotContainer {
   // physical subsystems
@@ -20,8 +19,7 @@ public class RobotContainer {
 
   private final Odometry odometry = new Odometry();
 
-  private final CommandXboxController joystick =
-      new CommandXboxController(Constants.Ports.Joystick.DRIVER);
+  private final CommandXboxController joystick = new CommandXboxController(Constants.Ports.Joystick.DRIVER);
 
   public RobotContainer() {
     if (Robot.isReal()) {
@@ -31,7 +29,7 @@ public class RobotContainer {
     } else if (Robot.isSimulation()) {
       // simulation subsystems
       swerve = Swerve.createSim();
-      vision = AtagVision.createSim(() -> swerve.getWheeledPose());
+      vision = AtagVision.createSim(() -> swerve.getPose());
     } else {
       // dummy subsystems
       swerve = Swerve.createIO();
@@ -43,11 +41,12 @@ public class RobotContainer {
     configureVisualizer();
   }
 
-  private void configureSubsystems() {}
+  private void configureSubsystems() {
+  }
 
   private void configureJoystick() {
     swerve.setDefaultCommand(
-        swerve.setControllerCommand(
+        swerve.registerControllerCommand(
             new TeleopHeaderController(
                 () -> -joystick.getLeftY(),
                 () -> -joystick.getLeftX(),
@@ -55,10 +54,8 @@ public class RobotContainer {
 
     joystick.a().onTrue(swerve.resetGyroHeadingCommand(new Rotation2d()));
     joystick
-        .b()
-        .onTrue(
-            swerve.resetWheeledPoseCommand(
-                new Pose2d(), new Matrix<N3, N3>(N3.instance, N3.instance)));
+        .y()
+        .onTrue(swerve.registerBetterPoseCommandSupplier(() -> new UncertainPose2d(new Pose2d())));
     joystick.x().onTrue(joystickHumbleCommand(0.3));
   }
 
@@ -79,7 +76,8 @@ public class RobotContainer {
     // () -> vision.getLatestTimestamp()));
   }
 
-  private void configureVisualizer() {}
+  private void configureVisualizer() {
+  }
 
   public Command getAutonomousCommand() {
     return Commands.none();
@@ -87,8 +85,8 @@ public class RobotContainer {
 
   private Command joystickHumbleCommand(double seconds) {
     return Commands.startEnd(
-            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
-            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
+        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
+        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
         .withTimeout(seconds)
         .withName("[Joystick] Rumble " + Math.round(seconds * 10) / 10.0 + "s");
   }

@@ -60,7 +60,6 @@ public class SwerveModule {
   }
 
   void setState(SwerveModuleState state, double velocityFeedforward) {
-
     driveIO.setAppliedVelocityF(
         state.speedMetersPerSecond, velocityFeedforward / SwerveConfig.DRIVE_FF_KT);
     steerIO.setAppliedPosition(state.angle.getRadians());

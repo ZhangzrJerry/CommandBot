@@ -340,6 +340,15 @@ public class PoseUtil {
       this.transform = transform;
       this.covariance = covariance;
     }
+
+    public UncertainTransform2d(
+        Transform2d transform, double xVariance, double yVariance, double thetaVariance) {
+      this.transform = transform;
+      this.covariance = Matrix.eye(Nat.N3());
+      this.covariance.set(0, 0, xVariance);
+      this.covariance.set(1, 1, yVariance);
+      this.covariance.set(2, 2, thetaVariance);
+    }
   }
 
   private PoseUtil() {}
