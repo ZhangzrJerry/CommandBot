@@ -8,7 +8,7 @@ public final class Constants {
 
   public final class Ascope {
     public static final class Component {
-      public static final int ROBOT_FRAME = -1;
+      public static final int DRIVETRAIN = -1;
       public static final int SWERVE_FL = 0;
       public static final int SWERVE_BL = 1;
       public static final int SWERVE_BR = 2;

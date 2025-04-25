@@ -82,6 +82,7 @@ public class RobotContainer {
   void configureSignalBinding() {
     // ===== visualize service =====
     swerve.registerVisualize(visualizer);
+    arm.registerVisualize(visualizer);
   }
 
   public Command getAutoCmd() {

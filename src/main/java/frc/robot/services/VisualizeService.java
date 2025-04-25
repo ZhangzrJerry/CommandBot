@@ -24,7 +24,7 @@ public class VisualizeService implements Service {
 
   @Override
   public String getName() {
-    return "VisualizeService";
+    return "Visualize";
   }
 
   @Override
@@ -56,7 +56,7 @@ public class VisualizeService implements Service {
       }
     }
 
-    Logger.recordOutput(getName() + "/Components", poses);
+    Logger.recordOutput("Services/" + getName() + "/Components", poses);
   }
 
   private static final List<VisualizeComponent> components = new ArrayList<>();
@@ -101,6 +101,7 @@ public class VisualizeService implements Service {
       }
     }
     components.add(akitVizComponent);
+    // Logger.recordOutput();
   }
 
   public void registerVisualizeComponent(

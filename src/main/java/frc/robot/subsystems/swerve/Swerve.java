@@ -422,7 +422,7 @@ public class Swerve extends SubsystemBase {
   public void registerVisualize(VisualizeService visualizer) {
     visualizer.registerVisualizeComponent(
         Constants.Ascope.Component.SWERVE_FL,
-        -1,
+        Constants.Ascope.Component.DRIVETRAIN,
         () ->
             new Transform3d(
                 SwerveConfig.FL_ZEROED_TF.getTranslation(),
@@ -436,14 +436,14 @@ public class Swerve extends SubsystemBase {
                 new Rotation3d(0, modules[1].getState().angle.getRadians(), 0)));
     visualizer.registerVisualizeComponent(
         Constants.Ascope.Component.SWERVE_BR,
-        -1,
+        Constants.Ascope.Component.DRIVETRAIN,
         () ->
             new Transform3d(
                 SwerveConfig.BR_ZEROED_TF.getTranslation(),
                 new Rotation3d(0, modules[2].getState().angle.getRadians(), 0)));
     visualizer.registerVisualizeComponent(
         Constants.Ascope.Component.SWERVE_FR,
-        -1,
+        Constants.Ascope.Component.DRIVETRAIN,
         () ->
             new Transform3d(
                 SwerveConfig.FR_ZEROED_TF.getTranslation(),
