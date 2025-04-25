@@ -26,7 +26,7 @@ public class SuperStructure {
               arm.setGoal(ArmGoal.IDLE);
               intake.setGoal(IntakeGoal.IDLE);
             })
-        .withName("$ SuperStructure/Forced Idle");
+        .withName("Super/Forced Idle");
   }
 
   public Command algaeIntakeCollectCmd() {
@@ -35,7 +35,7 @@ public class SuperStructure {
               arm.setGoal(ArmGoal.ALGAE_GROUND_PICK);
               intake.setGoal(IntakeGoal.COLLECT);
             })
-        .withName("$ SuperStructure/Algae Intake Collect");
+        .withName("Super/Algae Intake Collect");
   }
 
   public Command algaeIntakeEjectCmd() {
@@ -44,6 +44,6 @@ public class SuperStructure {
               arm.setGoal(ArmGoal.ALGAE_GROUND_PICK);
               intake.setGoal(IntakeGoal.EJECT);
             })
-        .withName("$ SuperStructure/Algae Intake Eject");
+        .withName("Super/Algae Intake Eject");
   }
 }

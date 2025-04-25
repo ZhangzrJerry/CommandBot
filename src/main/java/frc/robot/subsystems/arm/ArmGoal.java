@@ -3,10 +3,14 @@ package frc.robot.subsystems.arm;
 import edu.wpi.first.math.util.Units;
 import frc.robot.utils.dashboard.TunableNumbers;
 import java.util.Map;
+import org.littletonrobotics.junction.AutoLogOutput;
 
 public class ArmGoal extends TunableNumbers {
   public static final String SHOULDER_HEIGHT_METER = "ShoulderHeightMeter";
   public static final String ELBOW_POSITION_DEGREE = "ElbowPositionDegree";
+
+  @AutoLogOutput(key = "Arm/Goal")
+  private final String name;
 
   public ArmGoal(String baseKey, double shoulderHeightMeter, double elbowPositionDegree) {
     super(
@@ -14,6 +18,7 @@ public class ArmGoal extends TunableNumbers {
         Map.of(
             SHOULDER_HEIGHT_METER, shoulderHeightMeter,
             ELBOW_POSITION_DEGREE, elbowPositionDegree));
+    this.name = baseKey.substring(baseKey.lastIndexOf("/") + 1);
   }
 
   public double getShoulderHeightMeter() {

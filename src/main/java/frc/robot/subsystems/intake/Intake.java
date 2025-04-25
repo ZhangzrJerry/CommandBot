@@ -61,7 +61,9 @@ public class Intake extends SubsystemBase {
   private final AlertManager armOfflineAlert =
       new AlertManager("Algae ground intake arm motor offline!", AlertManager.AlertType.WARNING);
 
-  @Getter @AutoLogOutput private IntakeGoal goal = IntakeGoal.IDLE;
+  @Getter
+  @AutoLogOutput(key = "Intake/Goal")
+  private IntakeGoal goal = IntakeGoal.IDLE;
 
   private boolean slammed = false;
   private Debouncer slamDebouncer = new Debouncer(0.0);
@@ -176,15 +178,16 @@ public class Intake extends SubsystemBase {
         Constants.Ascope.Component.INTAKE,
         Constants.Ascope.Component.DRIVETRAIN,
         () ->
-            new Transform3d(
-                0,
-                0,
-                0,
-                new Rotation3d(
-                    (Units.degreesToRadians(IntakeConfig.ARM_HOME_POSITION_DEGREE)
-                        - (armIOInputs.appliedPosition
-                            - Units.degreesToRadians(IntakeConfig.ARM_HOME_POSITION_DEGREE))),
+            IntakeConfig.ZEROED_INTAKE_TF.plus(
+                new Transform3d(
                     0,
-                    0)));
+                    0,
+                    0,
+                    new Rotation3d(
+                        (Units.degreesToRadians(IntakeConfig.ARM_HOME_POSITION_DEGREE)
+                            - (armIOInputs.appliedPosition
+                                - Units.degreesToRadians(IntakeConfig.ARM_HOME_POSITION_DEGREE))),
+                        0,
+                        0))));
   }
 }

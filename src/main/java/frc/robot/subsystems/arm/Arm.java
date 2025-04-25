@@ -325,7 +325,7 @@ public class Arm extends SubsystemBase {
 
               System.out.println("Calculated Ks: " + state.characterizationOutput + " amps");
             })
-        .withName("> Arm/Shoulder kS Characterization");
+        .withName("Arm/Shoulder kS Characterization");
   }
 
   public Command getElbowKsCharacterizationCmd(double outputCurrentRampRateAmp) {
@@ -359,7 +359,7 @@ public class Arm extends SubsystemBase {
 
               System.out.println("Calculated Ks: " + state.characterizationOutput + " amps");
             })
-        .withName("> Arm/Elbow kS Characterization");
+        .withName("Arm/Elbow kS Characterization");
   }
 
   private static class StaticCharacterizationState {
@@ -392,7 +392,7 @@ public class Arm extends SubsystemBase {
               setGoal(ArmGoal.IDLE);
               isHoming = false;
             })
-        .withName("> Arm/Shoulder Offset Calibrate");
+        .withName("Arm/Shoulder Offset Calibrate");
   }
 
   public static Arm createSim() {

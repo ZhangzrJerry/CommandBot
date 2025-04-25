@@ -59,7 +59,7 @@ public class Swerve extends SubsystemBase {
               this.controller = controller;
             },
             this)
-        .withName("> Swerve/Register Controller: " + controller.getName());
+        .withName("Swerve/Register Controller: " + controller.getName());
   }
 
   public Command resetWheeledPoseCmd(UncertainPose2d pose) {
@@ -67,7 +67,7 @@ public class Swerve extends SubsystemBase {
             () -> {
               odometry.resetWheeledPose(pose);
             })
-        .withName("> Swerve/Reset Wheeled Pose");
+        .withName("Swerve/Reset Wheeled Pose");
   }
 
   public Command resetGyroHeadingCmd(Rotation2d yaw) {
@@ -75,7 +75,7 @@ public class Swerve extends SubsystemBase {
             () -> {
               odometry.resetGyroHeading(yaw);
             })
-        .withName("> Swerve/Reset Gyro Heading");
+        .withName("Swerve/Reset Gyro Heading");
   }
 
   public Pose2d getPose() {

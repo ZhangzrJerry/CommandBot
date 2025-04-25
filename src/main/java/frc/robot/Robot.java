@@ -137,20 +137,30 @@ public class Robot extends LoggedRobot {
 
     commandScheduler.onCommandInitialize(
         (Command command) -> {
-          System.out.println("" + command.getName() + "");
+          System.out.println(commandPrintHelper(command.getName()));
           logCommandFunction.accept(command, true);
         });
 
     commandScheduler.onCommandFinish(
         (Command command) -> {
-          System.out.println("\u001B[32m" + command.getName() + "\u001B[0m");
+          System.out.println("\u001B[32m" + commandPrintHelper(command.getName()) + "\u001B[0m");
           logCommandFunction.accept(command, false);
         });
 
     commandScheduler.onCommandInterrupt(
         (Command command) -> {
-          System.out.println("\u001B[31m" + command.getName() + "\u001B[0m");
+          System.out.println("\u001B[31m" + commandPrintHelper(command.getName()) + "\u001B[0m");
           logCommandFunction.accept(command, false);
         });
+  }
+
+  private String commandPrintHelper(String name) {
+    String subsystem = name.split("/")[0];
+    String command = name.split("/")[1];
+    StringBuilder sb = new StringBuilder("$ [");
+    sb.append(subsystem);
+    sb.append("] ");
+    sb.append(command);
+    return sb.toString();
   }
 }
