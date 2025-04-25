@@ -25,15 +25,14 @@ public class RobotContainer {
   private final AtagVision vision;
 
   // virtual services
-  VisualizeService visualize;
+  VisualizeService visualizer;
 
-  private final CommandXboxController joystick =
-      new CommandXboxController(Constants.Ports.Joystick.DRIVER);
+  private final CommandXboxController joystick = new CommandXboxController(Constants.Ports.Joystick.DRIVER);
 
   public RobotContainer() {
     // ===== instantiate services =====
-    visualize = new VisualizeService();
-    serviceManager.registerService(visualize);
+    visualizer = new VisualizeService();
+    serviceManager.registerService(visualizer);
     System.out.println("$$$ Service Register Done");
 
     // ===== instantiate subsystems =====
@@ -81,14 +80,7 @@ public class RobotContainer {
 
   void configureSubscribeRequest() {
     // ===== visualize service =====
-    visualize.registerVisualizeComponent(
-        Constants.Ascope.Component.SWERVE_FL, -1, swerve::getDrivetrainToFlwheelTransform);
-    visualize.registerVisualizeComponent(
-        Constants.Ascope.Component.SWERVE_FR, -1, swerve::getDrivetrainToFrwheelTransform);
-    visualize.registerVisualizeComponent(
-        Constants.Ascope.Component.SWERVE_BL, -1, swerve::getDrivetrainToBlwheelTransform);
-    visualize.registerVisualizeComponent(
-        Constants.Ascope.Component.SWERVE_BR, -1, swerve::getDrivetrainToBrwheelTransform);
+    swerve.registerVisualize(visualizer);
   }
 
   public Command getAutoCmd() {
@@ -97,8 +89,8 @@ public class RobotContainer {
 
   private Command joystickRumbleCmd(double seconds) {
     return Commands.startEnd(
-            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
-            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
+        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
+        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
         .withTimeout(seconds)
         .withName("[Joystick] Rumble " + Math.round(seconds * 10) / 10.0 + "s");
   }
