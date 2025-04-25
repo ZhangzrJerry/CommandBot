@@ -1,62 +1,93 @@
 package frc.robot.interfaces.services;
 
-/** 服务接口，定义所有服务的基本行为 */
+/**
+ * Service interface that defines the basic behavior of all services.
+ * This interface provides service lifecycle management, state control, and
+ * priority management.
+ */
 public interface Service {
-  /** 服务状态枚举 */
+  /**
+   * Service state enum representing different possible states of a service.
+   */
   enum ServiceState {
-    STOPPED, // 已停止
-    RUNNING, // 运行中
-    PAUSED, // 已暂停
-    ERROR // 错误状态
+    /** Service is stopped */
+    STOPPED,
+    /** Service is running normally */
+    RUNNING,
+    /** Service is paused */
+    PAUSED,
+    /** Service is in error state */
+    ERROR
   }
 
   /**
-   * 获取服务当前状态
+   * Gets the current state of the service.
    *
-   * @return 服务状态
+   * @return Current service state
    */
   ServiceState getState();
 
+  /**
+   * Sets the service state.
+   *
+   * @param state New state to set
+   */
   void setState(ServiceState state);
 
   /**
-   * 获取服务优先级（数字越小优先级越地）
+   * Gets the service priority.
+   * Lower numerical values indicate lower priority.
    *
-   * @return 服务优先级
+   * @return Service priority value
    */
   default int getPriority() {
     return 0;
   }
 
   /**
-   * 获取服务名称
+   * Gets the service name.
    *
-   * @return 服务名称
+   * @return Service name
    */
   default String getName() {
     return "";
   }
 
-  /** 初始化服务 */
+  /**
+   * Initializes the service.
+   * Default implementation sets the service state to RUNNING.
+   */
   default void init() {
-
     setState(ServiceState.RUNNING);
   }
 
-  /** 更新服务状态 */
-  default void update() {}
+  /**
+   * Updates the service state.
+   * Subclasses can override this method to implement specific update logic.
+   */
+  default void update() {
+  }
 
+  /**
+   * Stops the service.
+   * Default implementation sets the service state to STOPPED.
+   */
   default void stop() {
-
     setState(ServiceState.STOPPED);
   }
 
-  /** 暂停服务 */
+  /**
+   * Pauses the service.
+   * Default implementation sets the service state to PAUSED.
+   */
   default void pause() {
     setState(ServiceState.PAUSED);
   }
 
-  /** 恢复服务 */
+  /**
+   * Resumes the service.
+   * Default implementation sets the service state to RUNNING.
+   */
   default void resume() {
     setState(ServiceState.RUNNING);
   }

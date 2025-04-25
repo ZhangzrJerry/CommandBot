@@ -13,6 +13,11 @@ import lombok.Setter;
 import lombok.experimental.ExtensionMethod;
 import org.littletonrobotics.junction.Logger;
 
+/**
+ * Service for visualizing robot components in 3D space.
+ * This service manages a hierarchical structure of robot components and their transformations,
+ * allowing for real-time visualization of the robot's state.
+ */
 @ExtensionMethod({GeomUtil.class})
 public class VisualizeService implements Service {
   @Getter @Setter ServiceState state = ServiceState.STOPPED;
@@ -31,7 +36,7 @@ public class VisualizeService implements Service {
   public void init() {
     setState(ServiceState.RUNNING);
     components.sort(Comparator.comparingInt(VisualizeComponent::componentId));
-    // check if the componentId is continuous
+    // Verify component IDs are continuous
     for (int i = 0; i < components.size(); ++i) {
       if (components.get(i).componentId() != i) {
         throw new IllegalArgumentException("componentId should be continuous, missing id: " + i);
@@ -49,7 +54,7 @@ public class VisualizeService implements Service {
         tfs[i] = components.get(i).transformSupplier().get();
 
         if (components.get(i).parentId() != -1) {
-          // propagate the transform matrix
+          // Propagate transform matrix through the component hierarchy
           tfs[i] = tfs[components.get(i).parentId()].plus(tfs[i]);
         }
         poses[i] = tfs[i].toPose3d();
@@ -63,10 +68,13 @@ public class VisualizeService implements Service {
   private static final Boolean STRICT_BIG_ENDIAN = true;
 
   /**
-   * @param componentId the id of the component, ∈[0,N]
-   * @param parentId the id of the parent component, ∈[-1,componentId), -1 means robot frame
-   * @param transformSupplier the supplier of the transform matrix from the parent component to the
-   *     current component
+   * Represents a component in the visualization hierarchy.
+   * Each component has a unique ID, a parent component, and a transform relative to its parent.
+   *
+   * @param componentId Unique identifier for the component, must be in range [0,N]
+   * @param parentId Identifier of the parent component, must be in range [-1,componentId).
+   *                 -1 indicates the robot frame as parent
+   * @param transformSupplier Supplier providing the transform matrix from parent to this component
    */
   public record VisualizeComponent(
       int componentId, int parentId, Supplier<Transform3d> transformSupplier) {
@@ -88,22 +96,28 @@ public class VisualizeService implements Service {
   }
 
   /**
-   * Register the component to the AkitViz
+   * Registers a component for visualization.
+   * Components should typically be registered during subsystem initialization.
    *
-   * @param akitVizComponent the component to be registered, should be declared in the constructor
-   *     of the subsystem
-   * @usage see {@link VisualizeService}
+   * @param component The component to be registered
+   * @throws IllegalArgumentException if a component with the same ID already exists
    */
-  public void registerVisualizeComponent(VisualizeComponent akitVizComponent) {
-    for (VisualizeComponent component : components) {
-      if (component.componentId() == akitVizComponent.componentId()) {
+  public void registerVisualizeComponent(VisualizeComponent component) {
+    for (VisualizeComponent existing : components) {
+      if (existing.componentId() == component.componentId()) {
         throw new IllegalArgumentException("componentId already exists");
       }
     }
-    components.add(akitVizComponent);
-    // Logger.recordOutput();
+    components.add(component);
   }
 
+  /**
+   * Convenience method to register a component with individual parameters.
+   *
+   * @param componentId Unique identifier for the component
+   * @param parentId Identifier of the parent component
+   * @param transformSupplier Supplier providing the transform matrix
+   */
   public void registerVisualizeComponent(
       int componentId, int parentId, Supplier<Transform3d> transformSupplier) {
     registerVisualizeComponent(new VisualizeComponent(componentId, parentId, transformSupplier));

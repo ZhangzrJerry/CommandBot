@@ -10,7 +10,11 @@ import java.util.stream.Collectors;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
-/** 服务管理器，负责管理所有服务的生命周期 */
+/**
+ * Manages the lifecycle of all services in the robot.
+ * This singleton class handles service registration, initialization, updates, and state management.
+ * Services are prioritized and can be paused/resumed individually.
+ */
 public class ServiceManager {
   private static ServiceManager instance;
   private final Map<String, Service> services = new ConcurrentHashMap<>();
@@ -23,9 +27,9 @@ public class ServiceManager {
   private ServiceManager() {}
 
   /**
-   * 获取 ServiceManager 的单例实例
+   * Gets the singleton instance of the ServiceManager.
    *
-   * @return ServiceManager 实例
+   * @return The ServiceManager instance
    */
   public static ServiceManager getInstance() {
     if (instance == null) {
@@ -35,10 +39,12 @@ public class ServiceManager {
   }
 
   /**
-   * 注册服务
+   * Registers a new service with the manager.
+   * Services are automatically sorted by priority after registration.
    *
-   * @param service 要注册的服务
-   * @throws IllegalArgumentException 如果服务名称为空或已存在同名服务
+   * @param service The service to register
+   * @throws IllegalArgumentException if the service is null, has an empty name,
+   *                                or a service with the same name already exists
    */
   public void registerService(Service service) {
     if (service == null) {
@@ -61,21 +67,21 @@ public class ServiceManager {
   }
 
   /**
-   * 获取指定名称的服务
+   * Retrieves a service by its name.
    *
-   * @param name 服务名称
-   * @return 服务实例，如果不存在则返回 null
+   * @param name The name of the service to retrieve
+   * @return The service instance, or null if not found
    */
   public Service getService(String name) {
     return services.get(name);
   }
 
   /**
-   * 获取指定类型的服务
+   * Retrieves a service by its class type.
    *
-   * @param <T> 服务类型
-   * @param serviceClass 服务类
-   * @return 服务实例，如果不存在则返回 null
+   * @param <T> The type of service to retrieve
+   * @param serviceClass The class of the service to retrieve
+   * @return The service instance, or null if not found
    */
   @SuppressWarnings("unchecked")
   public <T extends Service> T getService(Class<T> serviceClass) {
@@ -88,12 +94,12 @@ public class ServiceManager {
   }
 
   /**
-   * 获取指定类型和名称的服务
+   * Retrieves a service by both its class type and name.
    *
-   * @param <T> 服务类型
-   * @param serviceClass 服务类
-   * @param name 服务名称
-   * @return 服务实例，如果不存在则返回 null
+   * @param <T> The type of service to retrieve
+   * @param serviceClass The class of the service to retrieve
+   * @param name The name of the service to retrieve
+   * @return The service instance, or null if not found
    */
   @SuppressWarnings("unchecked")
   public <T extends Service> T getService(Class<T> serviceClass, String name) {
@@ -104,7 +110,10 @@ public class ServiceManager {
     return null;
   }
 
-  /** 初始化所有服务 */
+  /**
+   * Initializes all registered services.
+   * This method should be called once during robot initialization.
+   */
   public void initAll() {
     if (isInitialized) {
       return;
@@ -121,7 +130,10 @@ public class ServiceManager {
     isInitialized = true;
   }
 
-  /** 更新所有服务 */
+  /**
+   * Updates all running services.
+   * This method should be called periodically (e.g., in the robot's periodic method).
+   */
   public void updateAll() {
     if (!isInitialized) {
       return;
@@ -139,6 +151,10 @@ public class ServiceManager {
     logServicesStatus();
   }
 
+  /**
+   * Stops all running services.
+   * This method should be called when the robot is shutting down.
+   */
   public void stopAll() {
     if (!isInitialized) {
       return;
@@ -156,23 +172,23 @@ public class ServiceManager {
   }
 
   /**
-   * 获取所有已注册的服务
+   * Gets a list of all registered services.
    *
-   * @return 服务列表
+   * @return A new list containing all registered services
    */
   public List<Service> getAllServices() {
     return new ArrayList<>(serviceList);
   }
 
   /**
-   * 获取服务状态统计信息
+   * Gets a formatted string containing the status of all services.
    *
-   * @return 状态统计信息字符串
+   * @return A formatted string showing service names, states, and priorities
    */
   public String getServiceStatus() {
     StringBuilder status = new StringBuilder();
     status.append("----------------------------------------\n");
-    status.append(String.format("%-20s %-15s %-10s\n", "服务名称", "状态", "优先级"));
+    status.append(String.format("%-20s %-15s %-10s\n", "Service Name", "State", "Priority"));
     status.append("----------------------------------------\n");
 
     for (Service service : serviceList) {
@@ -184,6 +200,10 @@ public class ServiceManager {
     return status.toString();
   }
 
+  /**
+   * Logs the current status of all services.
+   * This includes state and priority information for each service.
+   */
   public void logServicesStatus() {
     for (int i = 0; i < serviceList.size(); ++i) {
       alertList.get(i).set(serviceList.get(i).getState() == Service.ServiceState.ERROR);
@@ -196,9 +216,9 @@ public class ServiceManager {
   }
 
   /**
-   * 暂停指定服务
+   * Pauses a specific service by name.
    *
-   * @param serviceName 服务名称
+   * @param serviceName The name of the service to pause
    */
   public void pauseService(String serviceName) {
     Service service = services.get(serviceName);
@@ -208,9 +228,9 @@ public class ServiceManager {
   }
 
   /**
-   * 恢复指定服务
+   * Resumes a specific service by name.
    *
-   * @param serviceName 服务名称
+   * @param serviceName The name of the service to resume
    */
   public void resumeService(String serviceName) {
     Service service = services.get(serviceName);
@@ -220,10 +240,10 @@ public class ServiceManager {
   }
 
   /**
-   * 获取指定状态的服务列表
+   * Gets all services in a specific state.
    *
-   * @param state 要查询的状态
-   * @return 处于指定状态的服务列表
+   * @param state The state to filter services by
+   * @return A list of services in the specified state
    */
   public List<Service> getServicesByState(Service.ServiceState state) {
     return serviceList.stream()
