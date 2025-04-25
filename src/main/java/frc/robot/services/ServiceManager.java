@@ -11,9 +11,9 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 /**
- * Manages the lifecycle of all services in the robot.
- * This singleton class handles service registration, initialization, updates, and state management.
- * Services are prioritized and can be paused/resumed individually.
+ * Manages the lifecycle of all services in the robot. This singleton class handles service
+ * registration, initialization, updates, and state management. Services are prioritized and can be
+ * paused/resumed individually.
  */
 public class ServiceManager {
   private static ServiceManager instance;
@@ -39,12 +39,12 @@ public class ServiceManager {
   }
 
   /**
-   * Registers a new service with the manager.
-   * Services are automatically sorted by priority after registration.
+   * Registers a new service with the manager. Services are automatically sorted by priority after
+   * registration.
    *
    * @param service The service to register
-   * @throws IllegalArgumentException if the service is null, has an empty name,
-   *                                or a service with the same name already exists
+   * @throws IllegalArgumentException if the service is null, has an empty name, or a service with
+   *     the same name already exists
    */
   public void registerService(Service service) {
     if (service == null) {
@@ -111,8 +111,8 @@ public class ServiceManager {
   }
 
   /**
-   * Initializes all registered services.
-   * This method should be called once during robot initialization.
+   * Initializes all registered services. This method should be called once during robot
+   * initialization.
    */
   public void initAll() {
     if (isInitialized) {
@@ -131,8 +131,8 @@ public class ServiceManager {
   }
 
   /**
-   * Updates all running services.
-   * This method should be called periodically (e.g., in the robot's periodic method).
+   * Updates all running services. This method should be called periodically (e.g., in the robot's
+   * periodic method).
    */
   public void updateAll() {
     if (!isInitialized) {
@@ -151,10 +151,7 @@ public class ServiceManager {
     logServicesStatus();
   }
 
-  /**
-   * Stops all running services.
-   * This method should be called when the robot is shutting down.
-   */
+  /** Stops all running services. This method should be called when the robot is shutting down. */
   public void stopAll() {
     if (!isInitialized) {
       return;
@@ -187,22 +184,23 @@ public class ServiceManager {
    */
   public String getServiceStatus() {
     StringBuilder status = new StringBuilder();
-    status.append("----------------------------------------\n");
+    status.append("-----------------------------------------------\n");
     status.append(String.format("%-20s %-15s %-10s\n", "Service Name", "State", "Priority"));
-    status.append("----------------------------------------\n");
+    status.append("-----------------------------------------------\n");
 
     for (Service service : serviceList) {
       status.append(
           String.format(
               "%-20s %-15s %-10d\n", service.getName(), service.getState(), service.getPriority()));
     }
+    status.append("-----------------------------------------------\n");
 
     return status.toString();
   }
 
   /**
-   * Logs the current status of all services.
-   * This includes state and priority information for each service.
+   * Logs the current status of all services. This includes state and priority information for each
+   * service.
    */
   public void logServicesStatus() {
     for (int i = 0; i < serviceList.size(); ++i) {

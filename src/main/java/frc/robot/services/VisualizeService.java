@@ -14,9 +14,9 @@ import lombok.experimental.ExtensionMethod;
 import org.littletonrobotics.junction.Logger;
 
 /**
- * Service for visualizing robot components in 3D space.
- * This service manages a hierarchical structure of robot components and their transformations,
- * allowing for real-time visualization of the robot's state.
+ * Service for visualizing robot components in 3D space. This service manages a hierarchical
+ * structure of robot components and their transformations, allowing for real-time visualization of
+ * the robot's state.
  */
 @ExtensionMethod({GeomUtil.class})
 public class VisualizeService implements Service {
@@ -68,12 +68,12 @@ public class VisualizeService implements Service {
   private static final Boolean STRICT_BIG_ENDIAN = true;
 
   /**
-   * Represents a component in the visualization hierarchy.
-   * Each component has a unique ID, a parent component, and a transform relative to its parent.
+   * Represents a component in the visualization hierarchy. Each component has a unique ID, a parent
+   * component, and a transform relative to its parent.
    *
    * @param componentId Unique identifier for the component, must be in range [0,N]
-   * @param parentId Identifier of the parent component, must be in range [-1,componentId).
-   *                 -1 indicates the robot frame as parent
+   * @param parentId Identifier of the parent component, must be in range [-1,componentId). -1
+   *     indicates the robot frame as parent
    * @param transformSupplier Supplier providing the transform matrix from parent to this component
    */
   public record VisualizeComponent(
@@ -96,8 +96,8 @@ public class VisualizeService implements Service {
   }
 
   /**
-   * Registers a component for visualization.
-   * Components should typically be registered during subsystem initialization.
+   * Registers a component for visualization. Components should typically be registered during
+   * subsystem initialization.
    *
    * @param component The component to be registered
    * @throws IllegalArgumentException if a component with the same ID already exists

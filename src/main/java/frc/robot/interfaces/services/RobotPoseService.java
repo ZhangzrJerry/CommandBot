@@ -9,12 +9,13 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 
 /**
- * Robot pose service interface that provides robot position and orientation information.
- * This service is responsible for tracking and estimating the robot's pose in 2D space.
+ * Robot pose service interface that provides robot position and orientation information. This
+ * service is responsible for tracking and estimating the robot's pose in 2D space.
  */
 public interface RobotPoseService extends Service {
   /**
    * Represents a relative motion observation with associated uncertainty.
+   *
    * @param startTimestamp Start time of the observation
    * @param endTimestamp End time of the observation
    * @param transform The relative transformation between start and end
@@ -25,6 +26,7 @@ public interface RobotPoseService extends Service {
 
   /**
    * Represents an absolute position observation with associated uncertainty.
+   *
    * @param timestamp Time of the observation
    * @param pose The absolute pose of the robot
    * @param stdDevs Standard deviations of the pose components
@@ -53,24 +55,24 @@ public interface RobotPoseService extends Service {
   Translation2d getCurrentVelocity();
 
   /**
-   * Resets the robot pose to a specific position and orientation.
-   * This is typically used when the robot's absolute position is known.
+   * Resets the robot pose to a specific position and orientation. This is typically used when the
+   * robot's absolute position is known.
    *
    * @param pose The new pose to set
    */
   void resetPose(Pose2d pose);
 
   /**
-   * Resets the robot heading to a specific angle.
-   * This is typically used when the robot's heading is known.
+   * Resets the robot heading to a specific angle. This is typically used when the robot's heading
+   * is known.
    *
    * @param heading The new heading to set
    */
   void resetHeading(Rotation2d heading);
 
   /**
-   * Gets the estimated position accuracy of the pose estimation system.
-   * This represents the standard deviation of position estimates.
+   * Gets the estimated position accuracy of the pose estimation system. This represents the
+   * standard deviation of position estimates.
    *
    * @return Position accuracy in meters
    */
@@ -79,8 +81,8 @@ public interface RobotPoseService extends Service {
   }
 
   /**
-   * Gets the estimated heading accuracy of the pose estimation system.
-   * This represents the standard deviation of heading estimates.
+   * Gets the estimated heading accuracy of the pose estimation system. This represents the standard
+   * deviation of heading estimates.
    *
    * @return Heading accuracy in radians
    */
@@ -89,16 +91,16 @@ public interface RobotPoseService extends Service {
   }
 
   /**
-   * Adds a relative motion observation to the pose estimation system.
-   * This is typically used for dead reckoning or sensor fusion.
+   * Adds a relative motion observation to the pose estimation system. This is typically used for
+   * dead reckoning or sensor fusion.
    *
    * @param observation The transform observation to add
    */
   void addTransformObservation(TransformObservation observation);
 
   /**
-   * Adds an absolute position observation to the pose estimation system.
-   * This is typically used for sensor fusion or position correction.
+   * Adds an absolute position observation to the pose estimation system. This is typically used for
+   * sensor fusion or position correction.
    *
    * @param observation The pose observation to add
    */

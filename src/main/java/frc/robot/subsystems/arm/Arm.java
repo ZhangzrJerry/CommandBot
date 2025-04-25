@@ -40,7 +40,7 @@ public class Arm extends SubsystemBase {
   private final AlertManager elbowOfflineAlert =
       new AlertManager("Arm elbow motor offline!", AlertManager.AlertType.WARNING);
 
-  @Getter @AutoLogOutput private ArmGoal goal = ArmGoal.START;
+  @Getter private ArmGoal goal = ArmGoal.START;
   private boolean needTransition = true;
   private boolean needGroundIntakeDodge = false;
   private boolean needAvoidReefAlgae = false;
@@ -205,11 +205,6 @@ public class Arm extends SubsystemBase {
         elbowIO.setAppliedPositionF(elbowInputs.appliedPosition, 0.0);
       }
 
-      // if (goal == ArmGoal.ALGAE_NET_SCORE) {
-      // this.goal = ArmGoal.ALGAE_NET_PRESCORE;
-      // return;
-      // }
-
       this.goal = goal;
     }
   }
@@ -330,7 +325,7 @@ public class Arm extends SubsystemBase {
 
               System.out.println("Calculated Ks: " + state.characterizationOutput + " amps");
             })
-        .withName("[Arm] Shoulder kS Characterization");
+        .withName("> Arm/Shoulder kS Characterization");
   }
 
   public Command getElbowKsCharacterizationCmd(double outputCurrentRampRateAmp) {
@@ -364,7 +359,7 @@ public class Arm extends SubsystemBase {
 
               System.out.println("Calculated Ks: " + state.characterizationOutput + " amps");
             })
-        .withName("[Arm] Elbow kS Characterization");
+        .withName("> Arm/Elbow kS Characterization");
   }
 
   private static class StaticCharacterizationState {
@@ -397,7 +392,7 @@ public class Arm extends SubsystemBase {
               setGoal(ArmGoal.IDLE);
               isHoming = false;
             })
-        .withName("[Arm] Shoulder Offset Calibrate");
+        .withName("> Arm/Shoulder Offset Calibrate");
   }
 
   public static Arm createSim() {

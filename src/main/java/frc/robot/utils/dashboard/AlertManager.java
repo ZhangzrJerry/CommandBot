@@ -8,7 +8,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import java.util.*;
 import java.util.function.Predicate;
 
-/** 用于管理通过NetworkTables发送的持久警报通知的类 */
+/**
+ * A class for managing persistent alert notifications sent through NetworkTables. This class
+ * handles the creation, grouping, and display of alerts with different severity levels.
+ */
 public class AlertManager {
   private static final Map<String, AlertGroup> alertGroups = new HashMap<>();
 
@@ -18,21 +21,23 @@ public class AlertManager {
   private String alertMessage;
 
   /**
-   * 在默认组"Alerts"中创建一个新的警报。如果是第一个实例， 相应的条目将被添加到NetworkTables中。
+   * Creates a new alert in the default "Alerts" group. If this is the first instance, the
+   * corresponding entry will be added to NetworkTables.
    *
-   * @param alertMessage 警报激活时显示的文本
-   * @param alertType 指定紧急程度的警报级别
+   * @param alertMessage The text to display when the alert is active
+   * @param alertType The severity level of the alert
    */
   public AlertManager(String alertMessage, AlertType alertType) {
     this("Alerts", alertMessage, alertType);
   }
 
   /**
-   * 创建一个新的警报。如果是其组中的第一个实例， 相应的条目将被添加到NetworkTables中。
+   * Creates a new alert in the specified group. If this is the first instance in its group, the
+   * corresponding entry will be added to NetworkTables.
    *
-   * @param groupName 组标识符，也用作NetworkTables标题
-   * @param alertMessage 警报激活时显示的文本
-   * @param alertType 指定紧急程度的警报级别
+   * @param groupName The group identifier, also used as the NetworkTables title
+   * @param alertMessage The text to display when the alert is active
+   * @param alertType The severity level of the alert
    */
   public AlertManager(String groupName, String alertMessage, AlertType alertType) {
     if (!alertGroups.containsKey(groupName)) {
@@ -45,7 +50,12 @@ public class AlertManager {
     alertGroups.get(groupName).alerts.add(this);
   }
 
-  /** 设置警报是否应该当前显示。当激活时， 警报文本也将被发送到控制台。 */
+  /**
+   * Sets whether the alert should be currently displayed. When activated, the alert text will also
+   * be sent to the console.
+   *
+   * @param isActive True to activate the alert, false to deactivate it
+   */
   public void set(boolean isActive) {
     if (isActive && !this.isActive) {
       activationTime = Timer.getFPGATimestamp();
@@ -64,7 +74,12 @@ public class AlertManager {
     this.isActive = isActive;
   }
 
-  /** 更新当前警报文本 */
+  /**
+   * Updates the current alert text. If the alert is active, the new message will be reported to the
+   * appropriate output based on the alert type.
+   *
+   * @param alertMessage The new text to display for this alert
+   */
   public void setText(String alertMessage) {
     if (isActive && !alertMessage.equals(this.alertMessage)) {
       switch (alertType) {
@@ -82,9 +97,19 @@ public class AlertManager {
     this.alertMessage = alertMessage;
   }
 
+  /**
+   * Internal class representing a group of alerts that can be sent to NetworkTables. Implements
+   * Sendable interface for dashboard integration.
+   */
   private static class AlertGroup implements Sendable {
     public final List<AlertManager> alerts = new ArrayList<>();
 
+    /**
+     * Retrieves all active alert messages of a specific type, sorted by activation time.
+     *
+     * @param alertType The type of alerts to retrieve
+     * @return Array of alert messages, sorted by most recent first
+     */
     public String[] getAlertMessages(AlertType alertType) {
       Predicate<AlertManager> activeFilter =
           (AlertManager x) -> x.alertType == alertType && x.isActive;
@@ -106,15 +131,28 @@ public class AlertManager {
     }
   }
 
-  /** 表示警报的紧急程度级别 */
+  /**
+   * Enum representing the severity level of an alert. Each level has a specific visual
+   * representation on the dashboard.
+   */
   public enum AlertType {
-    /** 高优先级警报 - 在仪表盘上以红色"X"符号首先显示。 用于严重影响机器人功能并需要立即关注的问题。 */
+    /**
+     * High priority alert - displayed first on the dashboard with a red "X" symbol. Used for issues
+     * that severely impact robot functionality and require immediate attention.
+     */
     ERROR,
 
-    /** 中等优先级警报 - 在仪表盘上以黄色"!"符号第二显示。 用于可能影响机器人功能但不一定需要立即关注的问题。 */
+    /**
+     * Medium priority alert - displayed second on the dashboard with a yellow "!" symbol. Used for
+     * issues that may affect robot functionality but don't necessarily require immediate attention.
+     */
     WARNING,
 
-    /** 低优先级警报 - 在仪表盘上以绿色"i"符号最后显示。 用于不太可能影响机器人功能的问题，或任何不属于"ERROR"或"WARNING"的其他警报。 */
+    /**
+     * Low priority alert - displayed last on the dashboard with a green "i" symbol. Used for issues
+     * that are unlikely to affect robot functionality, or any other alerts that don't fit into the
+     * ERROR or WARNING categories.
+     */
     INFO
   }
 }

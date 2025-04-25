@@ -26,7 +26,6 @@ public class ArmGoal extends TunableNumbers {
 
   public static final ArmGoal START = new ArmGoal("Arm/Goal/Start", 0.4, -230.0);
   public static final ArmGoal IDLE = new ArmGoal("Arm/Goal/Idle", 0.0, -90.0);
-  public static final ArmGoal DEFENCE = new ArmGoal("Arm/Goal/Defence", 0.3, -250.0);
   public static final ArmGoal CORAL_L1_SCORE = new ArmGoal("Arm/Goal/CoralL1Score", 0.04, -190.0);
   public static final ArmGoal CORAL_L2_SCORE = new ArmGoal("Arm/Goal/CoralL2Score", 0.27, -200.0);
   public static final ArmGoal CORAL_L3_SCORE = new ArmGoal("Arm/Goal/CoralL3Score", 0.67, -200.0);
@@ -40,6 +39,8 @@ public class ArmGoal extends TunableNumbers {
   public static final ArmGoal ALGAE_PROCESSOR_SCORE =
       new ArmGoal("Arm/Goal/AlgaeProcessorScore", 0.0, -180.0);
   public static final ArmGoal ALGAE_NET_SCORE = new ArmGoal("Arm/Goal/AlgaeNetScore", 1.5, -45.0);
+  public static final ArmGoal ALGAE_GROUND_PICK =
+      new ArmGoal("Arm/Goal/AlgaeGroundPick", 0.0, -131.0);
   public static final ArmGoal CLIMB = new ArmGoal("Arm/Goal/Climb", 0.4, -150.0);
   public static final ArmGoal HOME = new ArmGoal("Arm/Goal/Home", 0.0, -90.0);
 }

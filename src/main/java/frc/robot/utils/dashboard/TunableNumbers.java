@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 
 public class TunableNumbers {
-  private final String baseKey;
+  protected final String baseKey;
   private final Map<String, TunableNumber> numbers = new HashMap<>();
 
   public TunableNumbers(String baseKey, Map<String, Double> defaultValues) {
@@ -71,7 +71,6 @@ public class TunableNumbers {
           Arrays.stream(tunableNumbers)
               .mapToDouble(
                   tunableNumber -> {
-                    // 获取第一个值作为代表值
                     String firstKey = tunableNumber.numbers.keySet().iterator().next();
                     return tunableNumber.get(firstKey);
                   })

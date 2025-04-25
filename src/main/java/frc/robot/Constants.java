@@ -8,6 +8,9 @@ public final class Constants {
 
   public final class Ascope {
     public static final class Component {
+      // robot frame & drivetrain can be the same or different
+      // in this practice, we use the same frame for both
+      public static final int ROBOT_FRAME = -1;
       public static final int DRIVETRAIN = -1;
       public static final int SWERVE_FL = 0;
       public static final int SWERVE_BL = 1;
@@ -54,10 +57,8 @@ public final class Constants {
       public static final CanDevice FR_STEER_SENSOR = new CanDevice(12, CHASSIS_CANIVORE_BUS);
 
       // Ground Intake
-      public static final CanDevice ALGAE_GROUND_INTAKE_ROLLER =
-          new CanDevice(2, SUPERSTRUCTURE_CANIVORE_BUS);
-      public static final CanDevice ALGAE_GROUND_INTAKE_ARM =
-          new CanDevice(3, SUPERSTRUCTURE_CANIVORE_BUS);
+      public static final CanDevice INTAKE_ROLLER = new CanDevice(2, SUPERSTRUCTURE_CANIVORE_BUS);
+      public static final CanDevice INTAKE_ARM = new CanDevice(3, SUPERSTRUCTURE_CANIVORE_BUS);
 
       // End Effector
       public static final CanDevice CORAL_END_EFFECTOR =

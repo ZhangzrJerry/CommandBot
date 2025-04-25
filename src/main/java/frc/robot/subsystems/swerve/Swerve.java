@@ -42,7 +42,7 @@ import org.littletonrobotics.junction.Logger;
 public class Swerve extends SubsystemBase {
   private final SwerveModule[] modules = new SwerveModule[4];
   @Getter private final SwerveOdometry odometry;
-  private SwerveController controller = new SwerveController() {};
+  @Setter private SwerveController controller = new SwerveController() {};
 
   @Setter private DoubleSupplier customMaxTiltAccelScale = () -> 1.0;
   private SwerveModuleState[] lastGoalModuleStates =
@@ -53,29 +53,29 @@ public class Swerve extends SubsystemBase {
         new SwerveModuleState()
       };
 
-  public Command registerControllerCommand(SwerveController controller) {
+  public Command registerControllerCmd(SwerveController controller) {
     return Commands.run(
             () -> {
               this.controller = controller;
             },
             this)
-        .withName("[Swerve] Register Controller: " + controller.getName());
+        .withName("> Swerve/Register Controller: " + controller.getName());
   }
 
-  public Command resetWheeledPoseCommand(UncertainPose2d pose) {
+  public Command resetWheeledPoseCmd(UncertainPose2d pose) {
     return Commands.runOnce(
             () -> {
               odometry.resetWheeledPose(pose);
             })
-        .withName("[Swerve] Reset Wheeled Pose");
+        .withName("> Swerve/Reset Wheeled Pose");
   }
 
-  public Command resetGyroHeadingCommand(Rotation2d yaw) {
+  public Command resetGyroHeadingCmd(Rotation2d yaw) {
     return Commands.runOnce(
             () -> {
               odometry.resetGyroHeading(yaw);
             })
-        .withName("[Swerve] Reset Gyro Heading");
+        .withName("> Swerve/Reset Gyro Heading");
   }
 
   public Pose2d getPose() {
