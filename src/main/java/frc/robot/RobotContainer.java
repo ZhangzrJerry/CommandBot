@@ -64,18 +64,6 @@ public class RobotContainer {
     System.out.println("$$$ Button Binding Done");
   }
 
-  void configureSubscribeRequest() {
-    // ===== visualize service =====
-    visualize.registerVisualizeComponent(
-        Constants.Ascope.Component.SWERVE_FL, -1, swerve::getDrivetrainToFlwheelTransform);
-    visualize.registerVisualizeComponent(
-        Constants.Ascope.Component.SWERVE_FR, -1, swerve::getDrivetrainToFrwheelTransform);
-    visualize.registerVisualizeComponent(
-        Constants.Ascope.Component.SWERVE_BL, -1, swerve::getDrivetrainToBlwheelTransform);
-    visualize.registerVisualizeComponent(
-        Constants.Ascope.Component.SWERVE_BR, -1, swerve::getDrivetrainToBrwheelTransform);
-  }
-
   void configureButtonBindings() {
     // ===== bind default commands =====
     swerve.setDefaultCommand(
@@ -89,6 +77,18 @@ public class RobotContainer {
     joystick.a().onTrue(arm.getElbowKsCharacterizationCmd(1));
     joystick.x().onTrue(arm.getShoulderKsCharacterizationCmd(2));
     joystick.y().onTrue(arm.getHomeCmd());
+  }
+
+  void configureSubscribeRequest() {
+    // ===== visualize service =====
+    visualize.registerVisualizeComponent(
+        Constants.Ascope.Component.SWERVE_FL, -1, swerve::getDrivetrainToFlwheelTransform);
+    visualize.registerVisualizeComponent(
+        Constants.Ascope.Component.SWERVE_FR, -1, swerve::getDrivetrainToFrwheelTransform);
+    visualize.registerVisualizeComponent(
+        Constants.Ascope.Component.SWERVE_BL, -1, swerve::getDrivetrainToBlwheelTransform);
+    visualize.registerVisualizeComponent(
+        Constants.Ascope.Component.SWERVE_BR, -1, swerve::getDrivetrainToBrwheelTransform);
   }
 
   public Command getAutoCmd() {

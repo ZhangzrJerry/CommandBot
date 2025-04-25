@@ -32,7 +32,8 @@ import frc.robot.utils.math.GeomUtil;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 import frc.robot.utils.math.UnitConverter;
 import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.ExtensionMethod;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -49,18 +50,11 @@ public class Swerve extends SubsystemBase {
           SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC * 2.0 / Constants.LOOP_PERIOD_SEC);
 
   private final SwerveModule[] modules = new SwerveModule[4];
-  private final SwerveOdometry odometry;
+  @Getter private final SwerveOdometry odometry;
   private SwerveController controller = new SwerveController() {};
   // private final Lock signalLock = new ReentrantLock();
-  private Supplier<UncertainPose2d> poseSupplier =
-      () ->
-          new UncertainPose2d(
-              new Pose2d(),
-              Double.POSITIVE_INFINITY,
-              Double.POSITIVE_INFINITY,
-              Double.POSITIVE_INFINITY);
 
-  private DoubleSupplier customMaxTiltAccelScale = () -> 1.0;
+  @Setter private DoubleSupplier customMaxTiltAccelScale = () -> 1.0;
   private SwerveModuleState[] lastGoalModuleStates =
       new SwerveModuleState[] {
         new SwerveModuleState(),
@@ -68,14 +62,6 @@ public class Swerve extends SubsystemBase {
         new SwerveModuleState(),
         new SwerveModuleState()
       };
-
-  public Command setCustomMaxTiltAccelScaleCommand(DoubleSupplier scaleSupplier) {
-    return Commands.runOnce(
-            () -> {
-              this.customMaxTiltAccelScale = scaleSupplier;
-            })
-        .withName("[Swerve] Set Custom");
-  }
 
   public Command registerControllerCommand(SwerveController controller) {
     return Commands.run(
@@ -92,14 +78,6 @@ public class Swerve extends SubsystemBase {
               odometry.resetWheeledPose(pose);
             })
         .withName("[Swerve] Reset Wheeled Pose");
-  }
-
-  public Command registerBetterPoseCommandSupplier(Supplier<UncertainPose2d> poseSupplier) {
-    return Commands.runOnce(
-            () -> {
-              this.poseSupplier = poseSupplier;
-            })
-        .withName("[Swerve] Register Better Pose Command Supplier");
   }
 
   public Command resetGyroHeadingCommand(Rotation2d yaw) {
