@@ -11,9 +11,21 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
-import frc.robot.utils.GainsUtil.PdsGains;
+import frc.robot.Constants;
+import frc.robot.utils.Gains.GainsImpl;
+import frc.robot.utils.dashboard.TunableGains.TunablePidsgGains;
+import frc.robot.utils.dashboard.TunableNumber;
 
 public class SwerveConfig {
+  protected static final TunableNumber maxTiltAccelXMeterPerSecPerLoop =
+      new TunableNumber("Swerve/MaxTiltAccelXMeterPerSecPerLoop", 80.0);
+  protected static final TunableNumber maxTiltAccelYMeterPerSecPerLoop =
+      new TunableNumber("Swerve/MaxTiltAccelYMeterPerSecPerLoop", 80.0);
+  protected static final TunableNumber maxSkidAccelMeterPerSecPerLoop =
+      new TunableNumber(
+          "Swerve/MaxSkidAccelMeterPerSecPerLoop",
+          SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC * 2.0 / Constants.LOOP_PERIOD_SEC);
+
   static final String FL_MODULE_NAME = "FL";
   static final String BL_MODULE_NAME = "BL";
   static final String BR_MODULE_NAME = "BR";
@@ -23,9 +35,9 @@ public class SwerveConfig {
 
   static final boolean ENABLE_TRAJECTORY_FF = true;
 
-  public static final double WHEELBASE_LENGTH_METER = 0.2967 * 2.0;
-  public static final double WHEELBASE_WIDTH_METER = 0.2967 * 2.0;
-  public static final double WHEELBASE_DIAGONAL_METER =
+  protected static final double WHEELBASE_LENGTH_METER = 0.2967 * 2.0;
+  protected static final double WHEELBASE_WIDTH_METER = 0.2967 * 2.0;
+  protected static final double WHEELBASE_DIAGONAL_METER =
       Math.hypot(WHEELBASE_LENGTH_METER, WHEELBASE_WIDTH_METER);
 
   public static final double MAX_TRANSLATION_VEL_METER_PER_SEC = 4.925568; // WCP X3T10
@@ -71,11 +83,13 @@ public class SwerveConfig {
   static final double DRIVE_FF_KT =
       DCMotor.getKrakenX60Foc(1).withReduction(DRIVE_REDUCTION).KtNMPerAmp;
 
-  static PdsGains SIM_STEER_GAINS = new PdsGains(10.0, 2.0, 0.0);
-  static PdsGains SIM_DRIVE_GAINS = new PdsGains(0.3, 0.0, 0.0);
+  static GainsImpl SIM_STEER_GAINS = new GainsImpl(10.0, 0.0, 2.0, 0.0, 0.0);
+  static GainsImpl SIM_DRIVE_GAINS = new GainsImpl(0.3, 0.0, 0.0, 0.0, 0.0);
 
-  static PdsGains STEER_GAINS = new PdsGains(2000.0, 60.0, 0.0);
-  static PdsGains DRIVE_GAINS = new PdsGains(7.0, 0.0, 0.0);
+  static TunablePidsgGains DRIVE_GAINS =
+      new TunablePidsgGains("Swerve/Module/DriveGains", 7.0, 0.0, 0.0, 0.0, 0.0);
+  static TunablePidsgGains STEER_GAINS =
+      new TunablePidsgGains("Swerve/Module/SteerGains", 2000.0, 0.0, 60.0, 0.0, 0.0);
 
   static TalonFXConfiguration getX2DriveTalonConfig() {
     var config = new TalonFXConfiguration();
@@ -85,9 +99,11 @@ public class SwerveConfig {
 
     config.Slot0 =
         new Slot0Configs()
-            .withKP(DRIVE_GAINS.kP())
-            .withKD(DRIVE_GAINS.kD())
-            .withKS(DRIVE_GAINS.kS());
+            .withKP(DRIVE_GAINS.getKP())
+            .withKI(DRIVE_GAINS.getKI())
+            .withKD(DRIVE_GAINS.getKD())
+            .withKS(DRIVE_GAINS.getKS())
+            .withKG(DRIVE_GAINS.getKG());
     config.TorqueCurrent.PeakForwardTorqueCurrent = 120.0;
     config.TorqueCurrent.PeakReverseTorqueCurrent = -120.0;
 
@@ -109,9 +125,11 @@ public class SwerveConfig {
 
     config.Slot0 =
         new Slot0Configs()
-            .withKP(STEER_GAINS.kP())
-            .withKD(STEER_GAINS.kD())
-            .withKS(STEER_GAINS.kS());
+            .withKP(STEER_GAINS.getKP())
+            .withKI(STEER_GAINS.getKI())
+            .withKD(STEER_GAINS.getKD())
+            .withKS(STEER_GAINS.getKS())
+            .withKG(STEER_GAINS.getKG());
     config.TorqueCurrent.PeakForwardTorqueCurrent = 80.0;
     config.TorqueCurrent.PeakReverseTorqueCurrent = -80.0;
 

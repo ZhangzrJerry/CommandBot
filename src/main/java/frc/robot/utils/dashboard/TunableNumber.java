@@ -1,4 +1,4 @@
-package frc.robot.utils.logging;
+package frc.robot.utils.dashboard;
 
 import frc.robot.Constants;
 import java.util.Arrays;
@@ -12,7 +12,7 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
  * Class for a tunable number. Gets value from dashboard in tuning mode, returns default if not or
  * value not in dashboard.
  */
-public class LoggedTunableNumber implements DoubleSupplier {
+public class TunableNumber implements DoubleSupplier {
   private static final String tableKey = "/Tuning";
 
   private final String key;
@@ -26,7 +26,7 @@ public class LoggedTunableNumber implements DoubleSupplier {
    *
    * @param dashboardKey Key on dashboard
    */
-  public LoggedTunableNumber(String dashboardKey) {
+  public TunableNumber(String dashboardKey) {
     this.key = tableKey + "/" + dashboardKey;
   }
 
@@ -36,7 +36,7 @@ public class LoggedTunableNumber implements DoubleSupplier {
    * @param dashboardKey Key on dashboard
    * @param defaultValue Default value
    */
-  public LoggedTunableNumber(String dashboardKey, double defaultValue) {
+  public TunableNumber(String dashboardKey, double defaultValue) {
     this(dashboardKey);
     initDefault(defaultValue);
   }
@@ -97,15 +97,14 @@ public class LoggedTunableNumber implements DoubleSupplier {
    *     numbers in order inputted in method
    * @param tunableNumbers All tunable numbers to check
    */
-  public static void ifChanged(
-      int id, Consumer<double[]> action, LoggedTunableNumber... tunableNumbers) {
+  public static void ifChanged(int id, Consumer<double[]> action, TunableNumber... tunableNumbers) {
     if (Arrays.stream(tunableNumbers).anyMatch(tunableNumber -> tunableNumber.hasChanged(id))) {
-      action.accept(Arrays.stream(tunableNumbers).mapToDouble(LoggedTunableNumber::get).toArray());
+      action.accept(Arrays.stream(tunableNumbers).mapToDouble(TunableNumber::get).toArray());
     }
   }
 
   /** Runs action if any of the tunableNumbers have changed */
-  public static void ifChanged(int id, Runnable action, LoggedTunableNumber... tunableNumbers) {
+  public static void ifChanged(int id, Runnable action, TunableNumber... tunableNumbers) {
     ifChanged(id, values -> action.run(), tunableNumbers);
   }
 

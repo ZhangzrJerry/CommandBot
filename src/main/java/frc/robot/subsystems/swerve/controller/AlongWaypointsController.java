@@ -6,33 +6,33 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import frc.robot.subsystems.swerve.SwerveConfig;
 import frc.robot.subsystems.swerve.SwerveController;
-import frc.robot.utils.GainsUtil.PidGains;
-import frc.robot.utils.logging.LoggedTunableGains;
+import frc.robot.utils.dashboard.TunableGains.TunablePidGains;
+import frc.robot.utils.dashboard.TunableNumbers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class AlongWaypointsController implements SwerveController {
-  private final LoggedTunableGains<PidGains> translationGains =
-      new LoggedTunableGains<>(
-          "AlongWaypointsController/translationGains", new PidGains(0.5, 0, 0));
+  private final TunablePidGains translationGains =
+      new TunablePidGains("AlongWaypointsController/translationGains", 0.5, 0.0, 0.0);
+
   private final ProfiledPIDController translationController =
       new ProfiledPIDController(
-          translationGains.get().kP(),
-          translationGains.get().kI(),
-          translationGains.get().kD(),
+          translationGains.getKP(),
+          translationGains.getKI(),
+          translationGains.getKD(),
           new TrapezoidProfile.Constraints(
               SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC,
               SwerveConfig.MAX_TRANSLATION_ACC_METERS_PER_SEC));
 
-  private final LoggedTunableGains<PidGains> rotationGains =
-      new LoggedTunableGains<>("AlongWaypointsController/rotationGains", new PidGains(0.5, 0, 0));
+  private final TunablePidGains rotationGains =
+      new TunablePidGains("AlongWaypointsController/translationGains", 0.5, 0, 0);
   private final ProfiledPIDController rotationController =
       new ProfiledPIDController(
-          rotationGains.get().kP(),
-          rotationGains.get().kI(),
-          rotationGains.get().kD(),
+          rotationGains.getKP(),
+          rotationGains.getKI(),
+          rotationGains.getKD(),
           new TrapezoidProfile.Constraints(
               SwerveConfig.MAX_ANGULAR_VEL_RAD_PER_SEC, Double.POSITIVE_INFINITY));
 
@@ -77,6 +77,13 @@ public class AlongWaypointsController implements SwerveController {
 
   @Override
   public double getRotation() {
+    TunableNumbers.ifChanged(
+        this.hashCode(),
+        () -> {
+          rotationController.setPID(
+              rotationGains.getKP(), rotationGains.getKI(), rotationGains.getKD());
+        },
+        rotationGains);
     return rotationController.calculate(
         getTargetPose2d()
             .getRotation()

@@ -1,9 +1,6 @@
 package frc.robot.interfaces.hardwares.motors;
 
-import frc.robot.utils.GainsUtil.Gains;
-import frc.robot.utils.GainsUtil.PdsGains;
-import frc.robot.utils.GainsUtil.PidGains;
-import frc.robot.utils.GainsUtil.PidsgGains;
+import frc.robot.utils.Gains;
 import frc.robot.utils.math.UnitConverter;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -46,30 +43,7 @@ public interface DCMotorIO {
   default void setPidsg(double kp, double ki, double kd, double ks, double kg) {}
 
   default void setGains(Gains gains) {
-    if (gains instanceof PidsgGains) {
-      setPidsg((PidsgGains) gains);
-    } else if (gains instanceof PidGains) {
-      setPid((PidGains) gains);
-    } else if (gains instanceof PdsGains) {
-      setPds((PdsGains) gains);
-    }
-  }
-
-  /**
-   * Configures PIDF gains for the motor controller.
-   *
-   * @param gains PIDF gains
-   */
-  default void setPidsg(PidsgGains gains) {
-    setPidsg(gains.kP(), gains.kI(), gains.kD(), gains.kS(), gains.kG());
-  }
-
-  default void setPidsg(PidGains gains) {
-    setPidsg(gains.kP(), gains.kI(), gains.kD(), 0.0, 0.0);
-  }
-
-  default void setPidsg(PdsGains gains) {
-    setPidsg(gains.kP(), 0.0, gains.kD(), gains.kS(), 0.0);
+    setPidsg(gains.getKP(), gains.getKI(), gains.getKD(), gains.getKS(), gains.getKG());
   }
 
   /**
@@ -84,15 +58,6 @@ public interface DCMotorIO {
   }
 
   /**
-   * Configures PID gains for the motor controller.
-   *
-   * @param gains PID gains
-   */
-  default void setPid(PidGains gains) {
-    setPid(gains.kP(), gains.kI(), gains.kD());
-  }
-
-  /**
    * Configures PD gains for the motor controller.
    *
    * @param kp Proportional gain
@@ -101,15 +66,6 @@ public interface DCMotorIO {
    */
   default void setPds(double kp, double kd, double ks) {
     setPidsg(kp, 0.0, kd, ks, 0.0);
-  }
-
-  /**
-   * Configures PD gains for the motor controller.
-   *
-   * @param gains PD gains
-   */
-  default void setPds(PdsGains gains) {
-    setPds(gains.kP(), gains.kD(), gains.kS());
   }
 
   /**

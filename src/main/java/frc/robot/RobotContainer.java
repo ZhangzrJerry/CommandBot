@@ -27,13 +27,14 @@ public class RobotContainer {
   // virtual services
   VisualizeService visualizer;
 
-  private final CommandXboxController joystick = new CommandXboxController(Constants.Ports.Joystick.DRIVER);
+  private final CommandXboxController joystick =
+      new CommandXboxController(Constants.Ports.Joystick.DRIVER);
 
   public RobotContainer() {
     // ===== instantiate services =====
     visualizer = new VisualizeService();
     serviceManager.registerService(visualizer);
-    System.out.println("$$$ Service Register Done");
+    System.out.println("=> [1/4] Service Register Done");
 
     // ===== instantiate subsystems =====
     if (Robot.isReal()) {
@@ -50,20 +51,20 @@ public class RobotContainer {
       vision = AtagVision.createIO();
     }
     superStructure = new SuperStructure(swerve);
-    System.out.println("$$$ Subsystem Instantiate Done");
+    System.out.println("=> [2/4] Subsystem Instantiate Done");
 
     // ======= configure signal subscribers =======
-    configureSubscribeRequest();
+    configureSignalBinding();
     serviceManager.initAll();
-    System.out.println("$$$ Subscribe Request Done");
+    System.out.println("=> [3/4] Signal Binding Done");
 
     // ====== configure button bindings ======
     commandScheduler.getActiveButtonLoop().clear();
-    configureButtonBindings();
-    System.out.println("$$$ Button Binding Done");
+    configureCommandBinding();
+    System.out.println("=> [4/4] Command Binding Done");
   }
 
-  void configureButtonBindings() {
+  void configureCommandBinding() {
     // ===== bind default commands =====
     swerve.setDefaultCommand(
         swerve.registerControllerCommand(
@@ -78,7 +79,7 @@ public class RobotContainer {
     joystick.y().onTrue(arm.getHomeCmd());
   }
 
-  void configureSubscribeRequest() {
+  void configureSignalBinding() {
     // ===== visualize service =====
     swerve.registerVisualize(visualizer);
   }
@@ -89,8 +90,8 @@ public class RobotContainer {
 
   private Command joystickRumbleCmd(double seconds) {
     return Commands.startEnd(
-        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
-        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
+            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
+            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
         .withTimeout(seconds)
         .withName("[Joystick] Rumble " + Math.round(seconds * 10) / 10.0 + "s");
   }

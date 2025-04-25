@@ -23,7 +23,7 @@ import frc.robot.interfaces.hardwares.sensors.camera.AtagVisionIO;
 import frc.robot.interfaces.hardwares.sensors.camera.AtagVisionIOInputsAutoLogged;
 import frc.robot.interfaces.hardwares.sensors.camera.AtagVisionIOPhoton;
 import frc.robot.interfaces.hardwares.sensors.camera.AtagVisionIOPhotonSim;
-import frc.robot.utils.logging.AlertUtil;
+import frc.robot.utils.dashboard.AlertManager;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,8 +42,8 @@ public class AtagVision extends SubsystemBase {
   private UncertainPose2d latestPose =
       new UncertainPose2d(new Pose2d(), 0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f);
 
-  private final AlertUtil visionOfflineAlert =
-      new AlertUtil("Vision offline!", AlertUtil.AlertType.WARNING);
+  private final AlertManager visionOfflineAlert =
+      new AlertManager("Vision offline!", AlertManager.AlertType.WARNING);
 
   public static AtagVision createReal() {
     return new AtagVision(

@@ -19,7 +19,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.interfaces.hardwares.CanDevice;
-import frc.robot.interfaces.hardwares.PhoenixConfigurator;
+import frc.robot.utils.PhoenixConfigurator;
 import frc.robot.utils.math.UnitConverter;
 import lombok.Getter;
 
@@ -252,7 +252,7 @@ public class DCMotorIOTalonfx implements DCMotorIO {
     return motor.getDeviceID();
   }
 
-  public void withCancoder(String name, int id) {
+  protected void withCancoder(String name, int id) {
     var wrappedName = "[" + name + "]";
     config.Feedback.FeedbackRemoteSensorID = id;
     config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;

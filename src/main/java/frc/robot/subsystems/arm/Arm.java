@@ -16,11 +16,8 @@ import frc.robot.interfaces.hardwares.motors.DCMotorIOInputsAutoLogged;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOSim;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfx;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfxCancoder;
-import frc.robot.utils.GainsUtil.PdsGains;
-import frc.robot.utils.GainsUtil.PidsgGains;
-import frc.robot.utils.logging.AlertUtil;
-import frc.robot.utils.logging.LoggedTunableGains;
-import frc.robot.utils.logging.LoggedTunableNumber;
+import frc.robot.utils.dashboard.AlertManager;
+import frc.robot.utils.dashboard.TunableNumber;
 import frc.robot.utils.math.EqualsUtil;
 import frc.robot.utils.math.UnitConverter;
 import java.util.function.BooleanSupplier;
@@ -31,113 +28,114 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Arm extends SubsystemBase {
-  private static final LoggedTunableNumber transitionElevatorHeightMeter =
-      new LoggedTunableNumber("Arm/TransitionElevatorHeightMeter", 0.38);
-  private static final LoggedTunableNumber minSafeGroundIntakeDodgeElevatorHeightMeter =
-      new LoggedTunableNumber("Arm/MinSafeGroundIntakeDodgeElevatorHeightMeter", 0.65);
+  private static final TunableNumber transitionElevatorHeightMeter =
+      new TunableNumber("Arm/TransitionElevatorHeightMeter", 0.38);
+  private static final TunableNumber minSafeGroundIntakeDodgeElevatorHeightMeter =
+      new TunableNumber("Arm/MinSafeGroundIntakeDodgeElevatorHeightMeter", 0.65);
 
-  private static final LoggedTunableNumber shoulderToleranceMeter =
-      new LoggedTunableNumber("Arm/Shoulder/ToleranceMeter", 0.1);
-  private static final LoggedTunableNumber shoulderStopToleranceMeterPerSec =
-      new LoggedTunableNumber("Arm/Shoulder/StopToleranceMeterPerSec", 0.1);
-  private static final LoggedTunableNumber shoulderStaticCharacterizationVelocityThreshMeterPerSec =
-      new LoggedTunableNumber("Arm/Shoulder/StaticCharacterizationVelocityThreshMeterPerSec", 0.01);
-  private static final LoggedTunableNumber shoulderHomingCurrentAmp =
-      new LoggedTunableNumber("Arm/Shoulder/HomingCurrentAmp", -8.0);
-  private static final LoggedTunableNumber shoulderHomingTimeSecs =
-      new LoggedTunableNumber("Arm/Shoulder/HomingTimeSecs", 0.6);
-  private static final LoggedTunableNumber shoulderHomingVelocityThreshMeterPerSec =
-      new LoggedTunableNumber("Arm/Shoulder/HomingVelocityThreshMeterPerSec", 0.05);
+  private static final TunableNumber shoulderToleranceMeter =
+      new TunableNumber("Arm/Shoulder/ToleranceMeter", 0.1);
+  private static final TunableNumber shoulderStopToleranceMeterPerSec =
+      new TunableNumber("Arm/Shoulder/StopToleranceMeterPerSec", 0.1);
+  private static final TunableNumber shoulderStaticCharacterizationVelocityThreshMeterPerSec =
+      new TunableNumber("Arm/Shoulder/StaticCharacterizationVelocityThreshMeterPerSec", 0.01);
+  private static final TunableNumber shoulderHomingCurrentAmp =
+      new TunableNumber("Arm/Shoulder/HomingCurrentAmp", -8.0);
+  private static final TunableNumber shoulderHomingTimeSecs =
+      new TunableNumber("Arm/Shoulder/HomingTimeSecs", 0.6);
+  private static final TunableNumber shoulderHomingVelocityThreshMeterPerSec =
+      new TunableNumber("Arm/Shoulder/HomingVelocityThreshMeterPerSec", 0.05);
 
-  private static final LoggedTunableNumber shoulderCoralL1HeightMeter =
-      new LoggedTunableNumber("Arm/Shoulder/Goal/CoralL1ScoreHeightMeter", 0.04);
-  private static final LoggedTunableNumber shoulderCoralL2HeightMeter =
-      new LoggedTunableNumber("Arm/Shoulder/Goal/CoralL2ScoreHeightMeter", 0.27);
-  private static final LoggedTunableNumber shoulderCoralL3HeightMeter =
-      new LoggedTunableNumber("Arm/Shoulder/Goal/CoralL3ScoreHeightMeter", 0.67);
-  private static final LoggedTunableNumber shoulderCoralL4HeightMeter =
-      new LoggedTunableNumber("Arm/Shoulder/Goal/CoralL4ScoreHeightMeter", 1.55);
+  private static final TunableNumber shoulderCoralL1HeightMeter =
+      new TunableNumber("Arm/Shoulder/Goal/CoralL1ScoreHeightMeter", 0.04);
+  private static final TunableNumber shoulderCoralL2HeightMeter =
+      new TunableNumber("Arm/Shoulder/Goal/CoralL2ScoreHeightMeter", 0.27);
+  private static final TunableNumber shoulderCoralL3HeightMeter =
+      new TunableNumber("Arm/Shoulder/Goal/CoralL3ScoreHeightMeter", 0.67);
+  private static final TunableNumber shoulderCoralL4HeightMeter =
+      new TunableNumber("Arm/Shoulder/Goal/CoralL4ScoreHeightMeter", 1.55);
 
-  private static final LoggedTunableNumber elbowToleranceDegree =
-      new LoggedTunableNumber("Arm/Elbow/ToleranceDegree", 12.0);
-  private static final LoggedTunableNumber elbowStopToleranceDegreePerSec =
-      new LoggedTunableNumber("Arm/Elbow/StopToleranceDegreePerSec", 10.0);
-  private static final LoggedTunableNumber elbowStaticCharacterizationVelocityThreshDegreePerSec =
-      new LoggedTunableNumber("Arm/Elbow/StaticCharacterizationVelocityThreshDegreePerSec", 10.0);
-  private static final LoggedTunableNumber elbowAvoidReefAlgaePositionDegree =
-      new LoggedTunableNumber("Arm/Elbow/AvoidReefAlgaePositionDegree", -70.0);
+  private static final TunableNumber elbowToleranceDegree =
+      new TunableNumber("Arm/Elbow/ToleranceDegree", 12.0);
+  private static final TunableNumber elbowStopToleranceDegreePerSec =
+      new TunableNumber("Arm/Elbow/StopToleranceDegreePerSec", 10.0);
+  private static final TunableNumber elbowStaticCharacterizationVelocityThreshDegreePerSec =
+      new TunableNumber("Arm/Elbow/StaticCharacterizationVelocityThreshDegreePerSec", 10.0);
+  private static final TunableNumber elbowAvoidReefAlgaePositionDegree =
+      new TunableNumber("Arm/Elbow/AvoidReefAlgaePositionDegree", -70.0);
 
-  private static final LoggedTunableGains<PidsgGains> shoulderGains;
-  private static final LoggedTunableGains<PdsGains> elbowGains;
+  // private static final TunableGains<PidsgGains> shoulderGains;
+  // private static final TunableGains<PdsGains> elbowGains;
 
-  static {
-    shoulderGains =
-        new LoggedTunableGains<PidsgGains>("Arm/Shoulder/Gains", ArmConfig.SHOULDER_GAINS);
-    elbowGains = new LoggedTunableGains<PdsGains>("Arm/Elbow/Gains", ArmConfig.ELBOW_GAINS);
-  }
+  // static {
+  // shoulderGains = new TunableGains<PidsgGains>("Arm/Shoulder/Gains",
+  // ArmConfig.SHOULDER_GAINS);
+  // elbowGains = new TunableGains<PdsGains>("Arm/Elbow/Gains",
+  // ArmConfig.ELBOW_GAINS);
+  // }
 
   @RequiredArgsConstructor
   public enum ArmGoal {
     START(
-        new LoggedTunableNumber("Arm/Shoulder/Goal/StartHeightMeter", 0.4),
-        new LoggedTunableNumber("Arm/Elbow/Goal/StartPositionDegree", -230.0)),
+        new TunableNumber("Arm/Shoulder/Goal/StartHeightMeter", 0.4),
+        new TunableNumber("Arm/Elbow/Goal/StartPositionDegree", -230.0)),
     IDLE(
-        new LoggedTunableNumber("Arm/Shoulder/Goal/IdleHeightMeter", 0),
-        new LoggedTunableNumber("Arm/Elbow/Goal/IdlePositionDegree", -90.0)),
+        new TunableNumber("Arm/Shoulder/Goal/IdleHeightMeter", 0),
+        new TunableNumber("Arm/Elbow/Goal/IdlePositionDegree", -90.0)),
     DEFENCE(
-        new LoggedTunableNumber("Arm/Shoulder/Goal/DefenceHeightMeter", 0.3),
-        new LoggedTunableNumber("Arm/Elbow/Goal/DefencePositionDegree", -250.0)),
+        new TunableNumber("Arm/Shoulder/Goal/DefenceHeightMeter", 0.3),
+        new TunableNumber("Arm/Elbow/Goal/DefencePositionDegree", -250.0)),
     ALGAE_IDLE(
-        new LoggedTunableNumber("Arm/Shoulder/Goal/AlgaeIdleHeightMeter", 0.3),
-        new LoggedTunableNumber("Arm/Elbow/Goal/AlgaeIdlePositionDegree", -90.0)),
+        new TunableNumber("Arm/Shoulder/Goal/AlgaeIdleHeightMeter", 0.3),
+        new TunableNumber("Arm/Elbow/Goal/AlgaeIdlePositionDegree", -90.0)),
     CORAL_STATION_PICK(
-        new LoggedTunableNumber("Arm/Shoulder/Goal/CoralStationPickHeightMeter", 0.15),
-        new LoggedTunableNumber("Arm/Elbow/Goal/CoralStationPickPositionDegree", -60.0)),
+        new TunableNumber("Arm/Shoulder/Goal/CoralStationPickHeightMeter", 0.15),
+        new TunableNumber("Arm/Elbow/Goal/CoralStationPickPositionDegree", -60.0)),
     CORAL_L1_SCORE(
         () -> shoulderCoralL1HeightMeter.get() + shoulderManualOffsetMeter,
-        new LoggedTunableNumber("Arm/Elbow/Goal/CoralL1ScorePositionDegree", -190.0)),
+        new TunableNumber("Arm/Elbow/Goal/CoralL1ScorePositionDegree", -190.0)),
     CORAL_L2_SCORE(
         () -> shoulderCoralL2HeightMeter.get() + shoulderManualOffsetMeter,
-        new LoggedTunableNumber("Arm/Elbow/Goal/CoralL2ScorePositionDegree", -200.0)),
+        new TunableNumber("Arm/Elbow/Goal/CoralL2ScorePositionDegree", -200.0)),
     CORAL_L3_SCORE(
         () -> shoulderCoralL3HeightMeter.get() + shoulderManualOffsetMeter,
-        new LoggedTunableNumber("Arm/Elbow/Goal/CoralL3ScorePositionDegree", -200.0)),
+        new TunableNumber("Arm/Elbow/Goal/CoralL3ScorePositionDegree", -200.0)),
     CORAL_L4_SCORE(
         () -> shoulderCoralL4HeightMeter.get() + shoulderManualOffsetMeter,
-        new LoggedTunableNumber("Arm/Elbow/Goal/CoralL4ScorePositionDegree", -210.0)),
+        new TunableNumber("Arm/Elbow/Goal/CoralL4ScorePositionDegree", -210.0)),
     CORAL_L4_AVOID_COLLISION(
         () -> shoulderCoralL4HeightMeter.get() + shoulderManualOffsetMeter,
-        new LoggedTunableNumber("Arm/Elbow/Goal/CoralL4AvoidCollisionPositionDegree", -90)),
+        new TunableNumber("Arm/Elbow/Goal/CoralL4AvoidCollisionPositionDegree", -90)),
     ALGAE_GROUND_PICK(
-        new LoggedTunableNumber("Arm/Shoulder/Goal/AlgaeGroundPickHeightMeter", 0.2),
-        new LoggedTunableNumber("Arm/Elbow/Goal/AlgaeGroundPickPositionDegree", 40.0)),
+        new TunableNumber("Arm/Shoulder/Goal/AlgaeGroundPickHeightMeter", 0.2),
+        new TunableNumber("Arm/Elbow/Goal/AlgaeGroundPickPositionDegree", 40.0)),
     ALGAE_LOW_PICK(
-        new LoggedTunableNumber("Arm/Shoulder/Goal/AlgaeLowPickHeightMeter", 0.2),
-        new LoggedTunableNumber("Arm/Elbow/Goal/AlgaeLowPickPositionDegree", -131.0)),
+        new TunableNumber("Arm/Shoulder/Goal/AlgaeLowPickHeightMeter", 0.2),
+        new TunableNumber("Arm/Elbow/Goal/AlgaeLowPickPositionDegree", -131.0)),
     ALGAE_HIGH_PICK(
-        new LoggedTunableNumber("Arm/Shoulder/Goal/AlgaeHighPickHeightMeter", 0.6),
-        new LoggedTunableNumber("Arm/Elbow/Goal/AlgaeHighPickPositionDegree", -132.0)),
+        new TunableNumber("Arm/Shoulder/Goal/AlgaeHighPickHeightMeter", 0.6),
+        new TunableNumber("Arm/Elbow/Goal/AlgaeHighPickPositionDegree", -132.0)),
     ALGAE_AUTO_LOW_PICK(
-        new LoggedTunableNumber("Arm/Shoulder/Goal/AlgaeAutoLowPickHeightMeter", 0.2),
-        new LoggedTunableNumber("Arm/Elbow/Goal/AlgaeAutoLowPickPositionDegree", -131.0)),
+        new TunableNumber("Arm/Shoulder/Goal/AlgaeAutoLowPickHeightMeter", 0.2),
+        new TunableNumber("Arm/Elbow/Goal/AlgaeAutoLowPickPositionDegree", -131.0)),
     ALGAE_AUTO_HIGH_PICK(
-        new LoggedTunableNumber("Arm/Shoulder/Goal/AlgaeAutoHighPickHeightMeter", 0.6),
-        new LoggedTunableNumber("Arm/Elbow/Goal/AlgaeAutoHighPickPositionDegree", -132.0)),
+        new TunableNumber("Arm/Shoulder/Goal/AlgaeAutoHighPickHeightMeter", 0.6),
+        new TunableNumber("Arm/Elbow/Goal/AlgaeAutoHighPickPositionDegree", -132.0)),
     ALGAE_PROCESSOR_SCORE(
-        new LoggedTunableNumber("Arm/Shoulder/Goal/AlgaeProcessorScoreHeightMeter", 0.0),
-        new LoggedTunableNumber("Arm/Elbow/Goal/AlgaeProcessorScorePositionDegree", -180.0)),
+        new TunableNumber("Arm/Shoulder/Goal/AlgaeProcessorScoreHeightMeter", 0.0),
+        new TunableNumber("Arm/Elbow/Goal/AlgaeProcessorScorePositionDegree", -180.0)),
     ALGAE_NET_SCORE(
-        new LoggedTunableNumber("Arm/Shoulder/Goal/AlgaeNetScoreHeightMeter", 1.5),
-        new LoggedTunableNumber("Arm/Elbow/Goal/AlgaeNetScorePositionDegree", -45.0)),
+        new TunableNumber("Arm/Shoulder/Goal/AlgaeNetScoreHeightMeter", 1.5),
+        new TunableNumber("Arm/Elbow/Goal/AlgaeNetScorePositionDegree", -45.0)),
     ALGAE_NET_PRESCORE(
-        new LoggedTunableNumber("Arm/Shoulder/Goal/AlgaeNetPrescoreHeightMeter", 1.5),
-        new LoggedTunableNumber("Arm/Elbow/Goal/AlgaeNetPrescorePositionDegree", -45.0)),
+        new TunableNumber("Arm/Shoulder/Goal/AlgaeNetPrescoreHeightMeter", 1.5),
+        new TunableNumber("Arm/Elbow/Goal/AlgaeNetPrescorePositionDegree", -45.0)),
     CLIMB(
-        new LoggedTunableNumber("Arm/Shoulder/Goal/ClimbHeightMeter", 0.4),
-        new LoggedTunableNumber("Arm/Elbow/Goal/ClimbPositionDegree", -150.0)),
+        new TunableNumber("Arm/Shoulder/Goal/ClimbHeightMeter", 0.4),
+        new TunableNumber("Arm/Elbow/Goal/ClimbPositionDegree", -150.0)),
     HOME(
-        new LoggedTunableNumber("Arm/Shoulder/Goal/HomeHeightMeter", 0.0),
-        new LoggedTunableNumber("Arm/Elbow/Goal/HomePositionDegree", -90.0));
+        new TunableNumber("Arm/Shoulder/Goal/HomeHeightMeter", 0.0),
+        new TunableNumber("Arm/Elbow/Goal/HomePositionDegree", -90.0));
 
     private final DoubleSupplier shoulderHeightMeterSupplier;
     private final DoubleSupplier elbowPositionDegreeSupplier;
@@ -157,10 +155,10 @@ public class Arm extends SubsystemBase {
   private final DCMotorIOInputsAutoLogged shoulderInputs = new DCMotorIOInputsAutoLogged();
   private final DCMotorIOInputsAutoLogged elbowInputs = new DCMotorIOInputsAutoLogged();
 
-  private final AlertUtil shoulderOfflineAlert =
-      new AlertUtil("Arm shoulder motor offline!", AlertUtil.AlertType.WARNING);
-  private final AlertUtil elbowOfflineAlert =
-      new AlertUtil("Arm elbow motor offline!", AlertUtil.AlertType.WARNING);
+  private final AlertManager shoulderOfflineAlert =
+      new AlertManager("Arm shoulder motor offline!", AlertManager.AlertType.WARNING);
+  private final AlertManager elbowOfflineAlert =
+      new AlertManager("Arm elbow motor offline!", AlertManager.AlertType.WARNING);
 
   @Getter @AutoLogOutput private ArmGoal goal = ArmGoal.START;
   private boolean needTransition = true;
@@ -200,9 +198,10 @@ public class Arm extends SubsystemBase {
     shoulderOfflineAlert.set(!shoulderInputs.connected);
     elbowOfflineAlert.set(!elbowInputs.connected);
 
-    LoggedTunableGains.ifChanged(
-        hashCode(), () -> shoulderIO.setPidsg(shoulderGains.get()), shoulderGains);
-    LoggedTunableGains.ifChanged(hashCode(), () -> elbowIO.setPidsg(elbowGains.get()), elbowGains);
+    // TunableGains.ifChanged(
+    // hashCode(), () -> shoulderIO.setPidsg(shoulderGains.get()), shoulderGains);
+    // TunableGains.ifChanged(hashCode(), () -> elbowIO.setPidsg(elbowGains.get()),
+    // elbowGains);
 
     if (isCharacterizing || isHoming) {
       return;

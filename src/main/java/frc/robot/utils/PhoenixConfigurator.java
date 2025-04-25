@@ -1,4 +1,4 @@
-package frc.robot.interfaces.hardwares;
+package frc.robot.utils;
 
 import com.ctre.phoenix6.StatusCode;
 import edu.wpi.first.wpilibj.DriverStation;

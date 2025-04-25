@@ -10,7 +10,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Temperature;
 import frc.robot.interfaces.hardwares.CanDevice;
-import frc.robot.interfaces.hardwares.PhoenixConfigurator;
+import frc.robot.utils.PhoenixConfigurator;
 import lombok.Getter;
 
 public class GyroIOPigeon2 implements GyroIO {

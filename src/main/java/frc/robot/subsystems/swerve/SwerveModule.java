@@ -5,31 +5,19 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.interfaces.hardwares.motors.*;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOInputsAutoLogged;
-import frc.robot.utils.GainsUtil.PdsGains;
-import frc.robot.utils.logging.AlertUtil;
-import frc.robot.utils.logging.LoggedTunableGains;
+import frc.robot.utils.dashboard.AlertManager;
+import frc.robot.utils.dashboard.TunableNumbers;
 import org.littletonrobotics.junction.Logger;
 
 public class SwerveModule {
-  private static final LoggedTunableGains<PdsGains> driveGains;
-  private static final LoggedTunableGains<PdsGains> steerGains;
-
-  static {
-    driveGains =
-        new LoggedTunableGains<PdsGains>("Swerve/Module/DriveGains", SwerveConfig.DRIVE_GAINS);
-    steerGains =
-        new LoggedTunableGains<PdsGains>("Swerve/Module/SteerGains", SwerveConfig.STEER_GAINS);
-  }
-
   private final String name;
 
   private final DCMotorIO driveIO;
   private final DCMotorIOInputsAutoLogged driveInputs = new DCMotorIOInputsAutoLogged();
-  private final AlertUtil driveMotorOfflineAlert;
-
+  private final AlertManager driveMotorOfflineAlert;
   private final DCMotorIO steerIO;
   private final DCMotorIOInputsAutoLogged steerInputs = new DCMotorIOInputsAutoLogged();
-  private final AlertUtil steerMotorOfflineAlert;
+  private final AlertManager steerMotorOfflineAlert;
 
   public SwerveModule(DCMotorIO driveIO, DCMotorIO steerIO, String name) {
     this.driveIO = driveIO;
@@ -37,10 +25,10 @@ public class SwerveModule {
     this.steerIO.setRotationContinuous(true);
     this.name = name;
 
-    driveMotorOfflineAlert =
-        new AlertUtil(this.name + " drive motor offline!", AlertUtil.AlertType.WARNING);
-    steerMotorOfflineAlert =
-        new AlertUtil(this.name + " steer motor offline!", AlertUtil.AlertType.WARNING);
+    this.driveMotorOfflineAlert =
+        new AlertManager(this.name + " drive motor offline!", AlertManager.AlertType.WARNING);
+    this.steerMotorOfflineAlert =
+        new AlertManager(this.name + " steer motor offline!", AlertManager.AlertType.WARNING);
 
     stop();
   }
@@ -49,11 +37,13 @@ public class SwerveModule {
     driveIO.updateInputs(driveInputs);
     steerIO.updateInputs(steerInputs);
 
-    Logger.processInputs("Subsystems/Swerve/" + name + "/Drive", driveInputs);
-    Logger.processInputs("Subsystems/Swerve/" + name + "/Steer", steerInputs);
+    Logger.processInputs("Swerve/" + name + "/Drive", driveInputs);
+    Logger.processInputs("Swerve/" + name + "/Steer", steerInputs);
 
-    LoggedTunableGains.ifChanged(hashCode(), () -> driveIO.setPidsg(driveGains.get()), driveGains);
-    LoggedTunableGains.ifChanged(hashCode(), () -> steerIO.setPidsg(steerGains.get()), steerGains);
+    TunableNumbers.ifChanged(
+        hashCode(), () -> driveIO.setGains(SwerveConfig.DRIVE_GAINS), SwerveConfig.DRIVE_GAINS);
+    TunableNumbers.ifChanged(
+        hashCode(), () -> steerIO.setGains(SwerveConfig.STEER_GAINS), SwerveConfig.STEER_GAINS);
 
     driveMotorOfflineAlert.set(!driveInputs.connected);
     steerMotorOfflineAlert.set(!steerInputs.connected);

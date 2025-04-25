@@ -11,7 +11,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Constants;
-import frc.robot.utils.GainsUtil.Gains;
+import frc.robot.utils.Gains;
 import frc.robot.utils.math.UnitConverter;
 
 public class DCMotorIOSim implements DCMotorIO {

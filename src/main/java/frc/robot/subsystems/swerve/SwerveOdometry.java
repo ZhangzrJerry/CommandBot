@@ -8,8 +8,8 @@ import frc.robot.interfaces.hardwares.sensors.gyro.GyroIO;
 import frc.robot.interfaces.hardwares.sensors.gyro.GyroIOInputsAutoLogged;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometryThread;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometryThread.WheeledObservation;
-import frc.robot.utils.logging.AlertUtil;
-import frc.robot.utils.logging.LoggedUtil;
+import frc.robot.utils.LoggedUtil;
+import frc.robot.utils.dashboard.AlertManager;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 import java.util.concurrent.ArrayBlockingQueue;
 import lombok.Getter;
@@ -18,8 +18,8 @@ import org.littletonrobotics.junction.Logger;
 public class SwerveOdometry {
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
-  private final AlertUtil gyroOfflineAlert =
-      new AlertUtil("Gyro offline!", AlertUtil.AlertType.WARNING);
+  private final AlertManager gyroOfflineAlert =
+      new AlertManager("Gyro offline!", AlertManager.AlertType.WARNING);
 
   ArrayBlockingQueue<WheeledObservation> odometryCachedWheeledObservationQueue;
 
@@ -45,7 +45,7 @@ public class SwerveOdometry {
 
   public void updateInputs() {
     gyroIO.updateInputs(gyroInputs);
-    Logger.processInputs("Subsystems/Swerve/Gyro", gyroInputs);
+    Logger.processInputs("Swerve/Gyro", gyroInputs);
     gyroOfflineAlert.set(!gyroInputs.connected);
 
     var wheeledObservationArray =
@@ -56,16 +56,15 @@ public class SwerveOdometry {
       updatePose(wheeledObservationArray[i]);
     }
 
-    Logger.recordOutput("Subsystems/Swerve/Odometry/EstimatedPose", pose.getPose());
-    LoggedUtil.logMatrix(
-        "Subsystems/Swerve/Odometry/EstimatedPoseCovariance", pose.getCovariance());
+    Logger.recordOutput("Swerve/Odometry/EstimatedPose", pose.getPose());
+    LoggedUtil.logMatrix("Swerve/Odometry/EstimatedPoseCovariance", pose.getCovariance());
   }
 
   private void updatePose(WheeledOdometryThread.WheeledObservation observation) {
     SwerveModulePosition[] modulePositions = observation.wheelPositions();
     Rotation2d gyroYaw = observation.yaw();
 
-    Logger.recordOutput("Subsystems/Swerve/Odometry/ModulePositions", modulePositions);
+    Logger.recordOutput("Swerve/Odometry/ModulePositions", modulePositions);
     Twist2d twist = SwerveConfig.SWERVE_KINEMATICS.toTwist2d(lastModulePositions, modulePositions);
     lastModulePositions = modulePositions;
 

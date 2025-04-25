@@ -10,8 +10,7 @@ import edu.wpi.first.math.geometry.Quaternion;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
-import frc.robot.utils.GainsUtil.PdsGains;
-import frc.robot.utils.GainsUtil.PidsgGains;
+import frc.robot.utils.Gains.GainsImpl;
 
 class ArmConfig {
 
@@ -26,8 +25,8 @@ class ArmConfig {
 
   static final double ELBOW_REDUCTION = (68.0 / 10.0) * (72.0 / 16.0);
 
-  static PdsGains ELBOW_GAINS = new PdsGains(450.0, 73.0, 8.0);
-  static PdsGains SIM_ELBOW_GAINS = new PdsGains(20.0, 0.4, 0.0);
+  static GainsImpl ELBOW_GAINS = new GainsImpl(450.0, 0.0, 73.0, 8.0, 0.0);
+  static GainsImpl SIM_ELBOW_GAINS = new GainsImpl(20.0, 0.0, 0.4, 0.0, 0.0);
 
   static TalonFXConfiguration getElbowTalonConfig() {
     var config = new TalonFXConfiguration();
@@ -37,9 +36,11 @@ class ArmConfig {
 
     config.Slot0 =
         new Slot0Configs()
-            .withKP(ELBOW_GAINS.kP())
-            .withKD(ELBOW_GAINS.kD())
-            .withKS(ELBOW_GAINS.kS())
+            .withKP(ELBOW_GAINS.getKP())
+            .withKI(ELBOW_GAINS.getKI())
+            .withKD(ELBOW_GAINS.getKD())
+            .withKS(ELBOW_GAINS.getKS())
+            .withKG(ELBOW_GAINS.getKG())
             .withGravityType(GravityTypeValue.Arm_Cosine);
 
     config.TorqueCurrent.PeakForwardTorqueCurrent = 170.0;
@@ -63,8 +64,8 @@ class ArmConfig {
   static final double SHOULDER_METER_PER_ROTATION = 1.76025 / 9.7119140625; // drum rotation
   static final double SHOULDER_REDUCTION = 50.0 / 12.0;
 
-  static PidsgGains SHOULDER_GAINS = new PidsgGains(225, 0.0, 30.0, 24.0, 38);
-  static PidsgGains SIM_SHOULDER_GAINS = new PidsgGains(80.0, 0.0, 6.0, 0.0, 0);
+  static GainsImpl SHOULDER_GAINS = new GainsImpl(225, 0.0, 30.0, 24.0, 38);
+  static GainsImpl SIM_SHOULDER_GAINS = new GainsImpl(80.0, 0.0, 6.0, 0.0, 0);
 
   static TalonFXConfiguration getShoulderTalonConfig() {
     var config = new TalonFXConfiguration();
@@ -74,11 +75,11 @@ class ArmConfig {
 
     config.Slot0 =
         new Slot0Configs()
-            .withKP(SHOULDER_GAINS.kP())
-            .withKI(SHOULDER_GAINS.kI())
-            .withKD(SHOULDER_GAINS.kD())
-            .withKS(SHOULDER_GAINS.kS())
-            .withKG(SHOULDER_GAINS.kG())
+            .withKP(SHOULDER_GAINS.getKP())
+            .withKI(SHOULDER_GAINS.getKI())
+            .withKD(SHOULDER_GAINS.getKD())
+            .withKS(SHOULDER_GAINS.getKS())
+            .withKG(SHOULDER_GAINS.getKG())
             .withGravityType(GravityTypeValue.Elevator_Static);
 
     config.CurrentLimits.SupplyCurrentLimit = 50.0;

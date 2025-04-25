@@ -1,4 +1,4 @@
-package frc.robot.utils.logging;
+package frc.robot.utils;
 
 import edu.wpi.first.math.Matrix;
 import org.littletonrobotics.junction.Logger;
