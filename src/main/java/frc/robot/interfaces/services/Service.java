@@ -4,27 +4,11 @@ package frc.robot.interfaces.services;
 public interface Service {
   /** 服务状态枚举 */
   enum ServiceState {
-    STOPPED, // 未初始化
-    INITIALIZED,
+    STOPPED, // 已停止
     RUNNING, // 运行中
     PAUSED, // 已暂停
     ERROR // 错误状态
   }
-
-  /** 初始化服务 */
-  void init();
-
-  /** 更新服务状态 */
-  void update();
-
-  void stop();
-
-  /**
-   * 获取服务名称
-   *
-   * @return 服务名称
-   */
-  String getName();
 
   /**
    * 获取服务当前状态
@@ -32,6 +16,8 @@ public interface Service {
    * @return 服务状态
    */
   ServiceState getState();
+
+  void setState(ServiceState state);
 
   /**
    * 获取服务优先级（数字越小优先级越地）
@@ -42,13 +28,36 @@ public interface Service {
     return 0;
   }
 
+  /**
+   * 获取服务名称
+   *
+   * @return 服务名称
+   */
+  default String getName() {
+    return "";
+  }
+
+  /** 初始化服务 */
+  default void init() {
+
+    setState(ServiceState.RUNNING);
+  }
+
+  /** 更新服务状态 */
+  default void update() {}
+
+  default void stop() {
+
+    setState(ServiceState.STOPPED);
+  }
+
   /** 暂停服务 */
   default void pause() {
-    // 默认实现为空
+    setState(ServiceState.PAUSED);
   }
 
   /** 恢复服务 */
   default void resume() {
-    // 默认实现为空
+    setState(ServiceState.RUNNING);
   }
 }

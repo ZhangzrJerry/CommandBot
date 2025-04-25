@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.services.ServiceManager;
-import frc.robot.services.Visualization;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -23,7 +22,6 @@ public class Robot extends LoggedRobot {
   private final CommandScheduler commandScheduler = CommandScheduler.getInstance();
 
   private Command autoCmd;
-  private Command initCmd;
 
   private boolean autoMessagePrinted;
   private double autoStart;
@@ -32,16 +30,10 @@ public class Robot extends LoggedRobot {
     configureCtreLogger();
     configureAkitLogger();
 
-    registerService();
-
     RobotController.setBrownoutVoltage(6.0);
     robotContainer = new RobotContainer();
 
-    initCmd = robotContainer.getInitializationCommand();
-
-    if (initCmd != null) {
-      initCmd.schedule();
-    }
+    System.out.println(serviceManager.getServiceStatus());
   }
 
   @Override
@@ -77,7 +69,7 @@ public class Robot extends LoggedRobot {
   public void autonomousInit() {
     autoStart = Timer.getFPGATimestamp();
     autoMessagePrinted = false;
-    autoCmd = robotContainer.getAutonomousCommand();
+    autoCmd = robotContainer.getAutoCmd();
 
     if (autoCmd != null) {
       autoCmd.schedule();
@@ -158,10 +150,5 @@ public class Robot extends LoggedRobot {
           System.out.println("\u001B[31m" + command.getName() + "\u001B[0m");
           logCommandFunction.accept(command, false);
         });
-  }
-
-  private void registerService() {
-    serviceManager.registerService(new Visualization());
-    serviceManager.initAll();
   }
 }

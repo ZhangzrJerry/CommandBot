@@ -56,10 +56,8 @@ public class ServiceManager {
 
     services.put(name, service);
     serviceList.add(service);
-    serviceList.sort((s1, s2) -> Integer.compare(s1.getPriority(), s2.getPriority()));
+    serviceList.sort((s1, s2) -> Integer.compare(s2.getPriority(), s1.getPriority()));
     alertList.add(new AlertUtil(name + " ERRORED", AlertUtil.AlertType.ERROR));
-
-    logServicesStatus();
   }
 
   /**
@@ -121,7 +119,6 @@ public class ServiceManager {
       }
     }
     isInitialized = true;
-    System.out.println(getServiceStatus());
   }
 
   /** 更新所有服务 */
@@ -132,8 +129,7 @@ public class ServiceManager {
 
     for (Service service : serviceList) {
       try {
-        if (service.getState() == Service.ServiceState.RUNNING
-            || service.getState() == Service.ServiceState.INITIALIZED) {
+        if (service.getState() == Service.ServiceState.RUNNING) {
           service.update();
         }
       } catch (Exception e) {
@@ -157,7 +153,6 @@ public class ServiceManager {
         System.err.println("Error updating service " + service.getName() + ": " + e.getMessage());
       }
     }
-    System.out.println(getServiceStatus());
   }
 
   /**
@@ -175,7 +170,7 @@ public class ServiceManager {
    * @return 状态统计信息字符串
    */
   public String getServiceStatus() {
-    StringBuilder status = new StringBuilder("服务状态统计:\n");
+    StringBuilder status = new StringBuilder();
     status.append("----------------------------------------\n");
     status.append(String.format("%-20s %-15s %-10s\n", "服务名称", "状态", "优先级"));
     status.append("----------------------------------------\n");
@@ -186,16 +181,6 @@ public class ServiceManager {
               "%-20s %-15s %-10d\n", service.getName(), service.getState(), service.getPriority()));
     }
 
-    // 添加统计信息
-    Map<Service.ServiceState, Long> stateCounts =
-        serviceList.stream()
-            .collect(Collectors.groupingBy(Service::getState, Collectors.counting()));
-
-    status.append("\n状态统计:\n");
-    for (Service.ServiceState state : Service.ServiceState.values()) {
-      status.append(String.format("%-15s: %d\n", state, stateCounts.getOrDefault(state, 0L)));
-    }
-
     return status.toString();
   }
 
@@ -204,6 +189,9 @@ public class ServiceManager {
       alertList.get(i).set(serviceList.get(i).getState() == Service.ServiceState.ERROR);
       Logger.recordOutput(
           "Services/" + serviceList.get(i).getName() + "/Status", serviceList.get(i).getState());
+      Logger.recordOutput(
+          "Services/" + serviceList.get(i).getName() + "/Priority",
+          serviceList.get(i).getPriority());
     }
   }
 

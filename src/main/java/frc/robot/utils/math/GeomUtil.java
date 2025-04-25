@@ -92,6 +92,14 @@ public class GeomUtil {
     return new Twist2d(twist.dx * factor, twist.dy * factor, twist.dtheta * factor);
   }
 
+  public static Transform2d exp(Twist2d twist) {
+    return new Pose2d().exp(twist).minus(new Pose2d());
+  }
+
+  public static Twist2d log(Transform2d transform) {
+    return new Pose2d().log(new Pose2d().plus(transform));
+  }
+
   /**
    * Converts a Translation3d to a Rotation3d
    *
