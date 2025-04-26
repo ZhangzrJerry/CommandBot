@@ -14,17 +14,13 @@ import lombok.experimental.ExtensionMethod;
 import org.littletonrobotics.junction.Logger;
 
 /**
- * Service for visualizing robot components in 3D space. This service manages a
- * hierarchical
- * structure of robot components and their transformations, allowing for
- * real-time visualization of
+ * Service for visualizing robot components in 3D space. This service manages a hierarchical
+ * structure of robot components and their transformations, allowing for real-time visualization of
  * the robot's state.
  */
-@ExtensionMethod({ GeomUtil.class })
-public class Visualize implements Service {
-  @Getter
-  @Setter
-  ServiceState state = ServiceState.STOPPED;
+@ExtensionMethod({GeomUtil.class})
+public class TransformTree implements Service {
+  @Getter @Setter ServiceState state = ServiceState.STOPPED;
 
   @Override
   public int getPriority() {
@@ -33,13 +29,13 @@ public class Visualize implements Service {
 
   @Override
   public String getName() {
-    return "Visualizer";
+    return "TransformTree";
   }
 
   @Override
   public void init() {
     setState(ServiceState.RUNNING);
-    components.sort(Comparator.comparingInt(VisualizeComponent::componentId));
+    components.sort(Comparator.comparingInt(TransformComponent::componentId));
     // Verify component IDs are continuous
     for (int i = 0; i < components.size(); ++i) {
       if (components.get(i).componentId() != i) {
@@ -50,59 +46,56 @@ public class Visualize implements Service {
 
   @Override
   public void update() {
-    poses = new Pose3d[components.size()];
-    tfs = new Transform3d[components.size()];
+    componentPoses = new Pose3d[components.size()];
+    componentTransforms = new Transform3d[components.size()];
 
     if (STRICT_BIG_ENDIAN) {
       for (int i = 0; i < components.size(); ++i) {
-        tfs[i] = components.get(i).transformSupplier().get();
+        componentTransforms[i] = components.get(i).transformSupplier().get();
 
         if (components.get(i).parentId() != -1) {
           // Propagate transform matrix through the component hierarchy
-          tfs[i] = tfs[components.get(i).parentId()].plus(tfs[i]);
+          componentTransforms[i] =
+              componentTransforms[components.get(i).parentId()].plus(componentTransforms[i]);
         }
-        poses[i] = tfs[i].toPose3d();
+        componentPoses[i] = componentTransforms[i].toPose3d();
       }
     }
 
-    Logger.recordOutput("Services/" + getName() + "/Components", poses);
+    Logger.recordOutput("Services/" + getName() + "/Components", componentPoses);
   }
 
   public Pose3d getComponentPose(int componentId) {
-    if (componentId < 0 || componentId >= poses.length) {
+    if (componentId < 0 || componentId >= componentPoses.length) {
       throw new IllegalArgumentException("componentId out of index");
     }
-    return poses[componentId];
+    return componentPoses[componentId];
   }
 
   public Transform3d getComponentTransform(int componentId) {
-    if (componentId < 0 || componentId >= tfs.length) {
+    if (componentId < 0 || componentId >= componentTransforms.length) {
       throw new IllegalArgumentException("componentId out of index");
     }
-    return tfs[componentId];
+    return componentTransforms[componentId];
   }
 
-  private static final List<VisualizeComponent> components = new ArrayList<>();
+  private static final List<TransformComponent> components = new ArrayList<>();
   private static final Boolean STRICT_BIG_ENDIAN = true;
-  private static Pose3d[] poses = new Pose3d[0];
-  private static Transform3d[] tfs = new Transform3d[0];
+  private static Pose3d[] componentPoses = new Pose3d[0];
+  private static Transform3d[] componentTransforms = new Transform3d[0];
 
   /**
-   * Represents a component in the visualization hierarchy. Each component has a
-   * unique ID, a parent
+   * Represents a component in the transform hierarchy. Each component has a unique ID, a parent
    * component, and a transform relative to its parent.
    *
-   * @param componentId       Unique identifier for the component, must be in
-   *                          range [0,N]
-   * @param parentId          Identifier of the parent component, must be in range
-   *                          [-1,componentId). -1
-   *                          indicates the robot frame as parent
-   * @param transformSupplier Supplier providing the transform matrix from parent
-   *                          to this component
+   * @param componentId Unique identifier for the component, must be in range [0,N]
+   * @param parentId Identifier of the parent component, must be in range [-1,componentId). -1
+   *     indicates the robot frame as parent
+   * @param transformSupplier Supplier providing the transform matrix from parent to this component
    */
-  public record VisualizeComponent(
+  public record TransformComponent(
       int componentId, int parentId, Supplier<Transform3d> transformSupplier) {
-    public VisualizeComponent {
+    public TransformComponent {
       if (componentId < 0) {
         throw new IllegalArgumentException("componentId out of index");
       }
@@ -120,16 +113,14 @@ public class Visualize implements Service {
   }
 
   /**
-   * Registers a component for visualization. Components should typically be
-   * registered during
+   * Registers a component for transform tracking. Components should typically be registered during
    * subsystem initialization.
    *
    * @param component The component to be registered
-   * @throws IllegalArgumentException if a component with the same ID already
-   *                                  exists
+   * @throws IllegalArgumentException if a component with the same ID already exists
    */
-  public void registerVisualizeComponent(VisualizeComponent component) {
-    for (VisualizeComponent existing : components) {
+  public void registerTransformComponent(TransformComponent component) {
+    for (TransformComponent existing : components) {
       if (existing.componentId() == component.componentId()) {
         throw new IllegalArgumentException("componentId already exists");
       }
@@ -141,12 +132,12 @@ public class Visualize implements Service {
   /**
    * Convenience method to register a component with individual parameters.
    *
-   * @param componentId       Unique identifier for the component
-   * @param parentId          Identifier of the parent component
+   * @param componentId Unique identifier for the component
+   * @param parentId Identifier of the parent component
    * @param transformSupplier Supplier providing the transform matrix
    */
-  public void registerVisualizeComponent(
+  public void registerTransformComponent(
       int componentId, int parentId, Supplier<Transform3d> transformSupplier) {
-    registerVisualizeComponent(new VisualizeComponent(componentId, parentId, transformSupplier));
+    registerTransformComponent(new TransformComponent(componentId, parentId, transformSupplier));
   }
 }

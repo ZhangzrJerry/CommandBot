@@ -12,7 +12,7 @@ import frc.robot.interfaces.hardwares.motors.DCMotorIO;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOInputsAutoLogged;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOSim;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfx;
-import frc.robot.services.Visualize;
+import frc.robot.services.TransformTree;
 import frc.robot.utils.Gains.GainsImpl;
 import frc.robot.utils.Gains.KpGainsImpl;
 import frc.robot.utils.dashboard.TunableNumber;
@@ -168,8 +168,8 @@ public class Intake extends SubsystemBase {
     return new Intake(new DCMotorIO() {}, new DCMotorIO() {});
   }
 
-  public void registerVisualize(Visualize visualizer) {
-    visualizer.registerVisualizeComponent(
+  public void registerTransform(TransformTree transformTree) {
+    transformTree.registerTransformComponent(
         Constants.Ascope.Component.INTAKE,
         Constants.Ascope.Component.DRIVETRAIN,
         () ->

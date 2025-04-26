@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.services.GamePieceVisualize;
 import frc.robot.services.ServiceManager;
-import frc.robot.services.Visualize;
+import frc.robot.services.TransformTree;
 import frc.robot.subsystems.SuperStructure;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.climber.Climber;
@@ -37,32 +37,39 @@ public class RobotContainer {
   private final AtagVision vision;
 
   // virtual services
-  Visualize visualizer;
+  TransformTree transformTree;
   GamePieceVisualize algaeVisualizer;
   GamePieceVisualize coralVisualizer;
 
-  private final CommandXboxController joystick = new CommandXboxController(Constants.Ports.Joystick.DRIVER);
+  private final CommandXboxController joystick =
+      new CommandXboxController(Constants.Ports.Joystick.DRIVER);
 
   public RobotContainer() {
     System.out.println("\n>      [0/5] RobotContainer Init ...");
 
     // ===== instantiate services =====
-    visualizer = new Visualize();
+    transformTree = new TransformTree();
 
     if (Robot.isReal()) {
       algaeVisualizer = new GamePieceVisualize("Algae Visualizer", new Pose3d[0], new Pose3d[0]);
       coralVisualizer = new GamePieceVisualize("Coral Visualizer", new Pose3d[0], new Pose3d[0]);
 
       // register services
-      serviceManager.registerService(visualizer);
+      serviceManager.registerService(transformTree);
     } else if (Robot.isSimulation()) {
-      algaeVisualizer = new GamePieceVisualize("Algae Visualizer", ReefScape.GamePiece.Algae.scorablePose,
-          ReefScape.GamePiece.Algae.pickablePose);
-      coralVisualizer = new GamePieceVisualize("Coral Visualizer", ReefScape.GamePiece.Coral.scorablePose,
-          ReefScape.GamePiece.Coral.pickablePose);
+      algaeVisualizer =
+          new GamePieceVisualize(
+              "Algae Visualizer",
+              ReefScape.GamePiece.Algae.scorablePose,
+              ReefScape.GamePiece.Algae.pickablePose);
+      coralVisualizer =
+          new GamePieceVisualize(
+              "Coral Visualizer",
+              ReefScape.GamePiece.Coral.scorablePose,
+              ReefScape.GamePiece.Coral.pickablePose);
 
       // register services
-      serviceManager.registerService(visualizer);
+      serviceManager.registerService(transformTree);
       serviceManager.registerService(algaeVisualizer);
       serviceManager.registerService(coralVisualizer);
     }
@@ -82,8 +89,9 @@ public class RobotContainer {
       arm = Arm.createSim();
       intake = Intake.createSim();
       climber = Climber.createSim();
-      endeffector = Endeffector.createSim(
-          () -> algaeVisualizer.isHasGamePiece(), () -> coralVisualizer.isHasGamePiece());
+      endeffector =
+          Endeffector.createSim(
+              () -> algaeVisualizer.isHasGamePiece(), () -> coralVisualizer.isHasGamePiece());
       vision = AtagVision.createSim(() -> swerve.getPose());
     } else {
       swerve = Swerve.createIO();
@@ -120,8 +128,9 @@ public class RobotContainer {
                 () -> -joystick.getRightX())));
     climber.setDefaultCommand(climber.registerTeleopPullCmd(joystick.povDown()));
     new Trigger(
-        () -> endeffector.hasAlgaeEndeffectorStoraged()
-            || endeffector.hasCoralEndeffectorStoraged())
+            () ->
+                endeffector.hasAlgaeEndeffectorStoraged()
+                    || endeffector.hasCoralEndeffectorStoraged())
         .onTrue(joystickRumbleCmd(0.3));
 
     // ===== bind custom commands =====
@@ -190,23 +199,25 @@ public class RobotContainer {
     endeffector.setCoralSignalSupplier(joystick.povRight());
 
     // ===== visualize service =====
-    swerve.registerVisualize(visualizer);
-    arm.registerVisualize(visualizer);
-    intake.registerVisualize(visualizer);
-    endeffector.registerVisualize(visualizer);
-    climber.registerVisualize(visualizer);
+    swerve.registerTransform(transformTree);
+    arm.registerTransform(transformTree);
+    intake.registerTransform(transformTree);
+    endeffector.registerTransform(transformTree);
+    climber.registerTransform(transformTree);
 
     // ===== algae game piece visualize =====
     algaeVisualizer.setPickMechanismPoseSupplier(
-        () -> new Pose3d(swerve.getPose())
-            .plus(
-                visualizer.getComponentTransform(
-                    Constants.Ascope.Component.ALGAE_END_EFFECTOR)));
+        () ->
+            new Pose3d(swerve.getPose())
+                .plus(
+                    transformTree.getComponentTransform(
+                        Constants.Ascope.Component.ALGAE_END_EFFECTOR)));
     algaeVisualizer.setScoreMechanismPoseSupplier(
-        () -> new Pose3d(swerve.getPose())
-            .plus(
-                visualizer.getComponentTransform(
-                    Constants.Ascope.Component.ALGAE_END_EFFECTOR)));
+        () ->
+            new Pose3d(swerve.getPose())
+                .plus(
+                    transformTree.getComponentTransform(
+                        Constants.Ascope.Component.ALGAE_END_EFFECTOR)));
     algaeVisualizer.setTryPickSupplier(
         () -> endeffector.getAlgaeGoal().equals(AlgaeEndEffectorGoal.COLLECT));
     algaeVisualizer.setTryEjectSupplier(
@@ -216,15 +227,17 @@ public class RobotContainer {
 
     // ===== coral game piece visualize =====
     coralVisualizer.setPickMechanismPoseSupplier(
-        () -> new Pose3d(swerve.getPose())
-            .plus(
-                visualizer.getComponentTransform(
-                    Constants.Ascope.Component.CORAL_END_EFFECTOR)));
+        () ->
+            new Pose3d(swerve.getPose())
+                .plus(
+                    transformTree.getComponentTransform(
+                        Constants.Ascope.Component.CORAL_END_EFFECTOR)));
     coralVisualizer.setScoreMechanismPoseSupplier(
-        () -> new Pose3d(swerve.getPose())
-            .plus(
-                visualizer.getComponentTransform(
-                    Constants.Ascope.Component.CORAL_END_EFFECTOR)));
+        () ->
+            new Pose3d(swerve.getPose())
+                .plus(
+                    transformTree.getComponentTransform(
+                        Constants.Ascope.Component.CORAL_END_EFFECTOR)));
     coralVisualizer.setTryPickSupplier(
         () -> endeffector.getCoralGoal().equals(CoralEndEffectorGoal.COLLECT));
     coralVisualizer.setTryEjectSupplier(
@@ -239,8 +252,8 @@ public class RobotContainer {
 
   private Command joystickRumbleCmd(double seconds) {
     return Commands.startEnd(
-        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
-        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
+            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
+            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
         .withTimeout(seconds)
         .withName("Joystick/Rumble " + Math.round(seconds * 10) / 10.0 + "s");
   }

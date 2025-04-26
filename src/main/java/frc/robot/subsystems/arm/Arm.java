@@ -18,7 +18,7 @@ import frc.robot.interfaces.hardwares.motors.DCMotorIOInputsAutoLogged;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOSim;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfx;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfxCancoder;
-import frc.robot.services.Visualize;
+import frc.robot.services.TransformTree;
 import frc.robot.utils.dashboard.TunableNumbers;
 import frc.robot.utils.math.EqualsUtil;
 import frc.robot.utils.math.UnitConverter;
@@ -425,8 +425,8 @@ public class Arm extends SubsystemBase {
     return new Arm(new DCMotorIO() {}, new DCMotorIO() {});
   }
 
-  public void registerVisualize(Visualize visualizer) {
-    visualizer.registerVisualizeComponent(
+  public void registerTransform(TransformTree transformTree) {
+    transformTree.registerTransformComponent(
         Constants.Ascope.Component.ELEVATOR_L2,
         Constants.Ascope.Component.DRIVETRAIN,
         () -> {
@@ -442,7 +442,7 @@ public class Arm extends SubsystemBase {
                   new Rotation3d()));
         });
 
-    visualizer.registerVisualizeComponent(
+    transformTree.registerTransformComponent(
         Constants.Ascope.Component.ELEVATOR_L3,
         Constants.Ascope.Component.ELEVATOR_L2,
         () -> {
@@ -457,7 +457,7 @@ public class Arm extends SubsystemBase {
                   new Rotation3d()));
         });
 
-    visualizer.registerVisualizeComponent(
+    transformTree.registerTransformComponent(
         Constants.Ascope.Component.ELEVATOR_CARRIAGE,
         Constants.Ascope.Component.ELEVATOR_L3,
         () -> {
@@ -472,7 +472,7 @@ public class Arm extends SubsystemBase {
                   new Rotation3d()));
         });
 
-    visualizer.registerVisualizeComponent(
+    transformTree.registerTransformComponent(
         Constants.Ascope.Component.ARM,
         Constants.Ascope.Component.ELEVATOR_CARRIAGE,
         () -> {

@@ -12,7 +12,7 @@ import frc.robot.interfaces.hardwares.sensors.digital.BiDigitalIO;
 import frc.robot.interfaces.hardwares.sensors.digital.BiDigitalIOCandi;
 import frc.robot.interfaces.hardwares.sensors.digital.BiDigitalIOInputsAutoLogged;
 import frc.robot.interfaces.hardwares.sensors.digital.BiDigitalIOSim;
-import frc.robot.services.Visualize;
+import frc.robot.services.TransformTree;
 import frc.robot.utils.dashboard.SwitchableChooser;
 import frc.robot.utils.dashboard.TunableNumber;
 import frc.robot.utils.math.UnitConverter;
@@ -161,18 +161,18 @@ public class Endeffector extends SubsystemBase {
     return new Endeffector(new DCMotorIO() {}, new DCMotorIO() {}, new BiDigitalIO() {});
   }
 
-  public void registerVisualize(Visualize visualizer) {
-    visualizer.registerVisualizeComponent(
+  public void registerTransform(TransformTree transformTree) {
+    transformTree.registerTransformComponent(
         Constants.Ascope.Component.ALGAE_END_EFFECTOR,
         Constants.Ascope.Component.ARM,
         () -> new Transform3d(.04, -.46, .07, new Rotation3d()));
 
-    visualizer.registerVisualizeComponent(
+    transformTree.registerTransformComponent(
         Constants.Ascope.Component.CORAL_END_EFFECTOR,
         Constants.Ascope.Component.ARM,
         () -> new Transform3d(-.05, .25, .0, new Rotation3d()));
 
-    visualizer.registerVisualizeComponent(
+    transformTree.registerTransformComponent(
         Constants.Ascope.Component.ALGAE,
         Constants.Ascope.Component.ARM,
         () ->
@@ -180,7 +180,7 @@ public class Endeffector extends SubsystemBase {
                 ? new Transform3d(.04, -.46, .07, new Rotation3d())
                 : new Transform3d(0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f, new Rotation3d()));
 
-    visualizer.registerVisualizeComponent(
+    transformTree.registerTransformComponent(
         Constants.Ascope.Component.CORAL,
         Constants.Ascope.Component.ARM,
         () ->

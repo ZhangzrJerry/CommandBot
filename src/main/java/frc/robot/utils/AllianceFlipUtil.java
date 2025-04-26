@@ -68,13 +68,16 @@ public class AllianceFlipUtil {
 
   public static Pose3d flipPose(Pose3d pose) {
     return new Pose3d(
-        flipX(pose.getX()), flipY(pose.getY()), pose.getZ(),
-        new Rotation3d(pose.getRotation().getMeasureX().magnitude(), pose.getRotation().getMeasureY().magnitude(),
+        flipX(pose.getX()),
+        flipY(pose.getY()),
+        pose.getZ(),
+        new Rotation3d(
+            pose.getRotation().getMeasureX().magnitude(),
+            pose.getRotation().getMeasureY().magnitude(),
             flipRotation(pose.getRotation().toRotation2d()).getRadians()));
   }
 
   public static Pose3d applyPose(Pose3d pose) {
     return isRedAlliance() ? flipPose(pose) : pose;
   }
-
 }

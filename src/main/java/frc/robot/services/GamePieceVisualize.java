@@ -12,33 +12,25 @@ import lombok.experimental.ExtensionMethod;
 import org.littletonrobotics.junction.Logger;
 
 /** rely on visualize service */
-@ExtensionMethod({ GeomUtil.class })
+@ExtensionMethod({GeomUtil.class})
 public class GamePieceVisualize implements Service {
-  @Getter
-  @Setter
-  ServiceState state = ServiceState.STOPPED;
+  @Getter @Setter ServiceState state = ServiceState.STOPPED;
   private final String name;
 
   private final Pose3d[] scorableGamePiecePose;
   private final Pose3d[] pickableGamePiecePose;
   private final Pose3d[] scoredGamePiecePose;
-  @Getter
-  private boolean hasGamePiece = false;
+  @Getter private boolean hasGamePiece = false;
   private int scoredGamePieceNums = 0;
 
   private static final double PICKABLE_MAX_DISTANCE = 0.5;
   private static final double SCORABLE_MAX_DISTANCE = 0.5;
 
-  @Setter
-  private Supplier<Pose3d> pickMechanismPoseSupplier = () -> new Pose3d();
-  @Setter
-  private Supplier<Pose3d> scoreMechanismPoseSupplier = () -> new Pose3d();
-  @Setter
-  private BooleanSupplier tryPickSupplier = () -> false;
-  @Setter
-  private BooleanSupplier tryEjectSupplier = () -> false;
-  @Setter
-  private BooleanSupplier tryScoreSupplier = () -> false;
+  @Setter private Supplier<Pose3d> pickMechanismPoseSupplier = () -> new Pose3d();
+  @Setter private Supplier<Pose3d> scoreMechanismPoseSupplier = () -> new Pose3d();
+  @Setter private BooleanSupplier tryPickSupplier = () -> false;
+  @Setter private BooleanSupplier tryEjectSupplier = () -> false;
+  @Setter private BooleanSupplier tryScoreSupplier = () -> false;
 
   @Override
   public void update() {
@@ -56,7 +48,8 @@ public class GamePieceVisualize implements Service {
           }
         }
         if (maxDistance < PICKABLE_MAX_DISTANCE) {
-          pickableGamePiecePose[minDistanceIndex] = new Pose3d(0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f, new Rotation3d());
+          pickableGamePiecePose[minDistanceIndex] =
+              new Pose3d(0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f, new Rotation3d());
           hasGamePiece = true;
         }
       }
@@ -89,12 +82,9 @@ public class GamePieceVisualize implements Service {
     Logger.recordOutput("Services/" + name + "/hasGamePiece", hasGamePiece);
     Logger.recordOutput("Services/" + name + "/scoredGamePieceNums", scoredGamePieceNums);
 
-    Logger.recordOutput("Services/" + name + "/pickableGamePiecePose",
-        pickableGamePiecePose);
-    Logger.recordOutput("Services/" + name + "/scoredGamePiecePose",
-        scoredGamePiecePose);
-    Logger.recordOutput("Services/" + name + "/scorableGamePiecePose",
-        scorableGamePiecePose);
+    Logger.recordOutput("Services/" + name + "/pickableGamePiecePose", pickableGamePiecePose);
+    Logger.recordOutput("Services/" + name + "/scoredGamePiecePose", scoredGamePiecePose);
+    Logger.recordOutput("Services/" + name + "/scorableGamePiecePose", scorableGamePiecePose);
   }
 
   public GamePieceVisualize(

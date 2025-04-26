@@ -26,7 +26,7 @@ import frc.robot.interfaces.hardwares.sensors.gyro.GyroIOPigeon2;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometryPhoenixThread;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometrySimThread;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometryThread;
-import frc.robot.services.Visualize;
+import frc.robot.services.TransformTree;
 import frc.robot.utils.math.EqualsUtil;
 import frc.robot.utils.math.GeomUtil;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
@@ -430,29 +430,29 @@ public class Swerve extends SubsystemBase {
     odometry = new SwerveOdometry(gyroIO, odometryThread.start());
   }
 
-  public void registerVisualize(Visualize visualizer) {
-    visualizer.registerVisualizeComponent(
+  public void registerTransform(TransformTree transformTree) {
+    transformTree.registerTransformComponent(
         Constants.Ascope.Component.SWERVE_FL,
         Constants.Ascope.Component.DRIVETRAIN,
         () ->
             new Transform3d(
                 SwerveConfig.FL_ZEROED_TF.getTranslation(),
                 new Rotation3d(0, modules[0].getState().angle.getRadians(), 0)));
-    visualizer.registerVisualizeComponent(
+    transformTree.registerTransformComponent(
         Constants.Ascope.Component.SWERVE_BL,
         -1,
         () ->
             new Transform3d(
                 SwerveConfig.BL_ZEROED_TF.getTranslation(),
                 new Rotation3d(0, modules[1].getState().angle.getRadians(), 0)));
-    visualizer.registerVisualizeComponent(
+    transformTree.registerTransformComponent(
         Constants.Ascope.Component.SWERVE_BR,
         Constants.Ascope.Component.DRIVETRAIN,
         () ->
             new Transform3d(
                 SwerveConfig.BR_ZEROED_TF.getTranslation(),
                 new Rotation3d(0, modules[2].getState().angle.getRadians(), 0)));
-    visualizer.registerVisualizeComponent(
+    transformTree.registerTransformComponent(
         Constants.Ascope.Component.SWERVE_FR,
         Constants.Ascope.Component.DRIVETRAIN,
         () ->
