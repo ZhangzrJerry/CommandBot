@@ -41,7 +41,7 @@ public class ArmGoal extends TunableNumbers {
   public static final ArmGoal CORAL_L4_SCORE =
       new ArmGoal("Arm/Goal/CoralL4Score", 1.7 - 0.04, -34.0);
   public static final ArmGoal CORAL_STATION_COLLECT =
-      new ArmGoal("Arm/Goal/CoralStationCollect", 0.01, -232.0);
+      new ArmGoal("Arm/Goal/CoralStationCollect", 0.05, -232.0);
 
   public static final ArmGoal ALGAE_LOW_PICK = new ArmGoal("Arm/Goal/AlgaeLowPick", 0.2, -131.0);
   public static final ArmGoal ALGAE_HIGH_PICK = new ArmGoal("Arm/Goal/AlgaeHighPick", 0.6, -132.0);

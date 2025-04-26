@@ -20,7 +20,6 @@ import frc.robot.subsystems.endeffector.Endeffector.AlgaeEndEffectorGoal;
 import frc.robot.subsystems.endeffector.Endeffector.CoralEndEffectorGoal;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.swerve.Swerve;
-import frc.robot.subsystems.swerve.controller.TeleopHeaderController;
 import frc.robot.subsystems.swerve.controller.TeleopHeadlessController;
 import frc.robot.subsystems.vision.AtagVision;
 
@@ -127,7 +126,7 @@ public class RobotContainer {
   }
 
   void configureCommandBinding() {
-    // ===== bind default commands =====
+    // ===== default commands =====
     swerve.setDefaultCommand(
         swerve.registerControllerCmd(
             new TeleopHeadlessController(
@@ -142,7 +141,7 @@ public class RobotContainer {
                     || endeffector.hasCoralEndeffectorStoraged())
         .onTrue(joystickRumbleCmd(0.3));
 
-    // ===== bind mode commands =====
+    // ===== mode commands =====
     joystick
         .leftBumper()
         .and(joystick.rightBumper())
@@ -160,7 +159,7 @@ public class RobotContainer {
         .debounce(0.3)
         .onTrue(superStructure.setClimbingModeCmd().alongWith(joystickRumbleCmd(0.3)));
 
-    // ===== bind teleop commands =====
+    // ===== teleop commands =====
 
     // ##### LT: coral magic eject #####
     joystick
@@ -179,7 +178,7 @@ public class RobotContainer {
         .leftBumper()
         .and(() -> !climber.isClimbing())
         .and(() -> !endeffector.hasAlgaeEndeffectorStoraged())
-        .onTrue(superStructure.coralStationPickCmd().withTimeout(2.0));
+        .whileTrue(superStructure.coralStationPickCmd(true).withTimeout(2.0));
 
     // ##### LB: coral reef score with NodeSelector #####
 
@@ -188,7 +187,7 @@ public class RobotContainer {
         .rightBumper()
         .and(() -> !climber.isClimbing())
         .and(() -> !endeffector.hasAlgaeEndeffectorStoraged())
-        .onTrue(superStructure.coralStationPickCmd().withTimeout(2.0));
+        .whileTrue(superStructure.coralStationPickCmd(false).withTimeout(2.0));
 
     // ##### RB: coral reef score with POV #####
     joystick
@@ -227,19 +226,6 @@ public class RobotContainer {
         .and(joystick.povDown())
         .onTrue(superStructure.coralReefScoreCmd(1));
 
-    // ##### coral reef score L1 #####
-    joystick
-        .x()
-        .onTrue(
-            superStructure
-                .coralReefScoreCmd(1)
-                .alongWith(
-                    swerve.registerControllerCmd(
-                        new TeleopHeaderController(
-                            () -> joystick.getLeftY(),
-                            () -> joystick.getLeftX(),
-                            () -> -joystick.getRightX()))));
-
     // ##### arm idle / arm home #####
     joystick.a().and(() -> !climber.isClimbing()).onTrue(superStructure.forcedIdleCmd());
     joystick
@@ -249,7 +235,10 @@ public class RobotContainer {
         .onTrue(arm.getHomeCmd().alongWith(joystickRumbleCmd(0.3)));
 
     // ##### algae ground pick / processor score #####
-    joystick.b().and(() -> !climber.isClimbing()).onTrue(superStructure.algaeProcessorScoreCmd());
+    joystick
+        .b()
+        .and(() -> !climber.isClimbing())
+        .whileTrue(superStructure.algaeProcessorScoreCmd());
 
     joystick
         .povUp()

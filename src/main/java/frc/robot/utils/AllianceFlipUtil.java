@@ -18,6 +18,10 @@ public class AllianceFlipUtil {
         .orElse(false);
   }
 
+  public static boolean isRobotInBlueSide(Pose2d robotPose) {
+    return robotPose.getX() < FIELD_LENGTH / 2;
+  }
+
   public static double flipX(double x) {
     return FIELD_LENGTH - x;
   }

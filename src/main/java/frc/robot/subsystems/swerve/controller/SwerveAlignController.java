@@ -21,7 +21,8 @@ public class SwerveAlignController implements SwerveController {
     NET,
     REEF_CORAL,
     REEF_ALGAE,
-    CUSTOM
+    CORAL_STATION_LEFT,
+    CORAL_STATION_RIGHT
   }
 
   private static class AlignConfig {
@@ -32,6 +33,7 @@ public class SwerveAlignController implements SwerveController {
     public final TunablePidGains rotationGains;
     public final TunableNumber rotationToleranceDegree;
     public final TunableNumber preTranslationToleranceMeter;
+    public final TunableNumber alignmentAngleDegree;
 
     public AlignConfig(
         String prefix,
@@ -45,78 +47,126 @@ public class SwerveAlignController implements SwerveController {
         double rotKP,
         double rotKI,
         double rotKD,
-        double rotTol) {
+        double rotTol,
+        double alignmentAngle) {
       this.maxLineupShiftingYMeter = new TunableNumber(prefix + "/MaxLineupShiftingYMeter", maxY);
       this.maxLineupShiftingXMeter = new TunableNumber(prefix + "/MaxLineupShiftingXMeter", maxX);
-      this.translationGains = new TunablePidGains(prefix + "/TranslationGains", transKP, transKI, transKD);
-      this.translationToleranceMeter = new TunableNumber(prefix + "/TranslationToleranceMeter", transTol);
+      this.translationGains =
+          new TunablePidGains(prefix + "/TranslationGains", transKP, transKI, transKD);
+      this.translationToleranceMeter =
+          new TunableNumber(prefix + "/TranslationToleranceMeter", transTol);
       this.rotationGains = new TunablePidGains(prefix + "/RotationGains", rotKP, rotKI, rotKD);
       this.rotationToleranceDegree = new TunableNumber(prefix + "/RotationToleranceDegree", rotTol);
-      this.preTranslationToleranceMeter = new TunableNumber(prefix + "/PreTranslationToleranceMeter", preTransTol);
+      this.preTranslationToleranceMeter =
+          new TunableNumber(prefix + "/PreTranslationToleranceMeter", preTransTol);
+      this.alignmentAngleDegree =
+          new TunableNumber(prefix + "/AlignmentAngleDegree", alignmentAngle);
     }
   }
 
-  private static final AlignConfig PROCESSOR_CONFIG = new AlignConfig(
-      "Swerve/AlignController/Processor",
-      1.5,
-      1.0, // maxY, maxX
-      2.1,
-      0.0,
-      0.1,
-      0.08,
-      0.15, // transKP, transKI, transKD, transTol, preTransTol
-      4.0,
-      0.0,
-      0.0,
-      5.0 // rotKP, rotKI, rotKD, rotTol
-  );
+  private static final AlignConfig PROCESSOR_CONFIG =
+      new AlignConfig(
+          "Swerve/AlignController/Processor",
+          3.0,
+          1.2, // maxY, maxX
+          2.1,
+          0.0,
+          0.1,
+          0.08,
+          0.15, // transKP, transKI, transKD, transTol, preTransTol
+          4.0,
+          0.0,
+          0.0,
+          5.0, // rotKP, rotKI, rotKD, rotTol
+          180.0 // alignmentAngle
+          );
 
-  private static final AlignConfig NET_CONFIG = new AlignConfig(
-      "Swerve/AlignController/Net",
-      1.2,
-      0.8, // maxY, maxX
-      2.5,
-      0.0,
-      0.15,
-      0.05,
-      0.15, // transKP, transKI, transKD, transTol, preTransTol
-      5.0,
-      0.0,
-      0.1,
-      3.0 // rotKP, rotKI, rotKD, rotTol
-  );
+  private static final AlignConfig NET_CONFIG =
+      new AlignConfig(
+          "Swerve/AlignController/Net",
+          1.2,
+          0.8, // maxY, maxX
+          2.5,
+          0.0,
+          0.15,
+          0.05,
+          0.15, // transKP, transKI, transKD, transTol, preTransTol
+          5.0,
+          0.0,
+          0.1,
+          3.0, // rotKP, rotKI, rotKD, rotTol
+          180.0 // alignmentAngle
+          );
 
-  private static final AlignConfig REEF_CORAL_CONFIG = new AlignConfig(
-      "Swerve/AlignController/ReefCoral",
-      1.0,
-      0.6, // maxY, maxX
-      2.0,
-      0.0,
-      0.08,
-      0.06,
-      0.15, // transKP, transKI, transKD, transTol, preTransTol
-      3.5,
-      0.0,
-      0.0,
-      4.0 // rotKP, rotKI, rotKD, rotTol
-  );
+  private static final AlignConfig REEF_CORAL_CONFIG =
+      new AlignConfig(
+          "Swerve/AlignController/ReefCoral",
+          1.0,
+          0.6, // maxY, maxX
+          2.0,
+          0.0,
+          0.08,
+          0.06,
+          0.15, // transKP, transKI, transKD, transTol, preTransTol
+          3.5,
+          0.0,
+          0.0,
+          4.0, // rotKP, rotKI, rotKD, rotTol
+          180.0 // alignmentAngle
+          );
 
-  private static final AlignConfig REEF_ALGAE_CONFIG = new AlignConfig(
-      "Swerve/AlignController/ReefAlgae",
-      1.0,
-      0.6, // maxY, maxX
-      2.0,
-      0.0,
-      0.08,
-      0.06,
-      0.15, // transKP, transKI, transKD, transTol, preTransTol
-      3.5,
-      0.0,
-      0.0,
-      4.0 // rotKP, rotKI, rotKD, rotTol
-  );
+  private static final AlignConfig REEF_ALGAE_CONFIG =
+      new AlignConfig(
+          "Swerve/AlignController/ReefAlgae",
+          1.0,
+          0.6, // maxY, maxX
+          2.0,
+          0.0,
+          0.08,
+          0.06,
+          0.15, // transKP, transKI, transKD, transTol, preTransTol
+          3.5,
+          0.0,
+          0.0,
+          4.0, // rotKP, rotKI, rotKD, rotTol
+          180.0 // alignmentAngle
+          );
 
-  private static final double maxTranslationVelMeterPerSec = SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC;
+  private static final AlignConfig LEFT_CORAL_STATION_CONFIG =
+      new AlignConfig(
+          "Swerve/AlignController/LeftCoralStation",
+          1.0,
+          0.6, // maxY, maxX
+          2.0,
+          0.0,
+          0.08,
+          0.06,
+          0.15, // transKP, transKI, transKD, transTol, preTransTol
+          3.5,
+          0.0,
+          0.0,
+          4.0, // rotKP, rotKI, rotKD, rotTol
+          240.0 // alignmentAngle
+          );
+
+  private static final AlignConfig RIGHT_CORAL_STATION_CONFIG =
+      new AlignConfig(
+          "Swerve/AlignController/RightCoralStation",
+          1.0,
+          0.6, // maxY, maxX
+          2.0,
+          0.0,
+          0.08,
+          0.06,
+          0.15, // transKP, transKI, transKD, transTol, preTransTol
+          3.5,
+          0.0,
+          0.0,
+          4.0, // rotKP, rotKI, rotKD, rotTol
+          120.0 // alignmentAngle
+          );
+  private static final double maxTranslationVelMeterPerSec =
+      SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC;
   private static final double maxRotationVelRadPerSec = SwerveConfig.MAX_ANGULAR_VEL_RAD_PER_SEC;
 
   @AutoLogOutput(key = "Swerve/AlignController/GoalPose")
@@ -149,6 +199,10 @@ public class SwerveAlignController implements SwerveController {
         return REEF_CORAL_CONFIG;
       case REEF_ALGAE:
         return REEF_ALGAE_CONFIG;
+      case CORAL_STATION_LEFT:
+        return LEFT_CORAL_STATION_CONFIG;
+      case CORAL_STATION_RIGHT:
+        return RIGHT_CORAL_STATION_CONFIG;
       default:
         return PROCESSOR_CONFIG; // 默认使用processor配置
     }
@@ -168,13 +222,16 @@ public class SwerveAlignController implements SwerveController {
     var currentPose = currentPoseSupplier.get();
     Logger.recordOutput("Swerve/AlignController/GoalPose", shiftedGoalPose);
 
-    var currentDistance = currentPose.getTranslation().getDistance(shiftedGoalPose.getTranslation());
+    var currentDistance =
+        currentPose.getTranslation().getDistance(shiftedGoalPose.getTranslation());
     Logger.recordOutput("Swerve/AlignController/TranslationErrorMeter", currentDistance);
 
-    var translationDir = currentPose.getTranslation().minus(shiftedGoalPose.getTranslation()).getAngle();
+    var translationDir =
+        currentPose.getTranslation().minus(shiftedGoalPose.getTranslation()).getAngle();
     var translationFeedback = translationController.calculate(currentDistance, 0.0);
 
-    var rotationErrorDegree = currentPose.getRotation().minus(shiftedGoalPose.getRotation()).getDegrees();
+    var rotationErrorDegree =
+        currentPose.getRotation().minus(shiftedGoalPose.getRotation()).getDegrees();
     Logger.recordOutput("Swerve/AlignController/RotationErrorDegree", rotationErrorDegree);
 
     hasHeadingAtGoal = Math.abs(rotationErrorDegree) <= config.rotationToleranceDegree.get();
@@ -185,22 +242,25 @@ public class SwerveAlignController implements SwerveController {
       return new ChassisSpeeds();
     }
 
-    var translationOutputScalar = hasHeadingAtGoal ? 1.0 : 1.0 - Math.abs(rotationErrorDegree) / 180.0;
+    var translationOutputScalar =
+        hasHeadingAtGoal ? 1.0 : 1.0 - Math.abs(rotationErrorDegree) / 180.0;
     Logger.recordOutput("Swerve/AlignController/TranslationOutputScalar", translationOutputScalar);
 
-    var translationVel = new Translation2d(
-        MathUtil.clamp(
-            translationFeedback * translationOutputScalar,
-            -maxTranslationVelMeterPerSec,
-            maxTranslationVelMeterPerSec),
-        translationDir);
+    var translationVel =
+        new Translation2d(
+            MathUtil.clamp(
+                translationFeedback * translationOutputScalar,
+                -maxTranslationVelMeterPerSec,
+                maxTranslationVelMeterPerSec),
+            translationDir);
 
-    var rotationVel = MathUtil.clamp(
-        rotationController.calculate(
-            MathUtil.angleModulus(currentPose.getRotation().getRadians()),
-            MathUtil.angleModulus(shiftedGoalPose.getRotation().getRadians())),
-        -maxRotationVelRadPerSec,
-        maxRotationVelRadPerSec);
+    var rotationVel =
+        MathUtil.clamp(
+            rotationController.calculate(
+                MathUtil.angleModulus(currentPose.getRotation().getRadians()),
+                MathUtil.angleModulus(shiftedGoalPose.getRotation().getRadians())),
+            -maxRotationVelRadPerSec,
+            maxRotationVelRadPerSec);
 
     return ChassisSpeeds.fromFieldRelativeSpeeds(
         translationVel.getX(), translationVel.getY(), rotationVel, currentPose.getRotation());
@@ -214,21 +274,29 @@ public class SwerveAlignController implements SwerveController {
     var yDistance = Math.abs(offset.getY());
     var xDistance = Math.abs(offset.getX());
 
-    var shiftXT = MathUtil.clamp(
-        (yDistance / (Field.CoralStation.FACE_LENGTH * 2.0))
-            + ((xDistance - 0.3) / (Field.CoralStation.FACE_LENGTH * 3.0)),
-        0.0,
-        1.0);
+    // 计算相对于目标点的角度
+    var relativeAngle = Math.atan2(offset.getY(), offset.getX());
+    var alignmentAngle = Math.toRadians(config.alignmentAngleDegree.get());
 
-    var shiftYT = MathUtil.clamp(offset.getX() / Field.CoralStation.FACE_LENGTH, 0.0, 1.0);
+    // 计算偏移量，考虑当前相对位置和目标对齐角度的关系
+    var angleDiff = MathUtil.angleModulus(relativeAngle - alignmentAngle);
+    var distance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
 
-    var flippedShiftedGoalPose = goalPose.transformBy(
-        GeomUtil.toTransform2d(
-            -shiftXT * config.maxLineupShiftingXMeter.get(),
-            Math.copySign(
-                shiftYT * config.maxLineupShiftingYMeter.get() * 0.8, offset.getY())));
+    // 根据角度差计算偏移比例
+    var shiftT =
+        MathUtil.clamp(
+            (distance / (Field.CoralStation.FACE_LENGTH * 2.0))
+                * (1.0 - Math.abs(angleDiff) / Math.PI),
+            0.0,
+            1.0);
 
-    return new Pose2d(flippedShiftedGoalPose.getTranslation(), goalPose.getRotation());
+    // 计算偏移方向
+    var shiftX = -shiftT * config.maxLineupShiftingXMeter.get() * Math.cos(alignmentAngle);
+    var shiftY = shiftT * config.maxLineupShiftingYMeter.get() * Math.sin(alignmentAngle);
+
+    var shiftedGoalPose = goalPose.transformBy(GeomUtil.toTransform2d(shiftX, shiftY));
+
+    return new Pose2d(shiftedGoalPose.getTranslation(), goalPose.getRotation());
   }
 
   @Override
@@ -244,10 +312,11 @@ public class SwerveAlignController implements SwerveController {
   @Override
   public Boolean translationErrorWithin() {
     return Math.abs(
-        currentPoseSupplier
-            .get()
-            .getTranslation()
-            .getDistance(goalPoseSupplier.get().getTranslation())) <= config.preTranslationToleranceMeter.get();
+            currentPoseSupplier
+                .get()
+                .getTranslation()
+                .getDistance(goalPoseSupplier.get().getTranslation()))
+        <= config.preTranslationToleranceMeter.get();
   }
 
   @Override

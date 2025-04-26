@@ -17,6 +17,8 @@ import frc.robot.subsystems.intake.Intake.IntakeGoal;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.controller.SwerveAlignController;
 import frc.robot.subsystems.swerve.controller.SwerveAlignController.AlignType;
+import frc.robot.utils.AllianceFlipUtil;
+import java.util.function.BooleanSupplier;
 
 public class SuperStructure {
   Swerve swerve;
@@ -27,7 +29,8 @@ public class SuperStructure {
 
   NodeSelector nodeSelector;
 
-  // BooleanSupplier shouldArmLift =
+  BooleanSupplier shouldArmLift =
+      () -> swerve.atToleranceGoal() || nodeSelector.getIgnoreArmMoveCondition();
 
   public SuperStructure(
       Swerve swerve,
@@ -136,22 +139,49 @@ public class SuperStructure {
             swerve.registerControllerCmd(
                 new SwerveAlignController(
                     AlignType.PROCESSOR,
-                    () -> ReefScape.Field.Processor.SCORE_POSE,
+                    () ->
+                        AllianceFlipUtil.isRobotInBlueSide(swerve.getPose())
+                            ? ReefScape.Field.Processor.SCORE_POSE
+                            : AllianceFlipUtil.flipPose(ReefScape.Field.Processor.SCORE_POSE),
                     () -> swerve.getPose())),
-            () -> nodeSelector.getIgnoreArmMoveCondition()));
+            () -> nodeSelector.getIgnoreArmMoveCondition()),
+        Commands.sequence(
+            Commands.runOnce(
+                    () -> {
+                      arm.setGoal(ArmGoal.ALGAE_PROCESSOR_SCORE);
+                    },
+                    arm)
+                .withName(name + "/Set Score Pose")));
   }
 
-  public Command coralStationPickCmd() {
+  public Command coralStationPickCmd(boolean isLeft) {
     String name = "Super/Coral Station Pick";
-    return Commands.startEnd(
-            () -> {
-              arm.setGoal(ArmGoal.CORAL_STATION_COLLECT);
-              endeffector.setCoralGoal(CoralEndEffectorGoal.COLLECT);
-            },
-            () -> {
-              endeffector.setCoralGoal(CoralEndEffectorGoal.IDLE);
-            })
-        .withName(name);
+    return Commands.parallel(
+        Commands.either(
+            Commands.none(),
+            swerve.registerControllerCmd(
+                new SwerveAlignController(
+                    isLeft ? AlignType.CORAL_STATION_LEFT : AlignType.CORAL_STATION_RIGHT,
+                    () ->
+                        AllianceFlipUtil.isRobotInBlueSide(swerve.getPose())
+                            ? (isLeft
+                                ? ReefScape.Field.CoralStation.LEFT_CENTER_COLLECT_POSE
+                                : ReefScape.Field.CoralStation.RIGHT_CENTER_COLLECT_POSE)
+                            : (isLeft
+                                ? AllianceFlipUtil.flipPose(
+                                    ReefScape.Field.CoralStation.LEFT_CENTER_COLLECT_POSE)
+                                : AllianceFlipUtil.flipPose(
+                                    ReefScape.Field.CoralStation.RIGHT_CENTER_COLLECT_POSE)),
+                    () -> swerve.getPose())),
+            () -> nodeSelector.getIgnoreArmMoveCondition()),
+        Commands.sequence(
+            Commands.runOnce(
+                    () -> {
+                      arm.setGoal(ArmGoal.CORAL_STATION_COLLECT);
+                      endeffector.setCoralGoal(CoralEndEffectorGoal.COLLECT);
+                    },
+                    arm)
+                .withName(name + "/Set Collect Pose")));
   }
 
   public Command coralReefScoreCmd(int layer) {

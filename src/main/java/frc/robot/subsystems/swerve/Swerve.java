@@ -93,6 +93,10 @@ public class Swerve extends SubsystemBase {
     return controller.headingAtGoal() && controller.translationAtGoal();
   }
 
+  public Boolean atToleranceGoal() {
+    return controller.headingAtGoal() && controller.translationErrorWithin();
+  }
+
   @Override
   public void periodic() {
 
