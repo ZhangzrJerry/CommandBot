@@ -393,14 +393,18 @@ public class Arm extends SubsystemBase {
             DCMotor.getKrakenX60(2),
             UnitConverter.scale(1.0 / Math.PI / 2.0).withUnits("rad", "m"),
             UnitConverter.offset(goal.getShoulderHeightMeter()).withUnits("m", "m"),
-            ArmConfig.SHOULDER_GAINS),
+            ArmConfig.SHOULDER_GAINS,
+            0,
+            ArmConfig.SHOULDER_MAX_HEIGHT_METER),
         new DCMotorIOSim(
             LinearSystemId.createSingleJointedArmSystem(
                 DCMotor.getKrakenX60(1), 0.46, ArmConfig.ELBOW_REDUCTION),
             DCMotor.getKrakenX60(1),
             UnitConverter.scale(180.0 / Math.PI).withUnits("rad", "deg"),
             UnitConverter.offset(goal.getElbowPositionDegree()).withUnits("deg", "deg"),
-            ArmConfig.ELBOW_GAINS));
+            ArmConfig.ELBOW_GAINS,
+            -360,
+            360));
   }
 
   public static Arm createReal() {

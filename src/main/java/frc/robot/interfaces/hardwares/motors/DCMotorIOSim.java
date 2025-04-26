@@ -16,11 +16,12 @@ import frc.robot.utils.math.UnitConverter;
 
 public class DCMotorIOSim implements DCMotorIO {
   private final DCMotorSim sim;
-  private final ProfiledPIDController pid = new ProfiledPIDController(
-      0,
-      0,
-      0,
-      new TrapezoidProfile.Constraints(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
+  private final ProfiledPIDController pid =
+      new ProfiledPIDController(
+          0,
+          0,
+          0,
+          new TrapezoidProfile.Constraints(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
   private final SlewRateLimiter voltageLimiter = new SlewRateLimiter(1000);
 
   private UnitConverter ratioConverter = UnitConverter.identity();
@@ -38,6 +39,12 @@ public class DCMotorIOSim implements DCMotorIO {
     sim.update(Constants.LOOP_PERIOD_SEC);
 
     inputs.connected = true;
+
+    if (sim.getAngularPositionRad() < minRawPosition) {
+      sim.setState(minRawPosition, 0);
+    } else if (sim.getAngularPositionRad() > maxRawPosition) {
+      sim.setState(maxRawPosition, 0);
+    }
 
     // rotor, radians
     inputs.rawPosition = sim.getAngularPositionRad();
@@ -99,13 +106,15 @@ public class DCMotorIOSim implements DCMotorIO {
   @Override
   public void setAppliedPositionF(
       double position, double velocity, double acceleration, double feedforward) {
-    double pidOutput = pid.calculate(sim.getAngularPositionRad(), positionConvertor.convertInverse(position));
+    double pidOutput =
+        pid.calculate(sim.getAngularPositionRad(), positionConvertor.convertInverse(position));
     setVoltage(pidOutput + feedforward);
   }
 
   @Override
   public void setAppliedVelocityF(double velocity, double acceleration, double feedforward) {
-    double pidOutput = pid.calculate(sim.getAngularVelocityRadPerSec(), ratioConverter.convertInverse(velocity));
+    double pidOutput =
+        pid.calculate(sim.getAngularVelocityRadPerSec(), ratioConverter.convertInverse(velocity));
     setVoltage(pidOutput + feedforward);
   }
 
@@ -189,7 +198,8 @@ public class DCMotorIOSim implements DCMotorIO {
       UnitConverter ratioConverter,
       UnitConverter offsetConverter,
       Gains gains) {
-    sim = new DCMotorSim(LinearSystemId.createDCMotorSystem(motor, JKgMetersSquared, gearing), motor);
+    sim =
+        new DCMotorSim(LinearSystemId.createDCMotorSystem(motor, JKgMetersSquared, gearing), motor);
 
     setUnitConvertor(ratioConverter, offsetConverter);
     setGains(gains);
@@ -233,14 +243,27 @@ public class DCMotorIOSim implements DCMotorIO {
         gains);
   }
 
-  public DCMotorIOSim(DCMotor motor, double JKgMetersSquared, double gearing, UnitConverter ratioConverter,
-      UnitConverter offsetConverter, Gains gains, double minAppliedPosition, double maxAppliedPosition) {
+  public DCMotorIOSim(
+      DCMotor motor,
+      double JKgMetersSquared,
+      double gearing,
+      UnitConverter ratioConverter,
+      UnitConverter offsetConverter,
+      Gains gains,
+      double minAppliedPosition,
+      double maxAppliedPosition) {
     this(motor, JKgMetersSquared, gearing, ratioConverter, offsetConverter, gains);
     setAppliedPositionConstraints(minAppliedPosition, maxAppliedPosition);
   }
 
-  public DCMotorIOSim(LinearSystem<N2, N1, N2> system, DCMotor motor, UnitConverter ratioConverter,
-      UnitConverter offsetConverter, Gains gains, double minAppliedPosition, double maxAppliedPosition) {
+  public DCMotorIOSim(
+      LinearSystem<N2, N1, N2> system,
+      DCMotor motor,
+      UnitConverter ratioConverter,
+      UnitConverter offsetConverter,
+      Gains gains,
+      double minAppliedPosition,
+      double maxAppliedPosition) {
     this(system, motor, ratioConverter, offsetConverter, gains);
     setAppliedPositionConstraints(minAppliedPosition, maxAppliedPosition);
   }

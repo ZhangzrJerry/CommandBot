@@ -52,5 +52,5 @@ class IntakeConfig {
   }
 
   static final Transform3d ZEROED_INTAKE_TF =
-      new Transform3d(0.299, 0, 0.1695, new Rotation3d(0.45, 0, Math.PI / 2));
+      new Transform3d(0.299, 0, 0.1695, new Rotation3d(1.0, 0, Math.PI / 2));
 }

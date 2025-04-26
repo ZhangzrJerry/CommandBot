@@ -14,6 +14,7 @@ import frc.robot.interfaces.hardwares.motors.DCMotorIOSim;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfx;
 import frc.robot.services.VisualizeService;
 import frc.robot.utils.Gains.GainsImpl;
+import frc.robot.utils.Gains.KpGainsImpl;
 import frc.robot.utils.dashboard.AlertManager;
 import frc.robot.utils.dashboard.TunableNumber;
 import frc.robot.utils.math.UnitConverter;
@@ -91,7 +92,7 @@ public class Intake extends SubsystemBase {
 
     if (slamDebouncer.calculate(
         Math.abs(armIOInputs.appliedVelocity)
-            <= Units.degreesToRadians(IntakeConfig.slamVelocityThreshDegreePerSec.getAsDouble()))) {
+            <= IntakeConfig.slamVelocityThreshDegreePerSec.getAsDouble())) {
       slammed = true;
     }
 
@@ -150,23 +151,26 @@ public class Intake extends SubsystemBase {
             "IntakeArm",
             Constants.Ports.Can.INTAKE_ARM,
             IntakeConfig.getArmTalonConfig(),
-            UnitConverter.scale(2 * Math.PI).withUnits("rot", "rad")));
+            UnitConverter.scale(360).withUnits("rot", "deg")));
   }
 
   public static Intake createSim() {
     return new Intake(
         new DCMotorIOSim(
             DCMotor.getKrakenX60Foc(1),
-            1.0,
+            0.01,
             1.0,
             UnitConverter.identity().withUnits("rad", "rad"),
             new GainsImpl(1.0, 0.0, 0.0, 0.0, 0.0)),
         new DCMotorIOSim(
             DCMotor.getKrakenX60Foc(1),
+            0.01,
             1.0,
-            1.0,
-            UnitConverter.identity().withUnits("rad", "rad"),
-            new GainsImpl(1.0, 0.0, 0.0, 0.0, 0.0)));
+            UnitConverter.scale(180.0 / Math.PI).withUnits("rad", "deg"),
+            UnitConverter.offset(IntakeConfig.ARM_HOME_POSITION_DEGREE - 75),
+            new KpGainsImpl(1.0),
+            IntakeConfig.ARM_HOME_POSITION_DEGREE - 75,
+            IntakeConfig.ARM_HOME_POSITION_DEGREE));
   }
 
   public static Intake createIO() {
@@ -183,11 +187,6 @@ public class Intake extends SubsystemBase {
                     0,
                     0,
                     0,
-                    new Rotation3d(
-                        (Units.degreesToRadians(IntakeConfig.ARM_HOME_POSITION_DEGREE)
-                            - (armIOInputs.appliedPosition
-                                - Units.degreesToRadians(IntakeConfig.ARM_HOME_POSITION_DEGREE))),
-                        0,
-                        0))));
+                    new Rotation3d(Units.degreesToRadians(armIOInputs.appliedPosition), 0, 0))));
   }
 }
