@@ -22,7 +22,7 @@ public class ServiceManager {
   private final Map<String, Service> services = new ConcurrentHashMap<>();
   private final List<Service> serviceList = new ArrayList<>();
   private final List<AlertManager> alertList = new ArrayList<>();
-  private final List<AlertManager> errorAlertList = new ArrayList<>();
+  private final Map<String, String> lastErrorMessages = new ConcurrentHashMap<>();
 
   @AutoLogOutput(key = "Services/Initialized")
   private boolean isInitialized = false;
@@ -70,7 +70,6 @@ public class ServiceManager {
     serviceList.add(service);
     serviceList.sort((s1, s2) -> Integer.compare(s2.getPriority(), s1.getPriority()));
     alertList.add(new AlertManager(name + " ERRORED", AlertManager.AlertType.ERROR));
-    errorAlertList.add(new AlertManager(name + " ERROR", AlertManager.AlertType.ERROR));
   }
 
   /**
@@ -222,12 +221,24 @@ public class ServiceManager {
     for (int i = 0; i < serviceList.size(); ++i) {
       Service service = serviceList.get(i);
       boolean isErrored = service.getState() == Service.ServiceState.ERROR;
-      alertList.get(i).set(isErrored);
-      errorAlertList.get(i).set(isErrored);
+      String currentErrorMessage = service.getErrorMessage();
+      String serviceName = service.getName();
 
-      Logger.recordOutput("Services/" + service.getName() + "/Status", service.getState());
-      Logger.recordOutput("Services/" + service.getName() + "/Priority", service.getPriority());
-      Logger.recordOutput("Services/" + service.getName() + "/ErrorMessage", service.getErrorMessage());
+      if (isErrored) {
+        String lastErrorMessage = lastErrorMessages.get(serviceName);
+        if (!currentErrorMessage.equals(lastErrorMessage)) {
+          System.out.println("Services/" + serviceName + "/Error: " + currentErrorMessage);
+          lastErrorMessages.put(serviceName, currentErrorMessage);
+        }
+      } else {
+        lastErrorMessages.remove(serviceName);
+      }
+
+      alertList.get(i).set(isErrored);
+
+      Logger.recordOutput("Services/" + serviceName + "/Status", service.getState());
+      Logger.recordOutput("Services/" + serviceName + "/Priority", service.getPriority());
+      Logger.recordOutput("Services/" + serviceName + "/ErrorMessage", currentErrorMessage);
     }
   }
 

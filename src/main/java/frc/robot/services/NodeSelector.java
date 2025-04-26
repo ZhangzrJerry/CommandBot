@@ -43,7 +43,7 @@ public class NodeSelector implements Service {
   private ServiceState state = ServiceState.STOPPED;
 
   public NodeSelector() {
-    var table = NetworkTableInstance.getDefault().getTable("NodeSelector");
+    var table = NetworkTableInstance.getDefault().getTable("nodeselector");
     nodePublisher = table.getStringTopic("node_robot_2_dashboard").publish();
     nodeSubscriber = table.getStringTopic("node_dashboard_2_robot").subscribe("");
     isIgnoreArmMoveConditionSubscriber = table.getBooleanTopic("is_ignore_arm_move_condition_dashboard_2_robot")

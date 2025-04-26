@@ -53,6 +53,8 @@ public class RobotContainer {
         // ===== instantiate services =====
         transformTree = new TransformTree();
         nodeSelector = new NodeSelector();
+        serviceManager.registerService(transformTree);
+        serviceManager.registerService(nodeSelector);
 
         if (Robot.isReal()) {
             algaeVisualizer = new GamePieceVisualize("Algae Visualizer", new Pose3d[0], new Pose3d[0]);
@@ -73,8 +75,6 @@ public class RobotContainer {
             serviceManager.registerService(algaeVisualizer);
             serviceManager.registerService(coralVisualizer);
         }
-        serviceManager.registerService(transformTree);
-        serviceManager.registerService(nodeSelector);
 
         System.out.println("=>     [1/5] Service Register Done");
 
