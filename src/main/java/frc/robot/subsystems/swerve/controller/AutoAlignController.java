@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
-public class SwerveAlignController implements SwerveController {
+public class AutoAlignController implements SwerveController {
   public enum AlignType {
     PROCESSOR,
     NET,
@@ -34,6 +34,7 @@ public class SwerveAlignController implements SwerveController {
     public final TunableNumber rotationToleranceDegree;
     public final TunableNumber preTranslationToleranceMeter;
     public final TunableNumber alignmentAngleDegree;
+    public final String name;
 
     public AlignConfig(
         String prefix,
@@ -49,6 +50,7 @@ public class SwerveAlignController implements SwerveController {
         double rotKD,
         double rotTol,
         double alignmentAngle) {
+      this.name = prefix.split("/")[prefix.split("/").length - 1];
       this.maxLineupShiftingYMeter = new TunableNumber(prefix + "/MaxLineupShiftingYMeter", maxY);
       this.maxLineupShiftingXMeter = new TunableNumber(prefix + "/MaxLineupShiftingXMeter", maxX);
       this.translationGains =
@@ -146,7 +148,7 @@ public class SwerveAlignController implements SwerveController {
           0.0,
           0.0,
           4.0, // rotKP, rotKI, rotKD, rotTol
-          240.0 // alignmentAngle
+          300.0 // alignmentAngle
           );
 
   private static final AlignConfig RIGHT_CORAL_STATION_CONFIG =
@@ -163,7 +165,7 @@ public class SwerveAlignController implements SwerveController {
           0.0,
           0.0,
           4.0, // rotKP, rotKI, rotKD, rotTol
-          120.0 // alignmentAngle
+          60.0 // alignmentAngle
           );
   private static final double maxTranslationVelMeterPerSec =
       SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC;
@@ -181,7 +183,7 @@ public class SwerveAlignController implements SwerveController {
   private boolean hasHeadingAtGoal = false;
   private boolean hasTranslationAtGoal = false;
 
-  public SwerveAlignController(
+  public AutoAlignController(
       AlignType type, Supplier<Pose2d> goalPoseSupplier, Supplier<Pose2d> currentPoseSupplier) {
     this.goalPoseSupplier = goalPoseSupplier;
     this.currentPoseSupplier = currentPoseSupplier;
@@ -321,6 +323,6 @@ public class SwerveAlignController implements SwerveController {
 
   @Override
   public String getName() {
-    return "Align Controller";
+    return "Auto Align Controller: " + config.name;
   }
 }

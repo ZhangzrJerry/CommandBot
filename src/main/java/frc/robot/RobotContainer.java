@@ -178,7 +178,7 @@ public class RobotContainer {
         .leftBumper()
         .and(() -> !climber.isClimbing())
         .and(() -> !endeffector.hasAlgaeEndeffectorStoraged())
-        .whileTrue(superStructure.coralStationPickCmd(true).withTimeout(2.0));
+        .whileTrue(superStructure.coralStationPickCmd(true));
 
     // ##### LB: coral reef score with NodeSelector #####
 
@@ -187,7 +187,7 @@ public class RobotContainer {
         .rightBumper()
         .and(() -> !climber.isClimbing())
         .and(() -> !endeffector.hasAlgaeEndeffectorStoraged())
-        .whileTrue(superStructure.coralStationPickCmd(false).withTimeout(2.0));
+        .whileTrue(superStructure.coralStationPickCmd(false));
 
     // ##### RB: coral reef score with POV #####
     joystick

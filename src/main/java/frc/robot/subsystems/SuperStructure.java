@@ -15,8 +15,8 @@ import frc.robot.subsystems.endeffector.Endeffector.CoralEndEffectorGoal;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.Intake.IntakeGoal;
 import frc.robot.subsystems.swerve.Swerve;
-import frc.robot.subsystems.swerve.controller.SwerveAlignController;
-import frc.robot.subsystems.swerve.controller.SwerveAlignController.AlignType;
+import frc.robot.subsystems.swerve.controller.AutoAlignController;
+import frc.robot.subsystems.swerve.controller.AutoAlignController.AlignType;
 import frc.robot.utils.AllianceFlipUtil;
 import java.util.function.BooleanSupplier;
 
@@ -137,7 +137,7 @@ public class SuperStructure {
         Commands.either(
             Commands.none(),
             swerve.registerControllerCmd(
-                new SwerveAlignController(
+                new AutoAlignController(
                     AlignType.PROCESSOR,
                     () ->
                         AllianceFlipUtil.isRobotInBlueSide(swerve.getPose())
@@ -160,7 +160,7 @@ public class SuperStructure {
         Commands.either(
             Commands.none(),
             swerve.registerControllerCmd(
-                new SwerveAlignController(
+                new AutoAlignController(
                     isLeft ? AlignType.CORAL_STATION_LEFT : AlignType.CORAL_STATION_RIGHT,
                     () ->
                         AllianceFlipUtil.isRobotInBlueSide(swerve.getPose())
