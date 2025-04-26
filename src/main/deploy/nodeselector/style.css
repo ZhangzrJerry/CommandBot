@@ -26,11 +26,11 @@ body {
 }
 
 .branch.unselected {
-    background-color: #ff39d4;
+    background-color: #E233BC;
 }
 
 .selecting-1 {
-    background-color: #ff3434 !important;
+    background-color: #34ff59 !important;
     transition-duration: 0.2s;
 }
 
@@ -71,7 +71,7 @@ body {
 }
 
 .border {
-    /* background-color: #333; */
+    background-color: #333;
 }
 
 #gp-select {
@@ -84,7 +84,7 @@ body {
 .branch::before {
     position: absolute;
     color: #000;
-    font-size: 21px;
+    font-size: 36px;
     font-weight: bold;
     pointer-events: none;
 }
@@ -102,160 +102,64 @@ body {
 }
 
 /* Front Left (K) */
-#CK4::before {
-    content: '左后4';
-}
-
-#CK3::before {
-    content: '左后3';
-}
-
-#CK2::before {
-    content: '左后2';
-}
+#CK4::before { content: 'K4'; }
+#CK3::before { content: 'K3'; }
+#CK2::before { content: 'K2'; }
 
 /* Front Left (L) */
-#CL4::before {
-    content: '左后4';
-}
-
-#CL3::before {
-    content: '左后3';
-}
-
-#CL2::before {
-    content: '左后2';
-}
+#CL4::before { content: 'L4'; }
+#CL3::before { content: 'L3'; }
+#CL2::before { content: 'L2'; }
 
 /* Front (A) */
-#CA4::before {
-    content: '后4';
-}
-
-#CA3::before {
-    content: '后3';
-}
-
-#CA2::before {
-    content: '后2';
-}
+#CA4::before { content: 'A4'; }
+#CA3::before { content: 'A3'; }
+#CA2::before { content: 'A2'; }
 
 /* Front (B) */
-#CB4::before {
-    content: '后4';
-}
-
-#CB3::before {
-    content: '后3';
-}
-
-#CB2::before {
-    content: '后2';
-}
+#CB4::before { content: 'B4'; }
+#CB3::before { content: 'B3'; }
+#CB2::before { content: 'B2'; }
 
 /* Front Right (C) */
-#CC4::before {
-    content: '右后4';
-}
-
-#CC3::before {
-    content: '右后3';
-}
-
-#CC2::before {
-    content: '右后2';
-}
+#CC4::before { content: 'C4'; }
+#CC3::before { content: 'C3'; }
+#CC2::before { content: 'C2'; }
 
 /* Front Right (D) */
-#CD4::before {
-    content: '右后4';
-}
-
-#CD3::before {
-    content: '右后3';
-}
-
-#CD2::before {
-    content: '右后2';
-}
+#CD4::before { content: 'D4'; }
+#CD3::before { content: 'D3'; }
+#CD2::before { content: 'D2'; }
 
 /* Back Right (F) */
-#CF4::before {
-    content: '右前4';
-}
-
-#CF3::before {
-    content: '右前3';
-}
-
-#CF2::before {
-    content: '右前2';
-}
+#CF4::before { content: 'F4'; }
+#CF3::before { content: 'F3'; }
+#CF2::before { content: 'F2'; }
 
 /* Back Right (E) */
-#CE4::before {
-    content: '右前4';
-}
-
-#CE3::before {
-    content: '右前3';
-}
-
-#CE2::before {
-    content: '右前2';
-}
+#CE4::before { content: 'E4'; }
+#CE3::before { content: 'E3'; }
+#CE2::before { content: 'E2'; }
 
 /* Back (H) */
-#CH4::before {
-    content: '前4';
-}
-
-#CH3::before {
-    content: '前3';
-}
-
-#CH2::before {
-    content: '前2';
-}
+#CH4::before { content: 'H4'; }
+#CH3::before { content: 'H3'; }
+#CH2::before { content: 'H2'; }
 
 /* Back (G) */
-#CG4::before {
-    content: '前4';
-}
-
-#CG3::before {
-    content: '前3';
-}
-
-#CG2::before {
-    content: '前2';
-}
+#CG4::before { content: 'G4'; }
+#CG3::before { content: 'G3'; }
+#CG2::before { content: 'G2'; }
 
 /* Back Left (J) */
-#CJ4::before {
-    content: '左前4';
-}
-
-#CJ3::before {
-    content: '左前3';
-}
-
-#CJ2::before {
-    content: '左前2';
-}
+#CJ4::before { content: 'J4'; }
+#CJ3::before { content: 'J3'; }
+#CJ2::before { content: 'J2'; }
 
 /* Back Left (I) */
-#CI4::before {
-    content: '左前4';
-}
-
-#CI3::before {
-    content: '左前3';
-}
-
-#CI2::before {
-    content: '左前2';
-}
+#CI4::before { content: 'I4'; }
+#CI3::before { content: 'I3'; }
+#CI2::before { content: 'I2'; }
 
 /* button labels end */
 
@@ -274,78 +178,21 @@ body {
 .main {
     display: grid;
     position: absolute;
-    top: 120px;
-    left: 340px;
+    top: 130px;
+    left: 168px;
     height: 600px;
     width: 592px;
-    scale: 1.1;
+    scale: 1.2;
 }
 
 .more {
     display: grid;
     position: absolute;
-    top: 0px;
-    left: 40px;
+    top: 85px;
+    right: 135px;
     height: 720px;
     width: 240px;
     /* border: 1px solid #000; */
-}
-.try {
-    display: grid;
-    position: absolute;
-    top: -190px;
-    right: -590px;
-    height: 1560px;
-    width: 1560px;
-    opacity: 0.08;
-}
-
-.picture {
-    display: grid;
-    position: absolute;
-    top: 30px;
-    left: 50px;
-    height: 80px;
-    width: 80px;
-    /* border: 5px solid #7f0fa1;
-    border-radius: 5px; */
-}
-
-.k1 {
-    display: grid;
-    position: absolute;
-    height: 70px;
-    width: 220px;
-}
-/* Cyber Unicorn name+logo right top cornor */
-.k2 {
-    display: grid;
-    position: absolute;
-    height: 120px;
-    width: 300px;
-    right: 30px;
-    top: 30px;
-    opacity: 0; /* Switch to 0 if you don't want to see the logo */
-    
-}
-
-
-.teamname {
-    display: grid;
-    position: absolute;
-    top:75px;
-    left: 130px;
-    height: 40px;
-    width: 170px;
-    border-top: 5px solid #7f0fa1;
-    border-left: 5px solid #7f0fa1;
-    line-height: 40px;
-    text-align: center;
-    border-radius: 5px;
-    color: #7f0fa1;
-    font-size: 32px;
-    font-weight: bold;
-    font-family: Arial, sans-serif;
 }
 
 /* layout end */
@@ -359,11 +206,9 @@ body {
 }
 
 .reef {
-    height: 245px;
+    height: 250px;
     width: 240px;
     position: absolute;
-    opacity: 0.85;
-    border-radius: 12px;
 }
 
 .reef.back-right {
@@ -527,7 +372,7 @@ body {
     width: 75%;
     height: 2em;
     left: 12.5%;
-    top: -1.6em;
+    top: -0.8em;
     background-color: #eee;
     background-image: linear-gradient(0deg,
             rgba(0, 0, 0, 0.2) 0px,
@@ -573,131 +418,16 @@ body {
 
 /* net end */
 
-/* compass start */
-#compass {
-    position: absolute;
-    left: -60px;
-    top: 15px;
-    transform: perspective(800px) rotateX(60deg);
-    z-index: -999;
-    display: flex;
-    width: 680px;
-    height: 680px;
-    position: absolute;
-    border-radius: 100%;
-    border: 15px solid #243db0;
-}
-
-#compass::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    height: 0px;
-    background-color: #243db0;
-    transform: translateY(-50%) rotateZ(0deg);
-}
-
-#compass::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 20px;
-    height: 20px;
-    background-color: #243db0;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.tri {
-    width: 0;
-    height: 0;
-    border-left: 12px solid transparent;
-    border-right: 12px solid transparent;
-    border-bottom: 40px solid #243db0;
-    position: absolute;
-}
-
-#tri-1 {
-    transform: rotateZ(90deg);
-    top: 320px;
-    left: 0px;
-}
-
-#tri-2 {
-    transform: rotateZ(-90deg);
-    top: 320px;
-    right: 0px;
-}
-
-#tri-3 {
-    transform: rotateZ(14deg);
-    top: 632px;
-    left: 250px;
-}
-
-#tri-4 {
-    transform: rotateZ(-14deg);
-    top: 632px;
-    right: 250px;
-}
-
-#tri-5 {
-    transform: rotateZ(150deg);
-    top: 35px;
-    left: 163px;
-}
-
-#tri-6 {
-    transform: rotateZ(-150deg);
-    top: 35px;
-    right: 163px;
-}
-
-#pointer {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 355px;
-    height: 30px;
-    transform: translateY(-15px) rotateZ(0deg);
-    background-color: rgba(0, 255, 0, 0.5);
-    clip-path: polygon(100% 0, 0 35%, 0 55%, 100% 100%);
-    border-radius: 100%;
-}
-
-/* compass end */
-
 /* time start */
-
-/* With Logo+name Time position */
-/*.time {
-    position: absolute;
-    width: 240px;
-    height: 70px; 
-    top:160px;
-    left:940px;
-    line-height: 70px;
-    text-align: center;
-    border-radius: 10px;
-    font-size: 48px;
-    font-weight: bold;
-    font-family: Arial, sans-serif;
-} */
-
 .time {
     position: absolute;
-    width: 280px;
-    height: 80px; 
-    top:30px;
-    left:960px;
-    line-height: 80px;
+    width: 240px;
+    height: 120px;
+    top: 165px;
+    line-height: 120px;
     text-align: center;
-    border-radius: 40px;
-    font-size: 48px;
+    border-radius: 10px;
+    font-size: 64px;
     font-weight: bold;
     font-family: Arial, sans-serif;
 }
@@ -756,12 +486,10 @@ body {
 /* danger zone start */
 .danger {
     position: absolute;
-    top: 700px;
+    top: 420px;
     height: 88px;
     width: 200px;
-    left: -10px;
     padding: 20px;
-    scale: 0.8;
 }
 
 .danger::before {

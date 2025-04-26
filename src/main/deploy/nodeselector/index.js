@@ -5,12 +5,15 @@
  * @author [zhangzrjerry](https://github.com/zhangzrjerry)
  */
 
+// Disable right click
+document.addEventListener('contextmenu', event => event.preventDefault());
+
 // print("means the status of NT4", 2, "green");
 // print("means the basic info of NT4", 2, "black");
 // print("means trigger by robot", 1, "purple");
 // print("means trigger by dashboard", 3, "blue");
 // print("means alerts", 2, "red");
-console.log("      ____  __   __  ____    _____   ____  \n     / ___| \\ \\ / / | __ )  | ____| |  _ \\ \n    | |      \\ V /  |  _ \\  |  _|   | |_) |\n    | |___    | |   | |_) | | |___  |  _ < \n     \\____|   |_|   |____/  |_____| |_| \\_\\\n ____  _____ _     _____ ____ _____ ___  ____  \n/ ___|| ____| |   | ____/ ___|_   _/ _ \\|  _ \\ \n\\___ \\|  _| | |   |  _|| |     | || | | | |_) |\n ___) | |___| |___| |__| |___  | || |_| |  _ < \n|____/|_____|_____|_____\\____| |_| \\___/|_| \\_\\\n\n欢迎使用由 NI 电控团队开发的 Cyber Selector 2025. Cyber Selector 2025 是一款用于选择道具放置位置、设置机器人状态、指示剩余时间的自定义操控面板。\n\nZhangzrJerry: https://github.com/zhangzrjerry\n  RockyXRQ  : https://github.com/rockyxrq\n     42     : https://github.com/mirrorcy\n    Eric    : https://github.com/EricLam111");
+console.log("      ____  __   __  ____    _____   ____  \n     / ___| \\ \\ / / | __ )  | ____| |  _ \\ \n    | |      \\ V /  |  _ \\  |  _|   | |_) |\n    | |___    | |   | |_) | | |___  |  _ < \n     \\____|   |_|   |____/  |_____| |_| \\_\\\n ____  _____ _     _____ ____ _____ ___  ____  \n/ ___|| ____| |   | ____/ ___|_   _/ _ \\|  _ \\ \n\\___ \\|  _| | |   |  _|| |     | || | | | |_) |\n ___) | |___| |___| |__| |___  | || |_| |  _ < \n|____/|_____|_____|_____\\____| |_| \\___/|_| \\_\\\n\n欢迎使用由 NI 电控团队开发的 Cyber Selector 2025. Cyber Selector 2025 是一款用于选择道具放置位置、设置机器人状态、指示剩余时间的自定义操控面板。\n\nZhangzrJerry: https://github.com/zhangzrjerry\n  RockyXRQ  : https://github.com/rockyxrq\n     42     : https://github.com/mirrorcy");
 
 import { NT4_Client } from "./nt4.js";
 
@@ -23,15 +26,12 @@ let isAuto = false;
 
 const ROBOT_TO_DASHBOARD_TOPIC = "/nodeselector/node_robot_2_dashboard";
 const DASHBOARD_TO_ROBOT_TOPIC = "/nodeselector/node_dashboard_2_robot";
-const REEF_TO_ROBOT_ANGLE_DEGREE_TOPIC = "/nodeselector/reef_2_robot_angle_degree";
-const REEF_TO_ROBOT_DISTANCE_METER_TOPIC = "/nodeselector/reef_2_robot_distance_meter";
 
 let select = "";
 let trough = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-let robotDegree = -90;  // degree
-let robotDistance = 2; // meter
 
 const IS_IGNORE_ARM_MOVE_CONDITION_TOPIC = "/nodeselector/is_ignore_arm_move_condition";
+const IS_IGNORE_ARM_MOVE_CONDITION_ROBOT_TOPIC = "/nodeselector/is_ignore_arm_move_condition_robot_2_dashboard";
 const BOOLEAN_TOPICS = [IS_IGNORE_ARM_MOVE_CONDITION_TOPIC];
 
 let booleanValues = [false];
@@ -44,7 +44,6 @@ let client = new NT4_Client(
     (topic) => {
     },
     (topic, timestamp, value) => {
-        // print("Received " + topic.name + ": " + value, 1, "black");
         if (topic.name === IS_AUTO_TOPIC) {
             isAuto = value;
         } else if (topic.name === MATCH_TIME_TOPIC) {
@@ -55,15 +54,12 @@ let client = new NT4_Client(
                 renderSelected(select);
                 triggerSelect(value, false);
             }
-        } else if (topic.name === REEF_TO_ROBOT_ANGLE_DEGREE_TOPIC) {
-            robotDegree = value % 360;
-            if (robotDegree > 180) {
-                robotDegree -= 360;
-            }
-            renderCompass();
-        } else if (topic.name === REEF_TO_ROBOT_DISTANCE_METER_TOPIC) {
-            robotDistance = value;
-            renderCompass();
+        } else if (topic.name === IS_IGNORE_ARM_MOVE_CONDITION_ROBOT_TOPIC) {
+            print("Received ignore arm move condition from robot: " + value, 1, "purple");
+            document.getElementById('arm-forced').children.namedItem('check').checked = value;
+            booleanValues[0] = value;
+            // 同步更新到dashboard的topic
+            client.addSample(IS_IGNORE_ARM_MOVE_CONDITION_TOPIC, value);
         }
     },
     () => {
@@ -78,16 +74,11 @@ let client = new NT4_Client(
 );
 
 window.addEventListener("load", () => {
-    client.subscribe([ROBOT_TO_DASHBOARD_TOPIC, MATCH_TIME_TOPIC, IS_AUTO_TOPIC, REEF_TO_ROBOT_ANGLE_DEGREE_TOPIC, REEF_TO_ROBOT_DISTANCE_METER_TOPIC], false, false, 0.02);
+    client.subscribe([ROBOT_TO_DASHBOARD_TOPIC, MATCH_TIME_TOPIC, IS_AUTO_TOPIC, IS_IGNORE_ARM_MOVE_CONDITION_ROBOT_TOPIC], false, false, 0.02);
     client.publishTopic(DASHBOARD_TO_ROBOT_TOPIC, "string");
-    for (let i = 0; i < BOOLEAN_TOPICS.length; i++) {
-        client.publishTopic(BOOLEAN_TOPICS[i], "boolean");
-    }
+    client.publishTopic(IS_IGNORE_ARM_MOVE_CONDITION_TOPIC, "boolean");
     client.connect();
     triggerBoolean(false, 0);
-
-    // Disable right click
-    document.addEventListener('contextmenu', event => event.preventDefault());
 
     // listen to algae click
     document.querySelectorAll('.algae').forEach((algae) => {
@@ -257,82 +248,6 @@ function renderTime() {
         return time;
     }
     return -1;
-}
-
-function renderCompass() {
-    // (robotDegree, compassDegree)
-    // (-180,  90)
-    // (-150,  76)
-    // ( -90,   0)
-    // ( -30, -60)
-    // (   0, -90)
-    // ( +30,-120)
-    // ( +90,-180)
-    // (+150,-256)
-    // (+180,-270)
-    // x < 0: -0.0000000062708 x^(5)-0.0000033156966 x^(4)-0.0005827160494 x^(3)-0.0379047619048 x^(2)-1.6971428571429 x-90
-    // x > 0: -0.0000000062708 x^(5)+0.0000033156966 x^(4)-0.0005827160494 x^(3)+0.0379047619048 x^(2)-1.6971428571429 x-90
-
-    if (robotDegree > 180 || robotDegree < -180) {
-        print(`robot degree is out of range: ${robotDegree}`, 2, 'red');
-        return;
-    }
-
-    let compassDegree = 0;
-    if (robotDegree < 0) {
-        compassDegree = -0.0000000062708 * Math.pow(robotDegree, 5) - 0.0000033156966 * Math.pow(robotDegree, 4) - 0.0005827160494 * Math.pow(robotDegree, 3) - 0.0379047619048 * Math.pow(robotDegree, 2) - 1.6971428571429 * robotDegree - 90;
-    } else {
-        compassDegree = -0.0000000062708 * Math.pow(robotDegree, 5) + 0.0000033156966 * Math.pow(robotDegree, 4) - 0.0005827160494 * Math.pow(robotDegree, 3) + 0.0379047619048 * Math.pow(robotDegree, 2) - 1.6971428571429 * robotDegree - 90;
-    }
-
-    let compassIntensity = Math.exp(-robotDistance / 4);
-    let highlightIntensity = Math.exp(-robotDistance / 50);
-    let highlightRed = 0;
-    let highlightGreen = 200;
-    let highlightBlue = 0;
-    let compassRadius = 177.5 + robotDistance * 40;
-    // print(`robot degree: ${robotDegree}, robot distance: ${robotDistance}`, 2, `rgb(${highlightRed}, ${highlightGreen}, ${highlightBlue})`);
-
-    let translateY = -15 + compassRadius * Math.sin(compassDegree / 180 * Math.PI);
-    let translateX = -compassRadius + compassRadius * Math.cos(compassDegree / 180 * Math.PI);
-
-    if (document.getElementById("pointer")) {
-        let element = document.getElementById("pointer")
-        element.style.backgroundColor = `rgba(${highlightRed}, ${highlightGreen}, ${highlightBlue}, ${compassIntensity})`;
-        element.style.transform = `translateX(${translateX}px) translateY(${translateY}px) rotateZ(${compassDegree}deg)`;
-        element.style.width = `${compassRadius * 2}px`;
-    }
-
-    if (document.getElementsByClassName('reef')) {
-        Array.from(document.getElementsByClassName('reef')).forEach((reef) => {
-            reef.style.boxShadow = ``;
-        });
-        if (30 < robotDegree && robotDegree <= 90) {
-            Array.from(document.getElementsByClassName('back-left')).forEach((reef) => {
-                reef.style.boxShadow = `inset 0 0 30px 10px rgba(${highlightRed}, ${highlightGreen}, ${highlightBlue}, ${highlightIntensity})`;
-            });
-        } else if (90 < robotDegree && robotDegree <= 150) {
-            Array.from(document.getElementsByClassName('front-left')).forEach((reef) => {
-                reef.style.boxShadow = `inset 0 0 30px 10px rgba(${highlightRed}, ${highlightGreen}, ${highlightBlue}, ${highlightIntensity})`;
-            });
-        } else if (-30 < robotDegree && robotDegree <= 30) {
-            Array.from(document.getElementsByClassName('back')).forEach((reef) => {
-                reef.style.boxShadow = `inset 0 0 30px 10px rgba(${highlightRed}, ${highlightGreen}, ${highlightBlue}, ${highlightIntensity})`;
-            });
-        } else if (-90 < robotDegree && robotDegree <= -30) {
-            Array.from(document.getElementsByClassName('back-right')).forEach((reef) => {
-                reef.style.boxShadow = `inset 0 0 30px 10px rgba(${highlightRed}, ${highlightGreen}, ${highlightBlue}, ${highlightIntensity})`;
-            });
-        } else if (-150 < robotDegree && robotDegree <= -90) {
-            Array.from(document.getElementsByClassName('front-right')).forEach((reef) => {
-                reef.style.boxShadow = `inset 0 0 30px 10px rgba(${highlightRed}, ${highlightGreen}, ${highlightBlue}, ${highlightIntensity})`;
-            });
-        } else {
-            Array.from(document.getElementsByClassName('front')).forEach((reef) => {
-                reef.style.boxShadow = `inset 0 0 30px 10px rgba(${highlightRed}, ${highlightGreen}, ${highlightBlue}, ${highlightIntensity})`;
-            });
-        }
-    }
 }
 
 function flush(fromManual = false) {

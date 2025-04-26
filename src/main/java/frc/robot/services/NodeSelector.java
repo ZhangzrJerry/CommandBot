@@ -32,6 +32,7 @@ public class NodeSelector implements Service {
   private final StringSubscriber nodeSubscriber;
   private final BooleanSubscriber isIgnoreArmMoveConditionSubscriber;
   private final BooleanPublisher isIgnoreArmMoveConditionPublisher;
+
   private final IntegerPublisher timePublisher;
   private final BooleanPublisher isAutoPublisher;
   private final BooleanPublisher isConnectedPublisher;
@@ -46,21 +47,23 @@ public class NodeSelector implements Service {
     var table = NetworkTableInstance.getDefault().getTable("nodeselector");
     nodePublisher = table.getStringTopic("node_robot_2_dashboard").publish();
     nodeSubscriber = table.getStringTopic("node_dashboard_2_robot").subscribe("");
-    isIgnoreArmMoveConditionSubscriber = table.getBooleanTopic("is_ignore_arm_move_condition_dashboard_2_robot")
-        .subscribe(false);
-    isIgnoreArmMoveConditionPublisher = table.getBooleanTopic("is_ignore_arm_move_condition_robot_2_dashboard")
-        .publish();
+    isIgnoreArmMoveConditionSubscriber =
+        table.getBooleanTopic("is_ignore_arm_move_condition").subscribe(false);
+    isIgnoreArmMoveConditionPublisher =
+        table.getBooleanTopic("is_ignore_arm_move_condition_robot_2_dashboard").publish();
     timePublisher = table.getIntegerTopic("match_time").publish();
     isAutoPublisher = table.getBooleanTopic("is_auto").publish();
     isConnectedPublisher = table.getBooleanTopic("is_connected").publish();
     errorMessagePublisher = table.getStringTopic("error_message").publish();
 
     try {
-      server = Javalin.create(
-          config -> config.staticFiles.add(
-              Paths.get(Filesystem.getDeployDirectory().getAbsolutePath(), "nodeselector")
-                  .toString(),
-              Location.EXTERNAL));
+      server =
+          Javalin.create(
+              config ->
+                  config.staticFiles.add(
+                      Paths.get(Filesystem.getDeployDirectory().getAbsolutePath(), "nodeselector")
+                          .toString(),
+                      Location.EXTERNAL));
       server.start(5800);
       isServerConnected.set(true);
       setState(ServiceState.RUNNING);
@@ -112,6 +115,12 @@ public class NodeSelector implements Service {
 
       for (var val : isIgnoreArmMoveConditionSubscriber.readQueueValues()) {
         inputs.isIgnoreArmMoveCondition = val;
+        isIgnoreArmMoveConditionPublisher.set(val);
+      }
+
+      for (var val : isIgnoreArmMoveConditionSubscriber.readQueueValues()) {
+        inputs.isIgnoreArmMoveCondition = val;
+        isIgnoreArmMoveConditionPublisher.set(val);
       }
 
       var selectedNode = "";
@@ -139,7 +148,8 @@ public class NodeSelector implements Service {
     Logger.recordOutput("Services/Node Selector/GamepieceType", inputs.gamepieceType);
     Logger.recordOutput("Services/Node Selector/Branch", inputs.branch);
     Logger.recordOutput("Services/Node Selector/Level", inputs.level);
-    Logger.recordOutput("Services/Node Selector/IsIgnoreArmMoveCondition", inputs.isIgnoreArmMoveCondition);
+    Logger.recordOutput(
+        "Services/Node Selector/IsIgnoreArmMoveCondition", inputs.isIgnoreArmMoveCondition);
     Logger.recordOutput("Services/Node Selector/ErrorMessage", inputs.errorMessage);
   }
 
@@ -174,6 +184,10 @@ public class NodeSelector implements Service {
       String error = "Set ignore condition error: " + e.getMessage();
       setError(error);
     }
+  }
+
+  public boolean getIgnoreArmMoveCondition() {
+    return inputs.isIgnoreArmMoveCondition;
   }
 
   public GamePiece.Type getSelectedGamePieceType() {
