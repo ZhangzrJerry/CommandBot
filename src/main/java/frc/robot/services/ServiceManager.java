@@ -11,10 +11,8 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 /**
- * Manages the lifecycle of all services in the robot. This singleton class
- * handles service
- * registration, initialization, updates, and state management. Services are
- * prioritized and can be
+ * Manages the lifecycle of all services in the robot. This singleton class handles service
+ * registration, initialization, updates, and state management. Services are prioritized and can be
  * paused/resumed individually.
  */
 public class ServiceManager {
@@ -28,8 +26,7 @@ public class ServiceManager {
   @AutoLogOutput(key = "Services/Initialized")
   private boolean isInitialized = false;
 
-  private ServiceManager() {
-  }
+  private ServiceManager() {}
 
   /**
    * Gets the singleton instance of the ServiceManager.
@@ -44,14 +41,12 @@ public class ServiceManager {
   }
 
   /**
-   * Registers a new service with the manager. Services are automatically sorted
-   * by priority after
+   * Registers a new service with the manager. Services are automatically sorted by priority after
    * registration.
    *
    * @param service The service to register
-   * @throws IllegalArgumentException if the service is null, has an empty name,
-   *                                  or a service with
-   *                                  the same name already exists
+   * @throws IllegalArgumentException if the service is null, has an empty name, or a service with
+   *     the same name already exists
    */
   public void registerService(Service service) {
     registerService(service, 99);
@@ -105,7 +100,7 @@ public class ServiceManager {
   /**
    * Retrieves a service by its class type.
    *
-   * @param <T>          The type of service to retrieve
+   * @param <T> The type of service to retrieve
    * @param serviceClass The class of the service to retrieve
    * @return The service instance, or null if not found
    */
@@ -122,9 +117,9 @@ public class ServiceManager {
   /**
    * Retrieves a service by both its class type and name.
    *
-   * @param <T>          The type of service to retrieve
+   * @param <T> The type of service to retrieve
    * @param serviceClass The class of the service to retrieve
-   * @param name         The name of the service to retrieve
+   * @param name The name of the service to retrieve
    * @return The service instance, or null if not found
    */
   @SuppressWarnings("unchecked")
@@ -137,8 +132,7 @@ public class ServiceManager {
   }
 
   /**
-   * Initializes all registered services. This method should be called once during
-   * robot
+   * Initializes all registered services. This method should be called once during robot
    * initialization.
    */
   public void initAll() {
@@ -157,8 +151,7 @@ public class ServiceManager {
   }
 
   /**
-   * Updates all running services. This method should be called periodically
-   * (e.g., in the robot's
+   * Updates all running services. This method should be called periodically (e.g., in the robot's
    * periodic method).
    */
   public void updateAll() {
@@ -178,10 +171,7 @@ public class ServiceManager {
     logServicesStatus();
   }
 
-  /**
-   * Stops all running services. This method should be called when the robot is
-   * shutting down.
-   */
+  /** Stops all running services. This method should be called when the robot is shutting down. */
   public void stopAll() {
     if (!isInitialized) {
       return;
@@ -215,9 +205,7 @@ public class ServiceManager {
   public String getServiceStatus() {
     StringBuilder status = new StringBuilder();
     status.append("-----------------------------------------------\n");
-    status.append(
-        String.format(
-            "%-20s %-15s %-10s\n", "Service Name", "State", "Priority"));
+    status.append(String.format("%-20s %-15s %-10s\n", "Service Name", "State", "Priority"));
     status.append("-----------------------------------------------\n");
 
     for (int i = 0; i < serviceList.size(); i++) {
@@ -225,9 +213,7 @@ public class ServiceManager {
       status.append(
           String.format(
               "%-20s %-15s %-10d\n",
-              service.getName(),
-              service.getState(),
-              servicePriorities.get(i)));
+              service.getName(), service.getState(), servicePriorities.get(i)));
     }
     status.append("-----------------------------------------------\n");
 
@@ -235,8 +221,7 @@ public class ServiceManager {
   }
 
   /**
-   * Logs the current status of all services. This includes state and priority
-   * information for each
+   * Logs the current status of all services. This includes state and priority information for each
    * service.
    */
   public void logServicesStatus() {
