@@ -55,10 +55,8 @@ public class Endeffector extends SubsystemBase {
     }
   }
 
-  @Setter
-  BooleanSupplier algaeSignalSupplier = () -> false;
-  @Setter
-  BooleanSupplier coralSignalSupplier = () -> false;
+  @Setter BooleanSupplier algaeSignalSupplier = () -> false;
+  @Setter BooleanSupplier coralSignalSupplier = () -> false;
 
   @AutoLogOutput(key = "Endeffector/Algae Sensor Reliable")
   boolean algaeSensorReliable = true;
@@ -66,8 +64,10 @@ public class Endeffector extends SubsystemBase {
   @AutoLogOutput(key = "Endeffector/Coral Sensor Reliable")
   boolean coralSensorReliable = true;
 
-  SwitchableChooser algaeSensorReliableChooser = new SwitchableChooser("Endeffector/Algae Sensor Reliable");
-  SwitchableChooser coralSensorReliableChooser = new SwitchableChooser("Endeffector/Coral Sensor Reliable");
+  SwitchableChooser algaeSensorReliableChooser =
+      new SwitchableChooser("Endeffector/Algae Sensor Reliable");
+  SwitchableChooser coralSensorReliableChooser =
+      new SwitchableChooser("Endeffector/Coral Sensor Reliable");
 
   private final DCMotorIO algaeIO;
   private final DCMotorIO coralIO;
@@ -136,8 +136,8 @@ public class Endeffector extends SubsystemBase {
     this.algaeIO = algaeIO;
     this.coralIO = coralIO;
     this.digitalIO = digitalIO;
-    algaeSensorReliableChooser.setOptions(new String[] { "True", "False" });
-    coralSensorReliableChooser.setOptions(new String[] { "True", "False" });
+    algaeSensorReliableChooser.setOptions(new String[] {"True", "False"});
+    coralSensorReliableChooser.setOptions(new String[] {"True", "False"});
   }
 
   public static Endeffector createReal() {
@@ -165,10 +165,7 @@ public class Endeffector extends SubsystemBase {
   }
 
   public static Endeffector createIO() {
-    return new Endeffector(new DCMotorIO() {
-    }, new DCMotorIO() {
-    }, new BiDigitalIO() {
-    });
+    return new Endeffector(new DCMotorIO() {}, new DCMotorIO() {}, new BiDigitalIO() {});
   }
 
   public void registerTransform(TransformTree transformTree) {
@@ -185,15 +182,17 @@ public class Endeffector extends SubsystemBase {
     transformTree.registerTransformComponent(
         Constants.Ascope.Component.ALGAE,
         Constants.Ascope.Component.ARM,
-        () -> hasAlgaeEndeffectorStoraged()
-            ? new Transform3d(.04, -.46, .07, new Rotation3d())
-            : new Transform3d(0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f, new Rotation3d()));
+        () ->
+            hasAlgaeEndeffectorStoraged()
+                ? new Transform3d(.04, -.46, .07, new Rotation3d())
+                : new Transform3d(0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f, new Rotation3d()));
 
     transformTree.registerTransformComponent(
         Constants.Ascope.Component.CORAL,
         Constants.Ascope.Component.ARM,
-        () -> hasCoralEndeffectorStoraged()
-            ? new Transform3d(-.05, .25, .0, new Rotation3d(0, 0, Math.PI / 2))
-            : new Transform3d(0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f, new Rotation3d()));
+        () ->
+            hasCoralEndeffectorStoraged()
+                ? new Transform3d(-.05, .25, .0, new Rotation3d(0, 0, Math.PI / 2))
+                : new Transform3d(0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f, new Rotation3d()));
   }
 }
