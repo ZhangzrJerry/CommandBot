@@ -698,6 +698,27 @@ public class ReefScape {
           height,
           new Rotation3d(0.0, pitchRad, tagPose2d.getRotation().getRadians()));
     }
+
+    public static boolean isAlgaeHighPick(Pose2d pose) {
+      if (pose.getX() < Field.LENGTH / 2.0) {
+        Rotation2d angle = pose.getTranslation().minus(Field.Reef.CENTER).getAngle();
+        if (angle.getSin() > 0.5 || angle.getSin() < -0.5) {
+          return angle.getCos() > 0;
+        } else {
+          return angle.getCos() < 0;
+        }
+      } else {
+        Rotation2d angle =
+            pose.getTranslation()
+                .minus(AllianceFlipUtil.flipTranslation(Field.Reef.CENTER))
+                .getAngle();
+        if (angle.getSin() > 0.5 || angle.getSin() < -0.5) {
+          return angle.getCos() < 0;
+        } else {
+          return angle.getCos() > 0;
+        }
+      }
+    }
   }
 
   public static final FieldType FIELD_TYPE = FieldType.ANDYMARK;
