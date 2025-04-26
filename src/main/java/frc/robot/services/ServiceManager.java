@@ -11,21 +11,25 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 /**
- * Manages the lifecycle of all services in the robot. This singleton class handles service
- * registration, initialization, updates, and state management. Services are prioritized and can be
+ * Manages the lifecycle of all services in the robot. This singleton class
+ * handles service
+ * registration, initialization, updates, and state management. Services are
+ * prioritized and can be
  * paused/resumed individually.
  */
 public class ServiceManager {
   private static ServiceManager instance;
   private final Map<String, Service> services = new ConcurrentHashMap<>();
   private final List<Service> serviceList = new ArrayList<>();
+  private final List<Integer> servicePriorities = new ArrayList<>();
   private final List<AlertManager> alertList = new ArrayList<>();
   private final Map<String, String> lastErrorMessages = new ConcurrentHashMap<>();
 
   @AutoLogOutput(key = "Services/Initialized")
   private boolean isInitialized = false;
 
-  private ServiceManager() {}
+  private ServiceManager() {
+  }
 
   /**
    * Gets the singleton instance of the ServiceManager.
@@ -40,14 +44,20 @@ public class ServiceManager {
   }
 
   /**
-   * Registers a new service with the manager. Services are automatically sorted by priority after
+   * Registers a new service with the manager. Services are automatically sorted
+   * by priority after
    * registration.
    *
    * @param service The service to register
-   * @throws IllegalArgumentException if the service is null, has an empty name, or a service with
-   *     the same name already exists
+   * @throws IllegalArgumentException if the service is null, has an empty name,
+   *                                  or a service with
+   *                                  the same name already exists
    */
   public void registerService(Service service) {
+    registerService(service, 99);
+  }
+
+  public void registerService(Service service, int priority) {
     if (service == null) {
       throw new IllegalArgumentException("Service cannot be null");
     }
@@ -63,7 +73,22 @@ public class ServiceManager {
 
     services.put(name, service);
     serviceList.add(service);
-    serviceList.sort((s1, s2) -> Integer.compare(s2.getPriority(), s1.getPriority()));
+    servicePriorities.add(priority);
+    // Sort both lists based on priority
+    for (int i = 0; i < serviceList.size() - 1; i++) {
+      for (int j = i + 1; j < serviceList.size(); j++) {
+        if (servicePriorities.get(i) > servicePriorities.get(j)) {
+          // Swap services
+          Service tempService = serviceList.get(i);
+          serviceList.set(i, serviceList.get(j));
+          serviceList.set(j, tempService);
+          // Swap priorities
+          int tempPriority = servicePriorities.get(i);
+          servicePriorities.set(i, servicePriorities.get(j));
+          servicePriorities.set(j, tempPriority);
+        }
+      }
+    }
     alertList.add(new AlertManager(name + " ERRORED", AlertManager.AlertType.ERROR));
   }
 
@@ -80,7 +105,7 @@ public class ServiceManager {
   /**
    * Retrieves a service by its class type.
    *
-   * @param <T> The type of service to retrieve
+   * @param <T>          The type of service to retrieve
    * @param serviceClass The class of the service to retrieve
    * @return The service instance, or null if not found
    */
@@ -97,9 +122,9 @@ public class ServiceManager {
   /**
    * Retrieves a service by both its class type and name.
    *
-   * @param <T> The type of service to retrieve
+   * @param <T>          The type of service to retrieve
    * @param serviceClass The class of the service to retrieve
-   * @param name The name of the service to retrieve
+   * @param name         The name of the service to retrieve
    * @return The service instance, or null if not found
    */
   @SuppressWarnings("unchecked")
@@ -112,7 +137,8 @@ public class ServiceManager {
   }
 
   /**
-   * Initializes all registered services. This method should be called once during robot
+   * Initializes all registered services. This method should be called once during
+   * robot
    * initialization.
    */
   public void initAll() {
@@ -131,7 +157,8 @@ public class ServiceManager {
   }
 
   /**
-   * Updates all running services. This method should be called periodically (e.g., in the robot's
+   * Updates all running services. This method should be called periodically
+   * (e.g., in the robot's
    * periodic method).
    */
   public void updateAll() {
@@ -151,7 +178,10 @@ public class ServiceManager {
     logServicesStatus();
   }
 
-  /** Stops all running services. This method should be called when the robot is shutting down. */
+  /**
+   * Stops all running services. This method should be called when the robot is
+   * shutting down.
+   */
   public void stopAll() {
     if (!isInitialized) {
       return;
@@ -187,17 +217,17 @@ public class ServiceManager {
     status.append("-----------------------------------------------\n");
     status.append(
         String.format(
-            "%-20s %-15s %-10s %-30s\n", "Service Name", "State", "Priority", "Error Message"));
+            "%-20s %-15s %-10s\n", "Service Name", "State", "Priority"));
     status.append("-----------------------------------------------\n");
 
-    for (Service service : serviceList) {
+    for (int i = 0; i < serviceList.size(); i++) {
+      Service service = serviceList.get(i);
       status.append(
           String.format(
-              "%-20s %-15s %-10d %-30s\n",
+              "%-20s %-15s %-10d\n",
               service.getName(),
               service.getState(),
-              service.getPriority(),
-              service.getErrorMessage()));
+              servicePriorities.get(i)));
     }
     status.append("-----------------------------------------------\n");
 
@@ -205,7 +235,8 @@ public class ServiceManager {
   }
 
   /**
-   * Logs the current status of all services. This includes state and priority information for each
+   * Logs the current status of all services. This includes state and priority
+   * information for each
    * service.
    */
   public void logServicesStatus() {
@@ -228,7 +259,7 @@ public class ServiceManager {
       alertList.get(i).set(isErrored);
 
       Logger.recordOutput("Services/" + serviceName + "/Status", service.getState());
-      Logger.recordOutput("Services/" + serviceName + "/Priority", service.getPriority());
+      Logger.recordOutput("Services/" + serviceName + "/Priority", servicePriorities.get(i));
       Logger.recordOutput("Services/" + serviceName + "/ErrorMessage", currentErrorMessage);
     }
   }
