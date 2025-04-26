@@ -11,17 +11,20 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Temperature;
 import frc.robot.interfaces.hardwares.CanDevice;
 import frc.robot.utils.PhoenixConfigurator;
+import frc.robot.utils.dashboard.AlertManager;
 import lombok.Getter;
 
 public class GyroIOPigeon2 implements GyroIO {
   private final Pigeon2 pigeon;
+  private final AlertManager offlineAlert;
 
   @Getter private final StatusSignal<Angle> yawSignal;
   @Getter private final StatusSignal<AngularVelocity> omegaSignal;
   @Getter private final StatusSignal<Temperature> tempSignal;
 
-  public GyroIOPigeon2(CanDevice gyro) {
+  public GyroIOPigeon2(String name, CanDevice gyro) {
     pigeon = new Pigeon2(gyro.id(), gyro.bus());
+    offlineAlert = new AlertManager(name + " offline!", AlertManager.AlertType.WARNING);
 
     yawSignal = pigeon.getYaw();
     omegaSignal = pigeon.getAngularVelocityZWorld();

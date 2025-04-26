@@ -10,6 +10,8 @@ import frc.robot.services.VisualizeService;
 import frc.robot.subsystems.SuperStructure;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmGoal;
+import frc.robot.subsystems.climber.Climber;
+import frc.robot.subsystems.endeffector.Endeffector;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.controller.TeleopHeaderController;
@@ -25,6 +27,9 @@ public class RobotContainer {
   private final Swerve swerve;
   private final Arm arm;
   private final Intake intake;
+  private final Endeffector endeffector;
+  private final Climber climber;
+
   private final AtagVision vision;
 
   // virtual services
@@ -46,19 +51,25 @@ public class RobotContainer {
       swerve = Swerve.createReal();
       arm = Arm.createReal();
       intake = Intake.createReal();
+      endeffector = Endeffector.createReal();
+      climber = Climber.createReal();
       vision = AtagVision.createReal();
     } else if (Robot.isSimulation()) {
       swerve = Swerve.createSim();
       arm = Arm.createSim();
       intake = Intake.createSim();
+      climber = Climber.createSim();
+      endeffector = Endeffector.createSim(() -> false, () -> false);
       vision = AtagVision.createSim(() -> swerve.getPose());
     } else {
       swerve = Swerve.createIO();
       arm = Arm.createIO();
       intake = Intake.createIO();
       vision = AtagVision.createIO();
+      endeffector = Endeffector.createIO();
+      climber = Climber.createIO();
     }
-    superStructure = new SuperStructure(swerve, intake, arm);
+    superStructure = new SuperStructure(swerve, intake, arm, climber, endeffector);
     System.out.println("==>    [2/5] Subsystem Instantiate Done");
 
     // ======= configure signal subscribers =======
@@ -83,12 +94,18 @@ public class RobotContainer {
                 () -> -joystick.getLeftY(),
                 () -> -joystick.getLeftX(),
                 () -> -joystick.getRightX())));
+    climber.setDefaultCommand(climber.registerTeleopPullCmd(joystick.povDown()));
 
     // ===== bind custom commands =====
     joystick.x().debounce(0.2).onTrue(arm.getHomeCmd());
     joystick.b().onTrue(superStructure.algaeIntakeEjectCmd());
     joystick.a().onTrue(superStructure.forcedIdleCmd());
     joystick.y().onTrue(Commands.runOnce(() -> arm.setGoal(ArmGoal.ALGAE_NET_SCORE)));
+
+    joystick
+        .back()
+        .debounce(0.3)
+        .onTrue(superStructure.setClimbingCmd().alongWith(joystickRumbleCmd(0.3)));
   }
 
   void configureSignalBinding() {
@@ -102,6 +119,8 @@ public class RobotContainer {
     swerve.registerVisualize(visualizer);
     arm.registerVisualize(visualizer);
     intake.registerVisualize(visualizer);
+    endeffector.registerVisualize(visualizer);
+    climber.registerVisualize(visualizer);
   }
 
   public Command getAutoCmd() {

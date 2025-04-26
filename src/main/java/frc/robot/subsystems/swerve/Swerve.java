@@ -306,13 +306,13 @@ public class Swerve extends SubsystemBase {
 
     DCMotorIOTalonfx flDriveIO =
         new DCMotorIOTalonfx(
-            "flDrive",
+            "FL Drive",
             Ports.Can.FL_DRIVE_MOTOR,
             SwerveConfig.getX2DriveTalonConfig(),
             driveRatioConverter);
     DCMotorIOTalonfxCancoder flSteerIO =
         new DCMotorIOTalonfxCancoder(
-            "flSteer",
+            "FL Steer",
             Ports.Can.FL_STEER_MOTOR,
             SwerveConfig.getX2SteerTalonNoEncoderConfig(),
             Ports.Can.FL_STEER_SENSOR,
@@ -323,13 +323,13 @@ public class Swerve extends SubsystemBase {
 
     DCMotorIOTalonfx frDriveIO =
         new DCMotorIOTalonfx(
-            "frDrive",
+            "FR Drive",
             Ports.Can.FR_DRIVE_MOTOR,
             SwerveConfig.getX2DriveTalonConfig(),
             driveRatioConverter);
     DCMotorIOTalonfxCancoder frSteerIO =
         new DCMotorIOTalonfxCancoder(
-            "frSteer",
+            "FR Steer",
             Ports.Can.FR_STEER_MOTOR,
             SwerveConfig.getX2SteerTalonNoEncoderConfig(),
             Ports.Can.FR_STEER_SENSOR,
@@ -340,13 +340,13 @@ public class Swerve extends SubsystemBase {
 
     DCMotorIOTalonfx blDriveIO =
         new DCMotorIOTalonfx(
-            "blDrive",
+            "BL Drive",
             Ports.Can.BL_DRIVE_MOTOR,
             SwerveConfig.getX2DriveTalonConfig(),
             driveRatioConverter);
     DCMotorIOTalonfxCancoder blSteerIO =
         new DCMotorIOTalonfxCancoder(
-            "blSteer",
+            "BL Steer",
             Ports.Can.BL_STEER_MOTOR,
             SwerveConfig.getX2SteerTalonNoEncoderConfig(),
             Ports.Can.BL_STEER_SENSOR,
@@ -357,13 +357,13 @@ public class Swerve extends SubsystemBase {
 
     DCMotorIOTalonfx brDriveIO =
         new DCMotorIOTalonfx(
-            "brDrive",
+            "BR Drive",
             Ports.Can.BR_DRIVE_MOTOR,
             SwerveConfig.getX2DriveTalonConfig(),
             driveRatioConverter);
     DCMotorIOTalonfxCancoder brSteerIO =
         new DCMotorIOTalonfxCancoder(
-            "brSteer",
+            "BR Steer",
             Ports.Can.BR_STEER_MOTOR,
             SwerveConfig.getX2SteerTalonNoEncoderConfig(),
             Ports.Can.BR_STEER_SENSOR,
@@ -372,7 +372,7 @@ public class Swerve extends SubsystemBase {
             UnitConverter.offset(2 * Math.PI * SwerveConfig.BR_CANCODER_OFFSET)
                 .withUnits("rad", "rad"));
 
-    GyroIOPigeon2 gyroIO = new GyroIOPigeon2(Ports.Can.CHASSIS_PIGEON);
+    GyroIOPigeon2 gyroIO = new GyroIOPigeon2("Chassis Gyro", Ports.Can.CHASSIS_PIGEON);
 
     WheeledOdometryPhoenixThread thread =
         new WheeledOdometryPhoenixThread(

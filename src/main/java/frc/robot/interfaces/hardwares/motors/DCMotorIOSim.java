@@ -267,4 +267,10 @@ public class DCMotorIOSim implements DCMotorIO {
     this(system, motor, ratioConverter, offsetConverter, gains);
     setAppliedPositionConstraints(minAppliedPosition, maxAppliedPosition);
   }
+
+  public DCMotorIOSim() {
+    sim =
+        new DCMotorSim(
+            LinearSystemId.createDCMotorSystem(DCMotor.getNEO(1), 0.0001, 1), DCMotor.getNEO(1));
+  }
 }

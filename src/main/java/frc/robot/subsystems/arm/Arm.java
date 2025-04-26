@@ -19,7 +19,6 @@ import frc.robot.interfaces.hardwares.motors.DCMotorIOSim;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfx;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfxCancoder;
 import frc.robot.services.VisualizeService;
-import frc.robot.utils.dashboard.AlertManager;
 import frc.robot.utils.dashboard.TunableNumbers;
 import frc.robot.utils.math.EqualsUtil;
 import frc.robot.utils.math.UnitConverter;
@@ -34,11 +33,6 @@ public class Arm extends SubsystemBase {
 
   private final DCMotorIOInputsAutoLogged shoulderInputs = new DCMotorIOInputsAutoLogged();
   private final DCMotorIOInputsAutoLogged elbowInputs = new DCMotorIOInputsAutoLogged();
-
-  private final AlertManager shoulderOfflineAlert =
-      new AlertManager("Arm shoulder motor offline!", AlertManager.AlertType.WARNING);
-  private final AlertManager elbowOfflineAlert =
-      new AlertManager("Arm elbow motor offline!", AlertManager.AlertType.WARNING);
 
   @Getter private static ArmGoal goal = ArmGoal.START;
 
@@ -68,9 +62,6 @@ public class Arm extends SubsystemBase {
       hasElbowTransitionPositionInit = true;
       elbowIO.setAppliedPositionF(elbowInputs.appliedPosition, 0.0);
     }
-
-    shoulderOfflineAlert.set(!shoulderInputs.connected);
-    elbowOfflineAlert.set(!elbowInputs.connected);
 
     TunableNumbers.ifChanged(
         this.hashCode(),
@@ -152,10 +143,10 @@ public class Arm extends SubsystemBase {
 
   private void updateInputs() {
     shoulderIO.updateInputs(shoulderInputs);
-    Logger.processInputs("Arm Shoulder", shoulderInputs);
+    Logger.processInputs("Arm/Shoulder", shoulderInputs);
 
     elbowIO.updateInputs(elbowInputs);
-    Logger.processInputs("Arm Elbow", elbowInputs);
+    Logger.processInputs("Arm/Elbow", elbowInputs);
   }
 
   public void setGoal(ArmGoal goal) {

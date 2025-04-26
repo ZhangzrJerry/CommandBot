@@ -4,6 +4,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmGoal;
+import frc.robot.subsystems.climber.Climber;
+import frc.robot.subsystems.climber.Climber.ClimberGoal;
+import frc.robot.subsystems.endeffector.Endeffector;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.Intake.IntakeGoal;
 import frc.robot.subsystems.swerve.Swerve;
@@ -12,11 +15,16 @@ public class SuperStructure {
   Swerve swerve;
   Intake intake;
   Arm arm;
+  Climber climber;
+  Endeffector endeffector;
 
-  public SuperStructure(Swerve swerve, Intake intake, Arm arm) {
+  public SuperStructure(
+      Swerve swerve, Intake intake, Arm arm, Climber climber, Endeffector endeffector) {
     this.swerve = swerve;
     this.intake = intake;
     this.arm = arm;
+    this.climber = climber;
+    this.endeffector = endeffector;
   }
 
   public Command forcedIdleCmd() {
@@ -45,5 +53,14 @@ public class SuperStructure {
               intake.setGoal(IntakeGoal.EJECT);
             })
         .withName("Super/Algae Intake Eject");
+  }
+
+  public Command setClimbingCmd() {
+    return Commands.runOnce(
+            () -> {
+              climber.setGoal(ClimberGoal.READY);
+              arm.setGoal(ArmGoal.CLIMB);
+            })
+        .withName("Super/Set Climbing");
   }
 }

@@ -4,6 +4,8 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.interfaces.hardwares.motors.DCMotorIO;
@@ -12,9 +14,9 @@ import frc.robot.interfaces.hardwares.motors.DCMotorIOSim;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfx;
 import frc.robot.services.VisualizeService;
 import frc.robot.utils.Gains.GainsImpl;
-import frc.robot.utils.dashboard.AlertManager;
 import frc.robot.utils.dashboard.TunableNumber;
 import frc.robot.utils.math.UnitConverter;
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -43,37 +45,29 @@ public class Climber extends SubsystemBase {
       return voltageVoltSupplier.getAsDouble();
     }
 
-    double getPositionRad() {
-      return Units.degreesToRadians(positionDegreeSupplier.getAsDouble());
+    double getPositionDegree() {
+      return positionDegreeSupplier.getAsDouble();
     }
   }
 
   private final DCMotorIO io;
   private final DCMotorIOInputsAutoLogged inputs = new DCMotorIOInputsAutoLogged();
-  private final AlertManager offlineAlert =
-      new AlertManager("Climber motor offline!", AlertManager.AlertType.WARNING);
 
   @Getter
   @Setter
   @AutoLogOutput(key = "Climber/Goal")
   private ClimberGoal goal = ClimberGoal.SAFE_HOME;
 
-  @Getter
-  @Setter
-  @AutoLogOutput(key = "Climber/IsClimbing")
-  private Boolean isClimbing = false;
-
-  private boolean wantPull = false;
+  @AutoLogOutput(key = "Climber/WantPull")
+  private BooleanSupplier wantPullSuppliear = () -> false;
 
   @Override
   public void periodic() {
     updateInputs();
 
-    offlineAlert.set(!inputs.connected);
-
-    if (inputs.appliedPosition >= goal.getPositionRad()) {
+    if (inputs.appliedPosition >= goal.getPositionDegree()) {
       if (goal == ClimberGoal.READY
-          && wantPull
+          && wantPullSuppliear.getAsBoolean()
           && inputs.appliedPosition < ClimberConfig.pullPositionLimitDegree.get()) {
         io.setVoltage(ClimberConfig.pullVoltageVolt.get());
       } else {
@@ -89,8 +83,17 @@ public class Climber extends SubsystemBase {
     Logger.processInputs("Climber", inputs);
   }
 
-  public void setTeleopInput(boolean wantPull) {
-    this.wantPull = wantPull;
+  public Command registerTeleopPullCmd(BooleanSupplier wantPullSupplier) {
+    return Commands.run(
+            () -> {
+              this.wantPullSuppliear = wantPullSupplier;
+            },
+            this)
+        .withName("Climber/Teleop Pull");
+  }
+
+  public boolean isClimbing() {
+    return goal.equals(ClimberGoal.READY);
   }
 
   public void stop() {
@@ -103,7 +106,11 @@ public class Climber extends SubsystemBase {
         Constants.Ascope.Component.DRIVETRAIN,
         () ->
             ClimberConfig.ZEROED_CLIMBER_TF.plus(
-                new Transform3d(0, 0, 0, new Rotation3d(0, 0, inputs.appliedPosition - 165.0))));
+                new Transform3d(
+                    0,
+                    0,
+                    0,
+                    new Rotation3d(0, 0, Units.degreesToRadians(inputs.appliedPosition - 165.0)))));
   }
 
   private Climber(DCMotorIO io) {
@@ -126,6 +133,7 @@ public class Climber extends SubsystemBase {
             0.35,
             ClimberConfig.REDUCTION,
             UnitConverter.scale(180.0 / Math.PI).withUnits("rad", "deg"),
+            UnitConverter.offset(ClimberConfig.HOME_POSITION_DEGREE),
             new GainsImpl(1.0, 0.0, 0.0, 0.0, 0.0)));
   }
 

@@ -20,12 +20,14 @@ import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.interfaces.hardwares.CanDevice;
 import frc.robot.utils.PhoenixConfigurator;
+import frc.robot.utils.dashboard.AlertManager;
 import frc.robot.utils.math.UnitConverter;
 import lombok.Getter;
 
 public class DCMotorIOTalonfx implements DCMotorIO {
   private final TalonFX motor;
   private final TalonFXConfiguration config;
+  private final AlertManager offlineAlert;
 
   private UnitConverter ratioConverter = UnitConverter.identity();
   private UnitConverter positionConvertor = UnitConverter.identity();
@@ -52,6 +54,8 @@ public class DCMotorIOTalonfx implements DCMotorIO {
     PhoenixConfigurator.configure(wrappedName + " clear sticky fault", motor::clearStickyFaults);
     PhoenixConfigurator.configure(
         wrappedName + " config", () -> motor.getConfigurator().apply(config));
+
+    offlineAlert = new AlertManager(wrappedName + " offline!", AlertManager.AlertType.WARNING);
 
     rawPositionSignal = motor.getPosition();
     rawVelocitySignal = motor.getVelocity();
@@ -88,6 +92,8 @@ public class DCMotorIOTalonfx implements DCMotorIO {
                 statorCurrentSignal,
                 temperatureSignal)
             .isOK();
+
+    offlineAlert.set(!inputs.connected);
 
     // mechanism, rotated units
     inputs.rawPosition = rawPositionSignal.getValueAsDouble();

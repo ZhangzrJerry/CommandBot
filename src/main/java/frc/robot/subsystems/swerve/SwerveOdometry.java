@@ -9,7 +9,6 @@ import frc.robot.interfaces.hardwares.sensors.gyro.GyroIOInputsAutoLogged;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometryThread;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometryThread.WheeledObservation;
 import frc.robot.utils.LoggedUtil;
-import frc.robot.utils.dashboard.AlertManager;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 import java.util.concurrent.ArrayBlockingQueue;
 import lombok.Getter;
@@ -18,8 +17,6 @@ import org.littletonrobotics.junction.Logger;
 public class SwerveOdometry {
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
-  private final AlertManager gyroOfflineAlert =
-      new AlertManager("Gyro offline!", AlertManager.AlertType.WARNING);
 
   ArrayBlockingQueue<WheeledObservation> odometryCachedWheeledObservationQueue;
 
@@ -46,7 +43,6 @@ public class SwerveOdometry {
   public void updateInputs() {
     gyroIO.updateInputs(gyroInputs);
     Logger.processInputs("Swerve/Gyro", gyroInputs);
-    gyroOfflineAlert.set(!gyroInputs.connected);
 
     var wheeledObservationArray =
         odometryCachedWheeledObservationQueue.toArray(WheeledObservation[]::new);

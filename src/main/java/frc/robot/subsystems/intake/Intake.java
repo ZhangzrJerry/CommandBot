@@ -15,7 +15,6 @@ import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfx;
 import frc.robot.services.VisualizeService;
 import frc.robot.utils.Gains.GainsImpl;
 import frc.robot.utils.Gains.KpGainsImpl;
-import frc.robot.utils.dashboard.AlertManager;
 import frc.robot.utils.dashboard.TunableNumber;
 import frc.robot.utils.math.UnitConverter;
 import java.util.function.BooleanSupplier;
@@ -57,11 +56,6 @@ public class Intake extends SubsystemBase {
   private final DCMotorIOInputsAutoLogged rollerIOInputs = new DCMotorIOInputsAutoLogged();
   private final DCMotorIOInputsAutoLogged armIOInputs = new DCMotorIOInputsAutoLogged();
 
-  private final AlertManager rollerOfflineAlert =
-      new AlertManager("Algae ground intake roller motor offline!", AlertManager.AlertType.WARNING);
-  private final AlertManager armOfflineAlert =
-      new AlertManager("Algae ground intake arm motor offline!", AlertManager.AlertType.WARNING);
-
   @Getter
   @AutoLogOutput(key = "Intake/Goal")
   private IntakeGoal goal = IntakeGoal.IDLE;
@@ -75,9 +69,6 @@ public class Intake extends SubsystemBase {
   @Override
   public void periodic() {
     updateInputs();
-
-    rollerOfflineAlert.set(!rollerIOInputs.connected);
-    armOfflineAlert.set(!armIOInputs.connected);
 
     var needDodge = needDodgeDebouncer.calculate(dodgeSignalSupplier.getAsBoolean());
     if (goal == IntakeGoal.IDLE && needDodge) {
