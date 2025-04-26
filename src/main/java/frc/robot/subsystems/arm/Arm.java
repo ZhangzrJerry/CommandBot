@@ -40,7 +40,8 @@ public class Arm extends SubsystemBase {
   private final AlertManager elbowOfflineAlert =
       new AlertManager("Arm elbow motor offline!", AlertManager.AlertType.WARNING);
 
-  @Getter private ArmGoal goal = ArmGoal.START;
+  @Getter private static ArmGoal goal = ArmGoal.START;
+
   private boolean needTransition = true;
   private boolean needGroundIntakeDodge = false;
   private boolean needAvoidReefAlgae = false;
@@ -82,7 +83,7 @@ public class Arm extends SubsystemBase {
       return;
     }
 
-    Logger.recordOutput("Arm/ElbowGoal", goal.getElbowPositionRad());
+    Logger.recordOutput("Arm/ElbowGoal", goal.getElbowPositionDegree());
     Logger.recordOutput("Arm/ShoulderGoal", goal.getShoulderHeightMeter());
     Logger.recordOutput("Arm/ElbowAtGoal", elbowAtGoal());
     Logger.recordOutput("Arm/ShoulderAtGoal", shoulderAtGoal());
@@ -96,48 +97,38 @@ public class Arm extends SubsystemBase {
     } else {
       needGroundIntakeDodge =
           isRotationEnterSpecificAngleArea(
-                  elbowInputs.appliedPosition,
-                  goal.getElbowPositionRad(),
-                  Units.degreesToRadians(150.0),
-                  Units.degreesToRadians(255.0))
+                  elbowInputs.appliedPosition, goal.getElbowPositionDegree(), 150, 255)
               || isRotationEnterSpecificAngleArea(
-                  elbowInputs.appliedPosition,
-                  goal.getElbowPositionRad(),
-                  Units.degreesToRadians(-210.0),
-                  Units.degreesToRadians(-105.0))
+                  elbowInputs.appliedPosition, goal.getElbowPositionDegree(), -210, -105)
               || isRotationEnterSpecificAngleArea(
-                  elbowInputs.appliedPosition,
-                  goal.getElbowPositionRad(),
-                  Units.degreesToRadians(-22.5),
-                  Units.degreesToRadians(90.0));
+                  elbowInputs.appliedPosition, goal.getElbowPositionDegree(), -22.5, 90);
     }
 
-    var elbowAvoidReefAlgaePositionRad =
-        Units.degreesToRadians(ArmConfig.elbowAvoidReefAlgaePositionDegree.get());
+    var elbowAvoidReefAlgaePositionDegree = ArmConfig.elbowAvoidReefAlgaePositionDegree.get();
 
     if (needTransition) {
       shoulderIO.setAppliedPositionF(ArmConfig.transitionElevatorHeightMeter.get(), 0.0);
 
       if ((needAvoidReefAlgae) && !needElbowRotationPassDangerZone) {
-        elbowIO.setAppliedPositionF(elbowAvoidReefAlgaePositionRad, 0.0);
+        elbowIO.setAppliedPositionF(elbowAvoidReefAlgaePositionDegree, 0.0);
       }
 
       if (shoulderAtTransition()) {
         if (needShoulderFall) {
           needAvoidReefAlgae = false;
-          elbowIO.setAppliedPositionF(goal.getElbowPositionRad(), 0.0);
+          elbowIO.setAppliedPositionF(goal.getElbowPositionDegree(), 0.0);
 
           if (elbowAtGoal()) {
             needTransition = false;
           }
         } else if (needAvoidReefAlgae) {
-          elbowIO.setAppliedPositionF(elbowAvoidReefAlgaePositionRad, 0.0);
+          elbowIO.setAppliedPositionF(elbowAvoidReefAlgaePositionDegree, 0.0);
 
-          if (elbowAtPosition(elbowAvoidReefAlgaePositionRad)) {
+          if (elbowAtPosition(elbowAvoidReefAlgaePositionDegree)) {
             needTransition = false;
           }
         } else {
-          elbowIO.setAppliedPositionF(goal.getElbowPositionRad(), 0.0);
+          elbowIO.setAppliedPositionF(goal.getElbowPositionDegree(), 0.0);
 
           if (elbowAtGoal()) {
             needTransition = false;
@@ -148,13 +139,13 @@ public class Arm extends SubsystemBase {
       shoulderIO.setAppliedPositionF(goal.getShoulderHeightMeter(), 0.0);
 
       if (needAvoidReefAlgae) {
-        elbowIO.setAppliedPositionF(elbowAvoidReefAlgaePositionRad, 0.0);
+        elbowIO.setAppliedPositionF(elbowAvoidReefAlgaePositionDegree, 0.0);
 
-        if (elbowAtPosition(elbowAvoidReefAlgaePositionRad) && shoulderAtGoal()) {
+        if (elbowAtPosition(elbowAvoidReefAlgaePositionDegree) && shoulderAtGoal()) {
           needAvoidReefAlgae = false;
         }
       } else {
-        elbowIO.setAppliedPositionF(goal.getElbowPositionRad(), 0.0);
+        elbowIO.setAppliedPositionF(goal.getElbowPositionDegree(), 0.0);
       }
     }
   }
@@ -187,10 +178,10 @@ public class Arm extends SubsystemBase {
           isRotationEnterSpecificAngleArea(
               elbowInputs.appliedPosition,
               needAvoidReefAlgae
-                  ? Units.degreesToRadians(ArmConfig.elbowAvoidReefAlgaePositionDegree.get())
-                  : goal.getElbowPositionRad(),
-              Units.degreesToRadians(-120.0),
-              Units.degreesToRadians(-90.0));
+                  ? ArmConfig.elbowAvoidReefAlgaePositionDegree.get()
+                  : goal.getElbowPositionDegree(),
+              -120,
+              -90);
 
       if ((this.goal == ArmGoal.ALGAE_LOW_PICK || this.goal == ArmGoal.ALGAE_HIGH_PICK)) {
         needTransition = !needShoulderFall;
@@ -206,6 +197,7 @@ public class Arm extends SubsystemBase {
       }
 
       this.goal = goal;
+      Logger.recordOutput("Arm/Goal", goal.getName());
     }
   }
 
@@ -228,9 +220,7 @@ public class Arm extends SubsystemBase {
                   shoulderInputs.appliedVelocity,
                   ArmConfig.shoulderStopToleranceMeterPerSec.get())
               && EqualsUtil.epsilonEquals(
-                  0.0,
-                  elbowInputs.appliedVelocity,
-                  Units.degreesToRadians(ArmConfig.elbowStopToleranceDegreePerSec.get()));
+                  0.0, elbowInputs.appliedVelocity, ArmConfig.elbowStopToleranceDegreePerSec.get());
 
       return !needTransition && !needAvoidReefAlgae && atEndPosition && hasStop;
     } else {
@@ -243,7 +233,7 @@ public class Arm extends SubsystemBase {
   }
 
   public boolean elbowAtGoal() {
-    return elbowAtPosition(goal.getElbowPositionRad());
+    return elbowAtPosition(goal.getElbowPositionDegree());
   }
 
   private boolean shoulderAtTransition() {
@@ -255,11 +245,9 @@ public class Arm extends SubsystemBase {
         positionMeter, shoulderInputs.appliedPosition, ArmConfig.shoulderToleranceMeter.get());
   }
 
-  private boolean elbowAtPosition(double positionRad) {
+  private boolean elbowAtPosition(double positionDegree) {
     return EqualsUtil.epsilonEquals(
-        positionRad,
-        elbowInputs.appliedPosition,
-        Units.degreesToRadians(ArmConfig.elbowToleranceDegree.get()));
+        positionDegree, elbowInputs.appliedPosition, ArmConfig.elbowToleranceDegree.get());
   }
 
   public boolean needGroundIntakeDodge() {
@@ -347,8 +335,7 @@ public class Arm extends SubsystemBase {
         .until(
             () ->
                 elbowInputs.appliedVelocity
-                    >= Units.degreesToRadians(
-                        ArmConfig.elbowStaticCharacterizationVelocityThreshDegreePerSec.get()))
+                    >= ArmConfig.elbowStaticCharacterizationVelocityThreshDegreePerSec.get())
         .finallyDo(
             () -> {
               isCharacterizing = false;
@@ -400,17 +387,20 @@ public class Arm extends SubsystemBase {
         new DCMotorIOSim(
             LinearSystemId.createElevatorSystem(
                 DCMotor.getKrakenX60(2),
-                7.5,
+                5.0,
                 ArmConfig.SHOULDER_METER_PER_ROTATION / Math.PI / 2.0,
-                ArmConfig.SHOULDER_REDUCTION),
+                ArmConfig.SHOULDER_REDUCTION / ArmConfig.SHOULDER_REDUCTION),
             DCMotor.getKrakenX60(2),
-            UnitConverter.scale(ArmConfig.SHOULDER_METER_PER_ROTATION / Math.PI / 2.0)
-                .withUnits("rad", "m")),
+            UnitConverter.scale(1.0 / Math.PI / 2.0).withUnits("rad", "m"),
+            UnitConverter.offset(goal.getShoulderHeightMeter()).withUnits("m", "m"),
+            ArmConfig.SHOULDER_GAINS),
         new DCMotorIOSim(
             LinearSystemId.createSingleJointedArmSystem(
                 DCMotor.getKrakenX60(1), 0.46, ArmConfig.ELBOW_REDUCTION),
             DCMotor.getKrakenX60(1),
-            UnitConverter.identity().withUnits("rad", "rad")));
+            UnitConverter.scale(180.0 / Math.PI).withUnits("rad", "deg"),
+            UnitConverter.offset(goal.getElbowPositionDegree()).withUnits("deg", "deg"),
+            ArmConfig.ELBOW_GAINS));
   }
 
   public static Arm createReal() {
@@ -419,7 +409,8 @@ public class Arm extends SubsystemBase {
                 "ArmShoulder",
                 Constants.Ports.Can.ARM_SHOULDER_MASTER,
                 ArmConfig.getShoulderTalonConfig(),
-                UnitConverter.identity().withUnits("rot", "m"))
+                UnitConverter.scale(ArmConfig.SHOULDER_METER_PER_ROTATION).withUnits("rot", "m"),
+                UnitConverter.offset(goal.getShoulderHeightMeter()).withUnits("m", "m"))
             .withFollower(Constants.Ports.Can.ARM_SHOULDER_SLAVE, true),
         new DCMotorIOTalonfxCancoder(
             "ArmElbow",
@@ -427,8 +418,8 @@ public class Arm extends SubsystemBase {
             ArmConfig.getElbowTalonConfig(),
             Constants.Ports.Can.ARM_ELBOW_CANCODER,
             ArmConfig.getCancoderConfig(-0.2958333 + 0.5),
-            UnitConverter.scale(Math.PI * 2.0).withUnits("rot", "rad"),
-            UnitConverter.offset(-0.2958333 + 0.5).withUnits("rot", "rot")));
+            UnitConverter.scale(360).withUnits("rot", "deg"),
+            UnitConverter.offset(360 * (-0.2958333 + 0.5)).withUnits("deg", "deg")));
   }
 
   public static Arm createIO() {
@@ -460,8 +451,7 @@ public class Arm extends SubsystemBase {
               new Transform3d(
                   0,
                   MathUtil.clamp(
-                      shoulderInputs.appliedPosition
-                          - ArmConfig.SHOULDER_SINGLE_LEVEL_HEIGHT_METER * 2.0,
+                      shoulderInputs.appliedPosition - ArmConfig.SHOULDER_SINGLE_LEVEL_HEIGHT_METER,
                       0,
                       ArmConfig.SHOULDER_SINGLE_LEVEL_HEIGHT_METER),
                   0,
@@ -476,8 +466,7 @@ public class Arm extends SubsystemBase {
               new Transform3d(
                   0,
                   MathUtil.clamp(
-                      shoulderInputs.appliedPosition
-                          - ArmConfig.SHOULDER_SINGLE_LEVEL_HEIGHT_METER * 2.0,
+                      shoulderInputs.appliedPosition,
                       0,
                       ArmConfig.SHOULDER_SINGLE_LEVEL_HEIGHT_METER),
                   0,
@@ -490,7 +479,8 @@ public class Arm extends SubsystemBase {
         () -> {
           return ArmConfig.ARM_ZEROED_TF.plus(
               new Transform3d(
-                  new Translation3d(), new Rotation3d(elbowInputs.appliedPosition, 0, 0)));
+                  new Translation3d(),
+                  new Rotation3d(Units.degreesToRadians(elbowInputs.appliedPosition), 0, 0)));
         });
   }
 }

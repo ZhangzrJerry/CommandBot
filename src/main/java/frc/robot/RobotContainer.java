@@ -9,6 +9,7 @@ import frc.robot.services.ServiceManager;
 import frc.robot.services.VisualizeService;
 import frc.robot.subsystems.SuperStructure;
 import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmGoal;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.controller.TeleopHeaderController;
@@ -84,16 +85,15 @@ public class RobotContainer {
                 () -> -joystick.getRightX())));
 
     // ===== bind custom commands =====
-    joystick.a().onTrue(superStructure.algaeIntakeCollectCmd());
+    joystick.x().debounce(0.2).onTrue(arm.getHomeCmd());
     joystick.b().onTrue(superStructure.algaeIntakeEjectCmd());
-    joystick.x().onTrue(arm.getShoulderKsCharacterizationCmd(2));
-    joystick.y().onTrue(arm.getHomeCmd());
-    joystick.b().onTrue(superStructure.forcedIdleCmd());
+    joystick.a().onTrue(superStructure.forcedIdleCmd());
+    joystick.y().onTrue(Commands.runOnce(() -> arm.setGoal(ArmGoal.ALGAE_NET_SCORE)));
   }
 
   void configureSignalBinding() {
     // ===== swerve accel limit signal =====
-    swerve.setCustomMaxTiltAccelScale(() -> arm.getCOGHeightPercent());
+    swerve.setCustomMaxTiltAccelScale(() -> 1.0 - arm.getCOGHeightPercent());
 
     // ===== intake dodge signal =====
     intake.setDodgeSignalSupplier(() -> arm.needGroundIntakeDodge());

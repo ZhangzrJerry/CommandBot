@@ -43,6 +43,33 @@ public interface Gains {
     }
   }
 
+  public class KpGainsImpl implements Gains {
+    public KpGainsImpl(double kP) {
+      this.kP = kP;
+    }
+
+    private double kP;
+
+    @Override
+    public double getKP() {
+      return kP;
+    }
+  }
+
+  public class KpdGainsImpl extends KpGainsImpl {
+    public KpdGainsImpl(double kP, double kD) {
+      super(kP);
+      this.kD = kD;
+    }
+
+    private double kD;
+
+    @Override
+    public double getKD() {
+      return kD;
+    }
+  }
+
   double getKP();
 
   default double getKI() {

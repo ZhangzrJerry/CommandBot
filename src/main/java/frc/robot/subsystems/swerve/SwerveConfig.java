@@ -12,7 +12,9 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.utils.Gains.GainsImpl;
+import frc.robot.utils.Gains.KpGainsImpl;
 import frc.robot.utils.dashboard.TunableGains.TunablePidsgGains;
 import frc.robot.utils.dashboard.TunableNumber;
 
@@ -83,13 +85,14 @@ public class SwerveConfig {
   static final double DRIVE_FF_KT =
       DCMotor.getKrakenX60Foc(1).withReduction(DRIVE_REDUCTION).KtNMPerAmp;
 
-  static GainsImpl SIM_STEER_GAINS = new GainsImpl(10.0, 0.0, 2.0, 0.0, 0.0);
-  static GainsImpl SIM_DRIVE_GAINS = new GainsImpl(0.3, 0.0, 0.0, 0.0, 0.0);
-
   static TunablePidsgGains DRIVE_GAINS =
-      new TunablePidsgGains("Swerve/Module/DriveGains", 7.0, 0.0, 0.0, 0.0, 0.0);
+      new TunablePidsgGains(
+          "Swerve/Module/DriveGains",
+          Robot.isReal() ? new GainsImpl(7.0, 0.0, 0.0, 0.0, 0.0) : new KpGainsImpl(0.3));
   static TunablePidsgGains STEER_GAINS =
-      new TunablePidsgGains("Swerve/Module/SteerGains", 2000.0, 0.0, 60.0, 0.0, 0.0);
+      new TunablePidsgGains(
+          "Swerve/Module/SteerGains",
+          Robot.isReal() ? new GainsImpl(2000.0, 0.0, 60.0, 0.0, 0.0) : new KpGainsImpl(10.0));
 
   static TalonFXConfiguration getX2DriveTalonConfig() {
     var config = new TalonFXConfiguration();

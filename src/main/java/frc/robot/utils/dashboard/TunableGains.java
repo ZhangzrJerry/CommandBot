@@ -18,6 +18,22 @@ public class TunableGains {
       super(baseKey, Map.of(KP_KEY, kP, KI_KEY, kI, KD_KEY, kD, KS_KEY, kS, KG_KEY, kG));
     }
 
+    public TunablePidsgGains(String baseKey, Gains gains) {
+      super(
+          baseKey,
+          Map.of(
+              KP_KEY,
+              gains.getKP(),
+              KI_KEY,
+              gains.getKI(),
+              KD_KEY,
+              gains.getKD(),
+              KS_KEY,
+              gains.getKS(),
+              KG_KEY,
+              gains.getKG()));
+    }
+
     public double getKP() {
       return get(KP_KEY);
     }

@@ -44,7 +44,10 @@ public class Swerve extends SubsystemBase {
   @Getter private final SwerveOdometry odometry;
   @Setter private SwerveController controller = new SwerveController() {};
 
-  @Setter private DoubleSupplier customMaxTiltAccelScale = () -> 1.0;
+  @Setter
+  @AutoLogOutput(key = "Swerve/customMaxTiltAccelScale")
+  private DoubleSupplier customMaxTiltAccelScale = () -> 1.0;
+
   private SwerveModuleState[] lastGoalModuleStates =
       new SwerveModuleState[] {
         new SwerveModuleState(),
@@ -228,56 +231,56 @@ public class Swerve extends SubsystemBase {
             0.025,
             SwerveConfig.DRIVE_REDUCTION,
             driveRatioConverter,
-            SwerveConfig.SIM_DRIVE_GAINS);
+            SwerveConfig.DRIVE_GAINS);
     DCMotorIO flSteerIO =
         new DCMotorIOSim(
             DCMotor.getKrakenX60(1),
             0.004,
             SwerveConfig.STEER_REDUCTION,
             steerRatioConverter,
-            SwerveConfig.SIM_STEER_GAINS);
+            SwerveConfig.STEER_GAINS);
     DCMotorIO frDriveIO =
         new DCMotorIOSim(
             DCMotor.getKrakenX60(1),
             0.025,
             SwerveConfig.DRIVE_REDUCTION,
             driveRatioConverter,
-            SwerveConfig.SIM_DRIVE_GAINS);
+            SwerveConfig.DRIVE_GAINS);
     DCMotorIO frSteerIO =
         new DCMotorIOSim(
             DCMotor.getKrakenX60(1),
             0.004,
             SwerveConfig.STEER_REDUCTION,
             steerRatioConverter,
-            SwerveConfig.SIM_STEER_GAINS);
+            SwerveConfig.STEER_GAINS);
     DCMotorIO blDriveIO =
         new DCMotorIOSim(
             DCMotor.getKrakenX60(1),
             0.025,
             SwerveConfig.DRIVE_REDUCTION,
             driveRatioConverter,
-            SwerveConfig.SIM_DRIVE_GAINS);
+            SwerveConfig.DRIVE_GAINS);
     DCMotorIO blSteerIO =
         new DCMotorIOSim(
             DCMotor.getKrakenX60(1),
             0.004,
             SwerveConfig.STEER_REDUCTION,
             steerRatioConverter,
-            SwerveConfig.SIM_STEER_GAINS);
+            SwerveConfig.STEER_GAINS);
     DCMotorIO brDriveIO =
         new DCMotorIOSim(
             DCMotor.getKrakenX60(1),
             0.025,
             SwerveConfig.DRIVE_REDUCTION,
             driveRatioConverter,
-            SwerveConfig.SIM_DRIVE_GAINS);
+            SwerveConfig.DRIVE_GAINS);
     DCMotorIO brSteerIO =
         new DCMotorIOSim(
             DCMotor.getKrakenX60(1),
             0.004,
             SwerveConfig.STEER_REDUCTION,
             steerRatioConverter,
-            SwerveConfig.SIM_STEER_GAINS);
+            SwerveConfig.STEER_GAINS);
 
     GyroIO gyroIO = new GyroIO() {};
     WheeledOdometrySimThread thread =
@@ -315,7 +318,8 @@ public class Swerve extends SubsystemBase {
             Ports.Can.FL_STEER_SENSOR,
             SwerveConfig.FL_CANCODER_CONFIG,
             steerRatioConverter,
-            UnitConverter.offset(SwerveConfig.FL_CANCODER_OFFSET).withUnits("rot", "rot"));
+            UnitConverter.offset(2 * Math.PI * SwerveConfig.FL_CANCODER_OFFSET)
+                .withUnits("rad", "rad"));
 
     DCMotorIOTalonfx frDriveIO =
         new DCMotorIOTalonfx(
@@ -331,7 +335,8 @@ public class Swerve extends SubsystemBase {
             Ports.Can.FR_STEER_SENSOR,
             SwerveConfig.FR_CANCODER_CONFIG,
             steerRatioConverter,
-            UnitConverter.offset(SwerveConfig.FR_CANCODER_OFFSET).withUnits("rot", "rot"));
+            UnitConverter.offset(2 * Math.PI * SwerveConfig.FR_CANCODER_OFFSET)
+                .withUnits("rad", "rad"));
 
     DCMotorIOTalonfx blDriveIO =
         new DCMotorIOTalonfx(
@@ -347,7 +352,8 @@ public class Swerve extends SubsystemBase {
             Ports.Can.BL_STEER_SENSOR,
             SwerveConfig.BL_CANCODER_CONFIG,
             steerRatioConverter,
-            UnitConverter.offset(SwerveConfig.BL_CANCODER_OFFSET).withUnits("rot", "rot"));
+            UnitConverter.offset(2 * Math.PI * SwerveConfig.BL_CANCODER_OFFSET)
+                .withUnits("rad", "rad"));
 
     DCMotorIOTalonfx brDriveIO =
         new DCMotorIOTalonfx(
@@ -363,7 +369,8 @@ public class Swerve extends SubsystemBase {
             Ports.Can.BR_STEER_SENSOR,
             SwerveConfig.BR_CANCODER_CONFIG,
             steerRatioConverter,
-            UnitConverter.offset(SwerveConfig.BR_CANCODER_OFFSET).withUnits("rot", "rot"));
+            UnitConverter.offset(2 * Math.PI * SwerveConfig.BR_CANCODER_OFFSET)
+                .withUnits("rad", "rad"));
 
     GyroIOPigeon2 gyroIO = new GyroIOPigeon2(Ports.Can.CHASSIS_PIGEON);
 

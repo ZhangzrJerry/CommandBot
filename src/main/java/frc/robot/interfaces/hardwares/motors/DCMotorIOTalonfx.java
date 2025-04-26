@@ -140,7 +140,7 @@ public class DCMotorIOTalonfx implements DCMotorIO {
   public void setUnitConvertor(UnitConverter ratioConverter, UnitConverter... offsetConverter) {
     this.ratioConverter = ratioConverter;
     if (offsetConverter.length > 0) {
-      this.positionConvertor = offsetConverter[0].andThen(ratioConverter);
+      this.positionConvertor = ratioConverter.andThen(offsetConverter[0]);
     } else {
       this.positionConvertor = ratioConverter;
     }
