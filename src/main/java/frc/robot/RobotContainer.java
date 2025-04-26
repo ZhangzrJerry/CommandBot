@@ -5,11 +5,11 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.services.ServiceManager;
 import frc.robot.services.Visualize;
 import frc.robot.subsystems.SuperStructure;
 import frc.robot.subsystems.arm.Arm;
-import frc.robot.subsystems.arm.ArmGoal;
 import frc.robot.subsystems.climber.Climber;
 import frc.robot.subsystems.endeffector.Endeffector;
 import frc.robot.subsystems.intake.Intake;
@@ -95,17 +95,46 @@ public class RobotContainer {
                 () -> -joystick.getLeftX(),
                 () -> -joystick.getRightX())));
     climber.setDefaultCommand(climber.registerTeleopPullCmd(joystick.povDown()));
+    new Trigger(
+            () ->
+                endeffector.hasAlgaeEndeffectorStoraged()
+                    || endeffector.hasCoralEndeffectorStoraged())
+        .onTrue(joystickRumbleCmd(0.3));
 
     // ===== bind custom commands =====
-    joystick.x().debounce(0.2).onTrue(arm.getHomeCmd());
-    joystick.b().onTrue(superStructure.algaeIntakeEjectCmd());
-    joystick.a().onTrue(superStructure.forcedIdleCmd());
-    joystick.y().onTrue(Commands.runOnce(() -> arm.setGoal(ArmGoal.ALGAE_NET_SCORE)));
+    joystick.back().debounce(0.3).onTrue(superStructure.setClimbingModeCmd());
+    joystick.back().debounce(0.3).onTrue(joystickRumbleCmd(0.3));
+
+    joystick.a().and(() -> !climber.isClimbing()).onTrue(superStructure.forcedIdleCmd());
+    joystick.a().and(() -> !climber.isClimbing()).debounce(0.3).onTrue(arm.getHomeCmd());
+    joystick.a().and(() -> !climber.isClimbing()).debounce(0.3).onTrue(joystickRumbleCmd(0.3));
 
     joystick
-        .back()
-        .debounce(0.3)
-        .onTrue(superStructure.setClimbingCmd().alongWith(joystickRumbleCmd(0.3)));
+        .rightTrigger(0.3)
+        .and(() -> !climber.isClimbing())
+        .whileTrue(superStructure.algaeMagicEjectCmd());
+
+    joystick
+        .rightBumper()
+        .and(() -> !climber.isClimbing())
+        .and(() -> !endeffector.hasAlgaeEndeffectorStoraged())
+        .onTrue(superStructure.algaeReefPickCmd(true));
+    joystick
+        .rightBumper()
+        .and(() -> !climber.isClimbing())
+        .and(() -> endeffector.hasAlgaeEndeffectorStoraged())
+        .onTrue(superStructure.algaeNetScoreCmd());
+
+    joystick
+        .b()
+        .and(() -> !climber.isClimbing())
+        .and(() -> !endeffector.hasAlgaeEndeffectorStoraged())
+        .whileTrue(superStructure.algaeIntakePickCmd());
+    joystick
+        .b()
+        .and(() -> !climber.isClimbing())
+        .and(() -> endeffector.hasAlgaeEndeffectorStoraged())
+        .onTrue(getAutoCmd());
   }
 
   void configureSignalBinding() {
@@ -132,6 +161,6 @@ public class RobotContainer {
             () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
             () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
         .withTimeout(seconds)
-        .withName("[Joystick] Rumble " + Math.round(seconds * 10) / 10.0 + "s");
+        .withName("Joystick/Rumble " + Math.round(seconds * 10) / 10.0 + "s");
   }
 }

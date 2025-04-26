@@ -89,6 +89,10 @@ public class Swerve extends SubsystemBase {
     return odometry.getPose();
   }
 
+  public Boolean atGoal() {
+    return controller.headingAtGoal() && controller.positionAtGoal();
+  }
+
   @Override
   public void periodic() {
 

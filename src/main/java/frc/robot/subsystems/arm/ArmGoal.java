@@ -48,6 +48,6 @@ public class ArmGoal extends TunableNumbers {
   public static final ArmGoal ALGAE_NET_SCORE = new ArmGoal("Arm/Goal/AlgaeNetScore", 1.5, -45.0);
   public static final ArmGoal ALGAE_GROUND_PICK =
       new ArmGoal("Arm/Goal/AlgaeGroundPick", 0.25, 45.0);
-  public static final ArmGoal CLIMB = new ArmGoal("Arm/Goal/Climb", 0.7, 0.0);
+  public static final ArmGoal CLIMB = new ArmGoal("Arm/Goal/Climb", 0.65, -180.0);
   public static final ArmGoal HOME = new ArmGoal("Arm/Goal/Home", 0.0, 0.0);
 }

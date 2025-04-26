@@ -34,7 +34,7 @@ public class Arm extends SubsystemBase {
   private final DCMotorIOInputsAutoLogged shoulderInputs = new DCMotorIOInputsAutoLogged();
   private final DCMotorIOInputsAutoLogged elbowInputs = new DCMotorIOInputsAutoLogged();
 
-  @Getter private static ArmGoal goal = ArmGoal.START;
+  @Getter private ArmGoal goal = ArmGoal.START;
 
   private boolean needTransition = true;
   private boolean needGroundIntakeDodge = false;
@@ -350,27 +350,31 @@ public class Arm extends SubsystemBase {
             homingDebouncer.calculate(
                 Math.abs(shoulderInputs.appliedVelocity)
                     <= ArmConfig.shoulderHomingVelocityThreshMeterPerSec.get());
-
+    String name = "Arm/Home";
     return Commands.sequence(
             Commands.runOnce(
-                () -> {
-                  setGoal(ArmGoal.HOME);
-                  homingDebouncer = new Debouncer(ArmConfig.shoulderHomingTimeSecs.get());
-                  homingDebouncer.calculate(false);
-                }),
-            Commands.waitUntil(() -> this.atGoal() || (!this.atGoal() && hasStall.getAsBoolean())),
+                    () -> {
+                      setGoal(ArmGoal.HOME);
+                      homingDebouncer = new Debouncer(ArmConfig.shoulderHomingTimeSecs.get());
+                      homingDebouncer.calculate(false);
+                    })
+                .withName(name + "/Set Goal"),
+            Commands.waitUntil(() -> this.atGoal() || (!this.atGoal() && hasStall.getAsBoolean()))
+                .withName(name + "/Wait Until Goal"),
             Commands.startRun(
                     () -> isHoming = true,
                     () -> shoulderIO.setCurrent(ArmConfig.shoulderHomingCurrentAmp.get()),
                     this)
-                .until(hasStall),
-            Commands.runOnce(() -> shoulderIO.resetAppliedPosition(0.0)))
+                .until(hasStall)
+                .withName(name + "/Set Current"),
+            Commands.runOnce(() -> shoulderIO.resetAppliedPosition(0.0))
+                .withName(name + "/Reset Applied Position"))
         .finallyDo(
             () -> {
               setGoal(ArmGoal.IDLE);
               isHoming = false;
             })
-        .withName("Arm/Shoulder Offset Calibrate");
+        .withName(name);
   }
 
   public static Arm createSim() {
@@ -383,7 +387,7 @@ public class Arm extends SubsystemBase {
                 ArmConfig.SHOULDER_REDUCTION / ArmConfig.SHOULDER_REDUCTION),
             DCMotor.getKrakenX60(2),
             UnitConverter.scale(1.0 / Math.PI / 2.0).withUnits("rad", "m"),
-            UnitConverter.offset(goal.getShoulderHeightMeter()).withUnits("m", "m"),
+            UnitConverter.offset(ArmGoal.START.getShoulderHeightMeter()).withUnits("m", "m"),
             ArmConfig.SHOULDER_GAINS,
             0,
             ArmConfig.SHOULDER_MAX_HEIGHT_METER),
@@ -392,7 +396,7 @@ public class Arm extends SubsystemBase {
                 DCMotor.getKrakenX60(1), 0.46, ArmConfig.ELBOW_REDUCTION),
             DCMotor.getKrakenX60(1),
             UnitConverter.scale(180.0 / Math.PI).withUnits("rad", "deg"),
-            UnitConverter.offset(goal.getElbowPositionDegree()).withUnits("deg", "deg"),
+            UnitConverter.offset(ArmGoal.START.getElbowPositionDegree()).withUnits("deg", "deg"),
             ArmConfig.ELBOW_GAINS,
             -360,
             360));
@@ -405,7 +409,7 @@ public class Arm extends SubsystemBase {
                 Constants.Ports.Can.ARM_SHOULDER_MASTER,
                 ArmConfig.getShoulderTalonConfig(),
                 UnitConverter.scale(ArmConfig.SHOULDER_METER_PER_ROTATION).withUnits("rot", "m"),
-                UnitConverter.offset(goal.getShoulderHeightMeter()).withUnits("m", "m"))
+                UnitConverter.offset(ArmGoal.START.getShoulderHeightMeter()).withUnits("m", "m"))
             .withFollower(Constants.Ports.Can.ARM_SHOULDER_SLAVE, true),
         new DCMotorIOTalonfxCancoder(
             "ArmElbow",

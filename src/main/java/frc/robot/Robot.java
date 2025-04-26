@@ -155,7 +155,7 @@ public class Robot extends LoggedRobot {
   }
 
   private String commandPrintHelper(String name) {
-    if (name.split(name).length < 2) {
+    if (name.split("/").length < 2) {
       return "# " + name;
     }
     String subsystem = name.split("/")[0];
