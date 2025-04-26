@@ -1,17 +1,21 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.services.GamePieceVisualize;
 import frc.robot.services.ServiceManager;
 import frc.robot.services.Visualize;
 import frc.robot.subsystems.SuperStructure;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.climber.Climber;
 import frc.robot.subsystems.endeffector.Endeffector;
+import frc.robot.subsystems.endeffector.Endeffector.AlgaeEndEffectorGoal;
+import frc.robot.subsystems.endeffector.Endeffector.CoralEndEffectorGoal;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.controller.TeleopHeaderController;
@@ -34,16 +38,35 @@ public class RobotContainer {
 
   // virtual services
   Visualize visualizer;
+  GamePieceVisualize algaeVisualizer;
+  GamePieceVisualize coralVisualizer;
 
-  private final CommandXboxController joystick =
-      new CommandXboxController(Constants.Ports.Joystick.DRIVER);
+  private final CommandXboxController joystick = new CommandXboxController(Constants.Ports.Joystick.DRIVER);
 
   public RobotContainer() {
     System.out.println("\n>      [0/5] RobotContainer Init ...");
 
     // ===== instantiate services =====
     visualizer = new Visualize();
-    serviceManager.registerService(visualizer);
+
+    if (Robot.isReal()) {
+      algaeVisualizer = new GamePieceVisualize("Algae Visualizer", new Pose3d[0], new Pose3d[0]);
+      coralVisualizer = new GamePieceVisualize("Coral Visualizer", new Pose3d[0], new Pose3d[0]);
+
+      // register services
+      serviceManager.registerService(visualizer);
+    } else if (Robot.isSimulation()) {
+      algaeVisualizer = new GamePieceVisualize("Algae Visualizer", ReefScape.GamePiece.Algae.scorablePose,
+          ReefScape.GamePiece.Algae.pickablePose);
+      coralVisualizer = new GamePieceVisualize("Coral Visualizer", ReefScape.GamePiece.Coral.scorablePose,
+          ReefScape.GamePiece.Coral.pickablePose);
+
+      // register services
+      serviceManager.registerService(visualizer);
+      serviceManager.registerService(algaeVisualizer);
+      serviceManager.registerService(coralVisualizer);
+    }
+
     System.out.println("=>     [1/5] Service Register Done");
 
     // ===== instantiate subsystems =====
@@ -59,7 +82,8 @@ public class RobotContainer {
       arm = Arm.createSim();
       intake = Intake.createSim();
       climber = Climber.createSim();
-      endeffector = Endeffector.createSim(() -> false, () -> false);
+      endeffector = Endeffector.createSim(
+          () -> algaeVisualizer.isHasGamePiece(), () -> coralVisualizer.isHasGamePiece());
       vision = AtagVision.createSim(() -> swerve.getPose());
     } else {
       swerve = Swerve.createIO();
@@ -96,9 +120,8 @@ public class RobotContainer {
                 () -> -joystick.getRightX())));
     climber.setDefaultCommand(climber.registerTeleopPullCmd(joystick.povDown()));
     new Trigger(
-            () ->
-                endeffector.hasAlgaeEndeffectorStoraged()
-                    || endeffector.hasCoralEndeffectorStoraged())
+        () -> endeffector.hasAlgaeEndeffectorStoraged()
+            || endeffector.hasCoralEndeffectorStoraged())
         .onTrue(joystickRumbleCmd(0.3));
 
     // ===== bind custom commands =====
@@ -172,6 +195,42 @@ public class RobotContainer {
     intake.registerVisualize(visualizer);
     endeffector.registerVisualize(visualizer);
     climber.registerVisualize(visualizer);
+
+    // ===== algae game piece visualize =====
+    algaeVisualizer.setPickMechanismPoseSupplier(
+        () -> new Pose3d(swerve.getPose())
+            .plus(
+                visualizer.getComponentTransform(
+                    Constants.Ascope.Component.ALGAE_END_EFFECTOR)));
+    algaeVisualizer.setScoreMechanismPoseSupplier(
+        () -> new Pose3d(swerve.getPose())
+            .plus(
+                visualizer.getComponentTransform(
+                    Constants.Ascope.Component.ALGAE_END_EFFECTOR)));
+    algaeVisualizer.setTryPickSupplier(
+        () -> endeffector.getAlgaeGoal().equals(AlgaeEndEffectorGoal.COLLECT));
+    algaeVisualizer.setTryEjectSupplier(
+        () -> endeffector.getAlgaeGoal().equals(AlgaeEndEffectorGoal.EJECT));
+    algaeVisualizer.setTryScoreSupplier(
+        () -> endeffector.getAlgaeGoal().equals(AlgaeEndEffectorGoal.SCORE));
+
+    // ===== coral game piece visualize =====
+    coralVisualizer.setPickMechanismPoseSupplier(
+        () -> new Pose3d(swerve.getPose())
+            .plus(
+                visualizer.getComponentTransform(
+                    Constants.Ascope.Component.CORAL_END_EFFECTOR)));
+    coralVisualizer.setScoreMechanismPoseSupplier(
+        () -> new Pose3d(swerve.getPose())
+            .plus(
+                visualizer.getComponentTransform(
+                    Constants.Ascope.Component.CORAL_END_EFFECTOR)));
+    coralVisualizer.setTryPickSupplier(
+        () -> endeffector.getCoralGoal().equals(CoralEndEffectorGoal.COLLECT));
+    coralVisualizer.setTryEjectSupplier(
+        () -> endeffector.getCoralGoal().equals(CoralEndEffectorGoal.EJECT));
+    coralVisualizer.setTryScoreSupplier(
+        () -> endeffector.getCoralGoal().equals(CoralEndEffectorGoal.SCORE));
   }
 
   public Command getAutoCmd() {
@@ -180,8 +239,8 @@ public class RobotContainer {
 
   private Command joystickRumbleCmd(double seconds) {
     return Commands.startEnd(
-            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
-            () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
+        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 1.0),
+        () -> joystick.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0))
         .withTimeout(seconds)
         .withName("Joystick/Rumble " + Math.round(seconds * 10) / 10.0 + "s");
   }

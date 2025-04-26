@@ -14,13 +14,17 @@ import lombok.experimental.ExtensionMethod;
 import org.littletonrobotics.junction.Logger;
 
 /**
- * Service for visualizing robot components in 3D space. This service manages a hierarchical
- * structure of robot components and their transformations, allowing for real-time visualization of
+ * Service for visualizing robot components in 3D space. This service manages a
+ * hierarchical
+ * structure of robot components and their transformations, allowing for
+ * real-time visualization of
  * the robot's state.
  */
-@ExtensionMethod({GeomUtil.class})
+@ExtensionMethod({ GeomUtil.class })
 public class Visualize implements Service {
-  @Getter @Setter ServiceState state = ServiceState.STOPPED;
+  @Getter
+  @Setter
+  ServiceState state = ServiceState.STOPPED;
 
   @Override
   public int getPriority() {
@@ -29,7 +33,7 @@ public class Visualize implements Service {
 
   @Override
   public String getName() {
-    return "Visualize";
+    return "Visualizer";
   }
 
   @Override
@@ -84,13 +88,17 @@ public class Visualize implements Service {
   private static Transform3d[] tfs = new Transform3d[0];
 
   /**
-   * Represents a component in the visualization hierarchy. Each component has a unique ID, a parent
+   * Represents a component in the visualization hierarchy. Each component has a
+   * unique ID, a parent
    * component, and a transform relative to its parent.
    *
-   * @param componentId Unique identifier for the component, must be in range [0,N]
-   * @param parentId Identifier of the parent component, must be in range [-1,componentId). -1
-   *     indicates the robot frame as parent
-   * @param transformSupplier Supplier providing the transform matrix from parent to this component
+   * @param componentId       Unique identifier for the component, must be in
+   *                          range [0,N]
+   * @param parentId          Identifier of the parent component, must be in range
+   *                          [-1,componentId). -1
+   *                          indicates the robot frame as parent
+   * @param transformSupplier Supplier providing the transform matrix from parent
+   *                          to this component
    */
   public record VisualizeComponent(
       int componentId, int parentId, Supplier<Transform3d> transformSupplier) {
@@ -112,11 +120,13 @@ public class Visualize implements Service {
   }
 
   /**
-   * Registers a component for visualization. Components should typically be registered during
+   * Registers a component for visualization. Components should typically be
+   * registered during
    * subsystem initialization.
    *
    * @param component The component to be registered
-   * @throws IllegalArgumentException if a component with the same ID already exists
+   * @throws IllegalArgumentException if a component with the same ID already
+   *                                  exists
    */
   public void registerVisualizeComponent(VisualizeComponent component) {
     for (VisualizeComponent existing : components) {
@@ -131,8 +141,8 @@ public class Visualize implements Service {
   /**
    * Convenience method to register a component with individual parameters.
    *
-   * @param componentId Unique identifier for the component
-   * @param parentId Identifier of the parent component
+   * @param componentId       Unique identifier for the component
+   * @param parentId          Identifier of the parent component
    * @param transformSupplier Supplier providing the transform matrix
    */
   public void registerVisualizeComponent(

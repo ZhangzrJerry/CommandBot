@@ -210,4 +210,8 @@ public class GeomUtil {
   public static Pose2d withRotation(Pose2d pose, Rotation2d rotation) {
     return new Pose2d(pose.getTranslation(), rotation);
   }
+
+  public static double getDistance(Pose3d pose1, Pose3d pose2) {
+    return pose1.getTranslation().getDistance(pose2.getTranslation());
+  }
 }

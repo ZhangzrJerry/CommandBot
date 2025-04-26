@@ -18,6 +18,7 @@ import frc.robot.utils.dashboard.TunableNumber;
 import frc.robot.utils.math.UnitConverter;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -54,10 +55,8 @@ public class Endeffector extends SubsystemBase {
     }
   }
 
-  @Setter
-  BooleanSupplier algaeSignalSupplier = () -> false;
-  @Setter
-  BooleanSupplier coralSignalSupplier = () -> false;
+  @Setter BooleanSupplier algaeSignalSupplier = () -> false;
+  @Setter BooleanSupplier coralSignalSupplier = () -> false;
 
   @AutoLogOutput(key = "Endeffector/Algae Sensor Reliable")
   boolean algaeSensorReliable = true;
@@ -65,8 +64,10 @@ public class Endeffector extends SubsystemBase {
   @AutoLogOutput(key = "Endeffector/Coral Sensor Reliable")
   boolean coralSensorReliable = true;
 
-  SwitchableChooser algaeSensorReliableChooser = new SwitchableChooser("Endeffector/Algae Sensor Reliable");
-  SwitchableChooser coralSensorReliableChooser = new SwitchableChooser("Endeffector/Coral Sensor Reliable");
+  SwitchableChooser algaeSensorReliableChooser =
+      new SwitchableChooser("Endeffector/Algae Sensor Reliable");
+  SwitchableChooser coralSensorReliableChooser =
+      new SwitchableChooser("Endeffector/Coral Sensor Reliable");
 
   private final DCMotorIO algaeIO;
   private final DCMotorIO coralIO;
@@ -76,8 +77,8 @@ public class Endeffector extends SubsystemBase {
   private final DCMotorIOInputsAutoLogged coralIOInputs = new DCMotorIOInputsAutoLogged();
   private final BiDigitalIOInputsAutoLogged digitalIOInputs = new BiDigitalIOInputsAutoLogged();
 
-  private AlgaeEndEffectorGoal algaeGoal = AlgaeEndEffectorGoal.IDLE;
-  private CoralEndEffectorGoal coralGoal = CoralEndEffectorGoal.IDLE;
+  @Setter @Getter private AlgaeEndEffectorGoal algaeGoal = AlgaeEndEffectorGoal.IDLE;
+  @Setter @Getter private CoralEndEffectorGoal coralGoal = CoralEndEffectorGoal.IDLE;
 
   @Override
   public void periodic() {
@@ -112,14 +113,6 @@ public class Endeffector extends SubsystemBase {
     coralSensorReliable = coralSensorReliableChooser.get().equals("True");
   }
 
-  public void setAlgaeGoal(AlgaeEndEffectorGoal goal) {
-    this.algaeGoal = goal;
-  }
-
-  public void setCoralGoal(CoralEndEffectorGoal goal) {
-    this.coralGoal = goal;
-  }
-
   @AutoLogOutput(key = "Endeffector/Algae EndEffector Storaged")
   public boolean hasAlgaeEndeffectorStoraged() {
     return (algaeSensorReliable && digitalIO.getValue1())
@@ -136,8 +129,8 @@ public class Endeffector extends SubsystemBase {
     this.algaeIO = algaeIO;
     this.coralIO = coralIO;
     this.digitalIO = digitalIO;
-    algaeSensorReliableChooser.setOptions(new String[] { "True", "False" });
-    coralSensorReliableChooser.setOptions(new String[] { "True", "False" });
+    algaeSensorReliableChooser.setOptions(new String[] {"True", "False"});
+    coralSensorReliableChooser.setOptions(new String[] {"True", "False"});
   }
 
   public static Endeffector createReal() {
@@ -165,10 +158,7 @@ public class Endeffector extends SubsystemBase {
   }
 
   public static Endeffector createIO() {
-    return new Endeffector(new DCMotorIO() {
-    }, new DCMotorIO() {
-    }, new BiDigitalIO() {
-    });
+    return new Endeffector(new DCMotorIO() {}, new DCMotorIO() {}, new BiDigitalIO() {});
   }
 
   public void registerVisualize(Visualize visualizer) {
@@ -185,19 +175,17 @@ public class Endeffector extends SubsystemBase {
     visualizer.registerVisualizeComponent(
         Constants.Ascope.Component.ALGAE,
         Constants.Ascope.Component.ARM,
-        () -> hasAlgaeEndeffectorStoraged()
-            ? new Transform3d(.04, -.46, .07, new Rotation3d())
-            : new Transform3d(0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f, new Rotation3d()));
+        () ->
+            hasAlgaeEndeffectorStoraged()
+                ? new Transform3d(.04, -.46, .07, new Rotation3d())
+                : new Transform3d(0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f, new Rotation3d()));
 
     visualizer.registerVisualizeComponent(
         Constants.Ascope.Component.CORAL,
         Constants.Ascope.Component.ARM,
-        () -> hasCoralEndeffectorStoraged()
-            ? new Transform3d(-.05, .25, .0, new Rotation3d(0, 0, Math.PI / 2))
-            : new Transform3d(
-                0x3f3f3f3f,
-                0x3f3f3f3f,
-                0x3f3f3f3f,
-                new Rotation3d()));
+        () ->
+            hasCoralEndeffectorStoraged()
+                ? new Transform3d(-.05, .25, .0, new Rotation3d(0, 0, Math.PI / 2))
+                : new Transform3d(0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f, new Rotation3d()));
   }
 }

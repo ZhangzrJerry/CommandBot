@@ -134,7 +134,7 @@ public class SuperStructure {
         Commands.waitUntil(() -> arm.stopAtGoal()).withName(name + "/Wait For Pose"),
         Commands.runOnce(
             () -> {
-              endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.EJECT);
+              endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.SCORE);
             })
             .withName(name + "/Set Score Goal"),
         Commands.waitUntil(() -> !endeffector.hasAlgaeEndeffectorStoraged())
