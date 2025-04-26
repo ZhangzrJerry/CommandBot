@@ -26,7 +26,7 @@ public interface SwerveController {
     return false;
   }
 
-  default Boolean translationErrorWithin(double tolerance) {
+  default Boolean translationErrorWithin() {
     return false;
   }
 

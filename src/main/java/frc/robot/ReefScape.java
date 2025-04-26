@@ -728,7 +728,8 @@ public class ReefScape {
     // 处理器区域相关常量
     public static class Processor {
       public static final double FACE_LENGTH = 0.7112; // 28 inches
-      public static final Pose2d CENTER = new Pose2d(11.56081, 8.05561, Rotation2d.fromDegrees(90));
+      public static final Pose2d CENTER =
+          new Pose2d(17.548 - 11.56081, 1.032, Rotation2d.fromDegrees(270));
       public static final Pose3d ALGAE_POSE =
           new Pose3d(
               CENTER.getX(),

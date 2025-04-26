@@ -3,6 +3,8 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.ReefScape;
+import frc.robot.services.NodeSelector;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmGoal;
 import frc.robot.subsystems.climber.Climber;
@@ -13,6 +15,8 @@ import frc.robot.subsystems.endeffector.Endeffector.CoralEndEffectorGoal;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.Intake.IntakeGoal;
 import frc.robot.subsystems.swerve.Swerve;
+import frc.robot.subsystems.swerve.controller.SwerveAlignController;
+import frc.robot.subsystems.swerve.controller.SwerveAlignController.AlignType;
 
 public class SuperStructure {
   Swerve swerve;
@@ -21,13 +25,26 @@ public class SuperStructure {
   Climber climber;
   Endeffector endeffector;
 
+  NodeSelector nodeSelector;
+
+  // BooleanSupplier shouldArmLift =
+
   public SuperStructure(
-      Swerve swerve, Intake intake, Arm arm, Climber climber, Endeffector endeffector) {
+      Swerve swerve,
+      Intake intake,
+      Arm arm,
+      Climber climber,
+      Endeffector endeffector,
+      NodeSelector nodeSelector) {
+    // subsystems
     this.swerve = swerve;
     this.intake = intake;
     this.arm = arm;
     this.climber = climber;
     this.endeffector = endeffector;
+
+    // services
+    this.nodeSelector = nodeSelector;
   }
 
   public Command forcedIdleCmd() {
@@ -113,14 +130,15 @@ public class SuperStructure {
 
   public Command algaeProcessorScoreCmd() {
     String name = "Super/Algae Processor Score";
-    return Commands.sequence(
-            Commands.runOnce(
-                    () -> {
-                      arm.setGoal(ArmGoal.ALGAE_PROCESSOR_SCORE);
-                    })
-                .withName(name + "/Set Score Pose"),
-            Commands.waitUntil(() -> arm.stopAtGoal()).withName(name + "/Wait For Pose"))
-        .withName(name);
+    return Commands.parallel(
+        Commands.either(
+            Commands.none(),
+            swerve.registerControllerCmd(
+                new SwerveAlignController(
+                    AlignType.PROCESSOR,
+                    () -> ReefScape.Field.Processor.SCORE_POSE,
+                    () -> swerve.getPose())),
+            () -> nodeSelector.getIgnoreArmMoveCondition()));
   }
 
   public Command coralStationPickCmd() {
