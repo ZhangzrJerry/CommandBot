@@ -12,7 +12,7 @@ import frc.robot.interfaces.hardwares.sensors.digital.BiDigitalIO;
 import frc.robot.interfaces.hardwares.sensors.digital.BiDigitalIOCandi;
 import frc.robot.interfaces.hardwares.sensors.digital.BiDigitalIOInputsAutoLogged;
 import frc.robot.interfaces.hardwares.sensors.digital.BiDigitalIOSim;
-import frc.robot.services.VisualizeService;
+import frc.robot.services.Visualize;
 import frc.robot.utils.dashboard.SwitchableChooser;
 import frc.robot.utils.dashboard.TunableNumber;
 import frc.robot.utils.math.UnitConverter;
@@ -166,7 +166,7 @@ public class Endeffector extends SubsystemBase {
     return new Endeffector(new DCMotorIO() {}, new DCMotorIO() {}, new BiDigitalIO() {});
   }
 
-  public void registerVisualize(VisualizeService visualizer) {
+  public void registerVisualize(Visualize visualizer) {
     visualizer.registerVisualizeComponent(
         Constants.Ascope.Component.ALGAE,
         Constants.Ascope.Component.ARM,

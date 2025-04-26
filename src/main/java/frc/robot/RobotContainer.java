@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.services.ServiceManager;
-import frc.robot.services.VisualizeService;
+import frc.robot.services.Visualize;
 import frc.robot.subsystems.SuperStructure;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmGoal;
@@ -33,7 +33,7 @@ public class RobotContainer {
   private final AtagVision vision;
 
   // virtual services
-  VisualizeService visualizer;
+  Visualize visualizer;
 
   private final CommandXboxController joystick =
       new CommandXboxController(Constants.Ports.Joystick.DRIVER);
@@ -42,7 +42,7 @@ public class RobotContainer {
     System.out.println("\n>      [0/5] RobotContainer Init ...");
 
     // ===== instantiate services =====
-    visualizer = new VisualizeService();
+    visualizer = new Visualize();
     serviceManager.registerService(visualizer);
     System.out.println("=>     [1/5] Service Register Done");
 

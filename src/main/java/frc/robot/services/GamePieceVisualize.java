@@ -5,7 +5,7 @@ import frc.robot.interfaces.services.Service;
 import lombok.Getter;
 import lombok.Setter;
 
-public class GamePieceVisualizeService implements Service {
+public class GamePieceVisualize implements Service {
   @Getter @Setter ServiceState state = ServiceState.STOPPED;
 
   private static final Pose3d[] unpickedCoral = new Pose3d[0];
@@ -13,7 +13,7 @@ public class GamePieceVisualizeService implements Service {
   private static final Pose3d[] unpickedAlgae = new Pose3d[0];
   private static final Pose3d[] scoredAlgae = new Pose3d[0];
 
-  public GamePieceVisualizeService() {}
+  public GamePieceVisualize() {}
 
   @Override
   public int getPriority() {

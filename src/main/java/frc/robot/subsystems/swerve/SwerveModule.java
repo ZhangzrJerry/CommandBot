@@ -4,7 +4,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.interfaces.hardwares.motors.*;
-import frc.robot.interfaces.hardwares.motors.DCMotorIOInputsAutoLogged;
 import frc.robot.utils.dashboard.TunableNumbers;
 import org.littletonrobotics.junction.Logger;
 
@@ -57,6 +56,11 @@ public class SwerveModule {
   SwerveModulePosition getPosition() {
     return new SwerveModulePosition(
         driveInputs.appliedPosition, Rotation2d.fromRadians(steerInputs.appliedPosition));
+  }
+
+  void setDriveCharacterizationCurrent(double currentAmp) {
+    driveIO.setCurrent(currentAmp);
+    steerIO.setAppliedPosition(0.0);
   }
 
   void stop() {

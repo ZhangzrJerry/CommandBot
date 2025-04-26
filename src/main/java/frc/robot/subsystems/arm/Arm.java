@@ -18,7 +18,7 @@ import frc.robot.interfaces.hardwares.motors.DCMotorIOInputsAutoLogged;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOSim;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfx;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfxCancoder;
-import frc.robot.services.VisualizeService;
+import frc.robot.services.Visualize;
 import frc.robot.utils.dashboard.TunableNumbers;
 import frc.robot.utils.math.EqualsUtil;
 import frc.robot.utils.math.UnitConverter;
@@ -421,7 +421,7 @@ public class Arm extends SubsystemBase {
     return new Arm(new DCMotorIO() {}, new DCMotorIO() {});
   }
 
-  public void registerVisualize(VisualizeService visualizer) {
+  public void registerVisualize(Visualize visualizer) {
     visualizer.registerVisualizeComponent(
         Constants.Ascope.Component.ELEVATOR_L2,
         Constants.Ascope.Component.DRIVETRAIN,

@@ -2,7 +2,7 @@ package frc.robot;
 
 import edu.wpi.first.math.util.Units;
 
-public class Season {
+public class ReefScape {
   public static class GamePiece {
     public static enum Type {
       ALGAE,

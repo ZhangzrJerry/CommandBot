@@ -12,7 +12,7 @@ import frc.robot.interfaces.hardwares.motors.DCMotorIO;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOInputsAutoLogged;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOSim;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfx;
-import frc.robot.services.VisualizeService;
+import frc.robot.services.Visualize;
 import frc.robot.utils.Gains.GainsImpl;
 import frc.robot.utils.dashboard.TunableNumber;
 import frc.robot.utils.math.UnitConverter;
@@ -100,7 +100,7 @@ public class Climber extends SubsystemBase {
     io.stop();
   }
 
-  public void registerVisualize(VisualizeService visualizer) {
+  public void registerVisualize(Visualize visualizer) {
     visualizer.registerVisualizeComponent(
         Constants.Ascope.Component.CLIMBER,
         Constants.Ascope.Component.DRIVETRAIN,

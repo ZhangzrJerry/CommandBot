@@ -19,7 +19,7 @@ import org.littletonrobotics.junction.Logger;
  * the robot's state.
  */
 @ExtensionMethod({GeomUtil.class})
-public class VisualizeService implements Service {
+public class Visualize implements Service {
   @Getter @Setter ServiceState state = ServiceState.STOPPED;
 
   @Override

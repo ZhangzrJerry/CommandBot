@@ -26,7 +26,7 @@ import frc.robot.interfaces.hardwares.sensors.gyro.GyroIOPigeon2;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometryPhoenixThread;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometrySimThread;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometryThread;
-import frc.robot.services.VisualizeService;
+import frc.robot.services.Visualize;
 import frc.robot.utils.math.EqualsUtil;
 import frc.robot.utils.math.GeomUtil;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
@@ -426,7 +426,7 @@ public class Swerve extends SubsystemBase {
     odometry = new SwerveOdometry(gyroIO, odometryThread.start());
   }
 
-  public void registerVisualize(VisualizeService visualizer) {
+  public void registerVisualize(Visualize visualizer) {
     visualizer.registerVisualizeComponent(
         Constants.Ascope.Component.SWERVE_FL,
         Constants.Ascope.Component.DRIVETRAIN,
