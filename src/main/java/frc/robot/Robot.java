@@ -155,15 +155,32 @@ public class Robot extends LoggedRobot {
   }
 
   private String commandPrintHelper(String name) {
-    if (name.split("/").length < 2) {
-      return "# " + name;
+    switch (name.split("/").length) {
+      case 2:
+        {
+          String subsystem = name.split("/")[0];
+          String command = name.split("/")[1];
+          StringBuilder sb = new StringBuilder("$ [");
+          sb.append(subsystem);
+          sb.append("] ");
+          sb.append(command);
+          return sb.toString();
+        }
+      case 3:
+        {
+          String subsystem = name.split("/")[0];
+          String command = name.split("/")[1];
+          String subcommand = name.split("/")[2];
+          StringBuilder sb = new StringBuilder("$ [");
+          sb.append(subsystem);
+          sb.append("] ");
+          sb.append(command);
+          sb.append(" => ");
+          sb.append(subcommand);
+          return sb.toString();
+        }
+      default:
+        return "# " + name;
     }
-    String subsystem = name.split("/")[0];
-    String command = name.split("/")[1];
-    StringBuilder sb = new StringBuilder("$ [");
-    sb.append(subsystem);
-    sb.append("] ");
-    sb.append(command);
-    return sb.toString();
   }
 }

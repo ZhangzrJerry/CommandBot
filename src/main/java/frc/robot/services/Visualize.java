@@ -46,8 +46,8 @@ public class Visualize implements Service {
 
   @Override
   public void update() {
-    Pose3d[] poses = new Pose3d[components.size()];
-    Transform3d[] tfs = new Transform3d[components.size()];
+    poses = new Pose3d[components.size()];
+    tfs = new Transform3d[components.size()];
 
     if (STRICT_BIG_ENDIAN) {
       for (int i = 0; i < components.size(); ++i) {
@@ -64,8 +64,24 @@ public class Visualize implements Service {
     Logger.recordOutput("Services/" + getName() + "/Components", poses);
   }
 
+  public Pose3d getComponentPose(int componentId) {
+    if (componentId < 0 || componentId >= poses.length) {
+      throw new IllegalArgumentException("componentId out of index");
+    }
+    return poses[componentId];
+  }
+
+  public Transform3d getComponentTransform(int componentId) {
+    if (componentId < 0 || componentId >= tfs.length) {
+      throw new IllegalArgumentException("componentId out of index");
+    }
+    return tfs[componentId];
+  }
+
   private static final List<VisualizeComponent> components = new ArrayList<>();
   private static final Boolean STRICT_BIG_ENDIAN = true;
+  private static Pose3d[] poses = new Pose3d[0];
+  private static Transform3d[] tfs = new Transform3d[0];
 
   /**
    * Represents a component in the visualization hierarchy. Each component has a unique ID, a parent
@@ -109,6 +125,7 @@ public class Visualize implements Service {
       }
     }
     components.add(component);
+    Logger.recordOutput("Services/" + getName() + "/RegisteredComponents", components.size());
   }
 
   /**

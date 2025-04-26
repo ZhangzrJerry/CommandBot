@@ -102,18 +102,29 @@ public class RobotContainer {
         .onTrue(joystickRumbleCmd(0.3));
 
     // ===== bind custom commands =====
+
+    // ##### climbing mode #####
     joystick.back().debounce(0.3).onTrue(superStructure.setClimbingModeCmd());
     joystick.back().debounce(0.3).onTrue(joystickRumbleCmd(0.3));
 
+    // ##### arm idle / arm home #####
     joystick.a().and(() -> !climber.isClimbing()).onTrue(superStructure.forcedIdleCmd());
     joystick.a().and(() -> !climber.isClimbing()).debounce(0.3).onTrue(arm.getHomeCmd());
     joystick.a().and(() -> !climber.isClimbing()).debounce(0.3).onTrue(joystickRumbleCmd(0.3));
 
+    // ##### algae ground pick / processor score #####
     joystick
-        .rightTrigger(0.3)
+        .b()
         .and(() -> !climber.isClimbing())
-        .whileTrue(superStructure.algaeMagicEjectCmd());
+        .and(() -> !endeffector.hasAlgaeEndeffectorStoraged())
+        .whileTrue(superStructure.algaeIntakePickCmd());
+    joystick
+        .b()
+        .and(() -> !climber.isClimbing())
+        .and(() -> endeffector.hasAlgaeEndeffectorStoraged())
+        .onTrue(superStructure.algaeProcessorScoreCmd());
 
+    // ##### algae reef pick / net score #####
     joystick
         .rightBumper()
         .and(() -> !climber.isClimbing())
@@ -125,16 +136,23 @@ public class RobotContainer {
         .and(() -> endeffector.hasAlgaeEndeffectorStoraged())
         .onTrue(superStructure.algaeNetScoreCmd());
 
+    // ##### algae magic eject #####
     joystick
-        .b()
+        .rightTrigger(0.3)
         .and(() -> !climber.isClimbing())
-        .and(() -> !endeffector.hasAlgaeEndeffectorStoraged())
-        .whileTrue(superStructure.algaeIntakePickCmd());
+        .whileTrue(superStructure.algaeMagicEjectCmd());
+
+    // ##### coral station pick / reef score #####
     joystick
-        .b()
+        .leftBumper()
         .and(() -> !climber.isClimbing())
-        .and(() -> endeffector.hasAlgaeEndeffectorStoraged())
-        .onTrue(getAutoCmd());
+        .and(() -> !endeffector.hasCoralEndeffectorStoraged())
+        .onTrue(superStructure.coralStationPickCmd().withTimeout(2.0));
+    joystick
+        .leftBumper()
+        .and(() -> !climber.isClimbing())
+        .and(() -> endeffector.hasCoralEndeffectorStoraged())
+        .onTrue(superStructure.coralReefScoreCmd(4));
   }
 
   void configureSignalBinding() {
@@ -143,6 +161,10 @@ public class RobotContainer {
 
     // ===== intake dodge signal =====
     intake.setDodgeSignalSupplier(() -> arm.needGroundIntakeDodge());
+
+    // ===== endeffector substitute signal =====
+    endeffector.setAlgaeSignalSupplier(joystick.povLeft());
+    endeffector.setCoralSignalSupplier(joystick.povRight());
 
     // ===== visualize service =====
     swerve.registerVisualize(visualizer);
