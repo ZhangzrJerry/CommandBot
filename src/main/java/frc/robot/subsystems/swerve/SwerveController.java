@@ -22,7 +22,11 @@ public interface SwerveController {
     return false;
   }
 
-  default Boolean positionAtGoal() {
+  default Boolean translationAtGoal() {
+    return false;
+  }
+
+  default Boolean translationErrorWithin(double tolerance) {
     return false;
   }
 

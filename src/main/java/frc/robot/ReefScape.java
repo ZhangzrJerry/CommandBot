@@ -13,6 +13,8 @@ import edu.wpi.first.wpilibj.Filesystem;
 import frc.robot.utils.AllianceFlipUtil;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -566,6 +568,56 @@ public class ReefScape {
             PoseUtils.getPoseBasedOnTag(13, -0.08, 0, 1.1, Math.toRadians(35.0)),
           };
     }
+
+    /**
+     * 根据选择的游戏部件类型和分支位置获取得分位置
+     *
+     * @param selectedGamePieceType 游戏部件类型
+     * @param selectedBranch 分支位置
+     * @return 得分位置
+     */
+    public static Pose2d getScorePoseBySelection(
+        Type selectedGamePieceType, String selectedBranch) {
+      switch (selectedGamePieceType) {
+        case ALGAE:
+          switch (selectedBranch) {
+            case "A":
+            case "B":
+            case "AB":
+              return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("AB"));
+            case "C":
+            case "D":
+            case "CD":
+              return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("CD"));
+            case "E":
+            case "F":
+            case "EF":
+              return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("EF"));
+            case "G":
+            case "H":
+            case "GH":
+              return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("GH"));
+            case "I":
+            case "J":
+            case "IJ":
+              return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("IJ"));
+            case "K":
+            case "L":
+            case "KL":
+              return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("KL"));
+          }
+          break;
+        case CORAL:
+          if (!selectedBranch.isEmpty()) {
+            return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get(selectedBranch));
+          }
+          break;
+        default:
+          break;
+      }
+
+      return new Pose2d();
+    }
   }
 
   // 场地相关常量
@@ -603,6 +655,47 @@ public class ReefScape {
       public static final double CORAL_ADJUST_X = -GamePiece.Coral.DIAMETER / 2.0;
       public static final double CORAL_ADJUST_Y = 0.1643126;
       public static final double ALGAE_ADJUST_X = -GamePiece.Algae.DIAMETER / 2.0 + 0.045;
+
+      // 得分位置映射
+      public static final Map<String, Pose2d> SCORE_POSES = new HashMap<>();
+
+      static {
+        SCORE_POSES.put("A", getScorePose(18, -SCORE_ADJUST_Y));
+        SCORE_POSES.put("B", getScorePose(18, SCORE_ADJUST_Y));
+        SCORE_POSES.put("AB", getScorePose(18, 0.0));
+
+        SCORE_POSES.put("C", getScorePose(17, -SCORE_ADJUST_Y));
+        SCORE_POSES.put("D", getScorePose(17, SCORE_ADJUST_Y));
+        SCORE_POSES.put("CD", getScorePose(17, 0.0));
+
+        SCORE_POSES.put("E", getScorePose(22, -SCORE_ADJUST_Y));
+        SCORE_POSES.put("F", getScorePose(22, SCORE_ADJUST_Y));
+        SCORE_POSES.put("EF", getScorePose(22, 0.0));
+
+        SCORE_POSES.put("G", getScorePose(21, -SCORE_ADJUST_Y));
+        SCORE_POSES.put("H", getScorePose(21, SCORE_ADJUST_Y));
+        SCORE_POSES.put("GH", getScorePose(21, 0.0));
+
+        SCORE_POSES.put("I", getScorePose(20, -SCORE_ADJUST_Y));
+        SCORE_POSES.put("J", getScorePose(20, SCORE_ADJUST_Y));
+        SCORE_POSES.put("IJ", getScorePose(20, 0.0));
+
+        SCORE_POSES.put("K", getScorePose(19, -SCORE_ADJUST_Y));
+        SCORE_POSES.put("L", getScorePose(19, SCORE_ADJUST_Y));
+        SCORE_POSES.put("KL", getScorePose(19, 0.0));
+      }
+
+      private static Pose2d getScorePose(int id, double adjustY) {
+        return getPoseBasedOnTag(id, SCORE_ADJUST_X, adjustY, new Rotation2d());
+      }
+
+      private static Pose2d getPoseBasedOnTag(
+          int id, double adjustX, double adjustY, Rotation2d adjustHeading) {
+        var tagPose = AprilTagLayoutType.OFFICIAL.getLayout().getTagPose(id).get().toPose2d();
+        var shiftedPose = tagPose.transformBy(new Transform2d(adjustX, adjustY, new Rotation2d()));
+        return new Pose2d(
+            shiftedPose.getTranslation(), shiftedPose.getRotation().rotateBy(adjustHeading));
+      }
 
       // 获取珊瑚位置
       public static Pose3d getCoralPose(int id, boolean isLeft, double height, double pitchRad) {

@@ -90,7 +90,7 @@ public class Swerve extends SubsystemBase {
   }
 
   public Boolean atGoal() {
-    return controller.headingAtGoal() && controller.positionAtGoal();
+    return controller.headingAtGoal() && controller.translationAtGoal();
   }
 
   @Override
