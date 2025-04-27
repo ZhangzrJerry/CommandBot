@@ -16,31 +16,33 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class AlongWaypointsController implements SwerveController {
-  private final TunablePidGains translationGains = new TunablePidGains("AlongWaypointsController/TranslationGains", 0.5,
-      0.0, 0.0);
-  private final TunablePidGains rotationGains = new TunablePidGains("AlongWaypointsController/RotationGains", 0.5, 0,
-      0);
-  private final TunableNumber translationTolerance = new TunableNumber(
-      "AlongWaypointsController/TranslationToleranceMeters", 0.05);
-  private final TunableNumber rotationTolerance = new TunableNumber("AlongWaypointsController/RotationToleranceDegrees",
-      2.0);
-  private final TunableNumber bangBangThreshold = new TunableNumber("AlongWaypointsController/BangBangThresholdMeters",
-      0.5);
+  private final TunablePidGains translationGains =
+      new TunablePidGains("AlongWaypointsController/TranslationGains", 0.5, 0.0, 0.0);
+  private final TunablePidGains rotationGains =
+      new TunablePidGains("AlongWaypointsController/RotationGains", 0.5, 0, 0);
+  private final TunableNumber translationTolerance =
+      new TunableNumber("AlongWaypointsController/TranslationToleranceMeters", 0.05);
+  private final TunableNumber rotationTolerance =
+      new TunableNumber("AlongWaypointsController/RotationToleranceDegrees", 2.0);
+  private final TunableNumber bangBangThreshold =
+      new TunableNumber("AlongWaypointsController/BangBangThresholdMeters", 0.5);
 
-  private final ProfiledPIDController translationController = new ProfiledPIDController(
-      translationGains.getKP(),
-      translationGains.getKI(),
-      translationGains.getKD(),
-      new TrapezoidProfile.Constraints(
-          SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC,
-          SwerveConfig.MAX_TRANSLATION_ACC_METERS_PER_SEC));
+  private final ProfiledPIDController translationController =
+      new ProfiledPIDController(
+          translationGains.getKP(),
+          translationGains.getKI(),
+          translationGains.getKD(),
+          new TrapezoidProfile.Constraints(
+              SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC,
+              SwerveConfig.MAX_TRANSLATION_ACC_METERS_PER_SEC));
 
-  private final ProfiledPIDController rotationController = new ProfiledPIDController(
-      rotationGains.getKP(),
-      rotationGains.getKI(),
-      rotationGains.getKD(),
-      new TrapezoidProfile.Constraints(
-          SwerveConfig.MAX_ANGULAR_VEL_RAD_PER_SEC, Double.POSITIVE_INFINITY));
+  private final ProfiledPIDController rotationController =
+      new ProfiledPIDController(
+          rotationGains.getKP(),
+          rotationGains.getKI(),
+          rotationGains.getKD(),
+          new TrapezoidProfile.Constraints(
+              SwerveConfig.MAX_ANGULAR_VEL_RAD_PER_SEC, Double.POSITIVE_INFINITY));
 
   private final Pose2d[] waypoints;
   private final Supplier<Pose2d> currentPoseSupplier;
@@ -61,10 +63,11 @@ public class AlongWaypointsController implements SwerveController {
 
     // Ensure all waypoints have the final rotation
     for (int i = 0; i < waypoints.length; i++) {
-      this.waypoints[i] = new Pose2d(
-          waypoints[i].getX(),
-          waypoints[i].getY(),
-          waypoints[waypoints.length - 1].getRotation());
+      this.waypoints[i] =
+          new Pose2d(
+              waypoints[i].getX(),
+              waypoints[i].getY(),
+              waypoints[waypoints.length - 1].getRotation());
     }
 
     this.currentGoalPose = currentPoseSupplier.get();
@@ -72,10 +75,11 @@ public class AlongWaypointsController implements SwerveController {
     this.rotationController.enableContinuousInput(-Math.PI, Math.PI);
 
     // Initialize align controller
-    this.alignController = new AutoAlignController(
-        AutoAlignController.AlignType.PROCESSOR,
-        () -> waypoints[waypoints.length - 1],
-        currentPoseSupplier);
+    this.alignController =
+        new AutoAlignController(
+            AutoAlignController.AlignType.PROCESSOR,
+            () -> waypoints[waypoints.length - 1],
+            currentPoseSupplier);
   }
 
   @Override
@@ -109,11 +113,13 @@ public class AlongWaypointsController implements SwerveController {
         currentGoalPose = waypoints[currentIdx];
       } else {
         // Move toward next waypoint
-        Translation2d step = errorToNextWaypoint
-            .getTranslation()
-            .div(errorToNextWaypoint.getTranslation().getNorm())
-            .times(maxDistanceThisStep);
-        currentGoalPose = currentGoalPose.plus(new Transform2d(step, errorToNextWaypoint.getRotation()));
+        Translation2d step =
+            errorToNextWaypoint
+                .getTranslation()
+                .div(errorToNextWaypoint.getTranslation().getNorm())
+                .times(maxDistanceThisStep);
+        currentGoalPose =
+            currentGoalPose.plus(new Transform2d(step, errorToNextWaypoint.getRotation()));
       }
     } else {
       // Stay at final waypoint
@@ -125,9 +131,11 @@ public class AlongWaypointsController implements SwerveController {
     Pose2d currentPose = currentPoseSupplier.get();
 
     // Calculate combined translation error (vector form)
-    Translation2d translationError = currentGoalPose.getTranslation().minus(currentPose.getTranslation());
+    Translation2d translationError =
+        currentGoalPose.getTranslation().minus(currentPose.getTranslation());
     double translationErrorNorm = translationError.getNorm();
-    double rotationError = Math.toDegrees(currentGoalPose.getRotation().minus(currentPose.getRotation()).getRadians());
+    double rotationError =
+        Math.toDegrees(currentGoalPose.getRotation().minus(currentPose.getRotation()).getRadians());
 
     Logger.recordOutput(
         "Swerve/AlongWaypointsController/TranslationErrorMeters", translationErrorNorm);
@@ -156,11 +164,13 @@ public class AlongWaypointsController implements SwerveController {
       translationVelocity = translationController.calculate(0, translationErrorNorm);
     }
 
-    Translation2d velocityVector = translationError.div(translationErrorNorm).times(translationVelocity);
+    Translation2d velocityVector =
+        translationError.div(translationErrorNorm).times(translationVelocity);
 
     // Calculate rotation output
-    double omega = rotationController.calculate(
-        currentPose.getRotation().getRadians(), currentGoalPose.getRotation().getRadians());
+    double omega =
+        rotationController.calculate(
+            currentPose.getRotation().getRadians(), currentGoalPose.getRotation().getRadians());
 
     // Convert to robot-relative velocity
     return ChassisSpeeds.fromFieldRelativeSpeeds(
@@ -188,12 +198,12 @@ public class AlongWaypointsController implements SwerveController {
     if (isUsingAlignController) {
       return alignController.translationErrorWithin();
     }
-    if (waypoints.length == 0)
-      return true;
+    if (waypoints.length == 0) return true;
     return currentPoseSupplier
-        .get()
-        .getTranslation()
-        .getDistance(waypoints[waypoints.length - 1].getTranslation()) <= translationTolerance.get();
+            .get()
+            .getTranslation()
+            .getDistance(waypoints[waypoints.length - 1].getTranslation())
+        <= translationTolerance.get();
   }
 
   @Override
@@ -201,12 +211,12 @@ public class AlongWaypointsController implements SwerveController {
     if (isUsingAlignController) {
       return alignController.translationErrorWithin(tolerance);
     }
-    if (waypoints.length == 0)
-      return true;
+    if (waypoints.length == 0) return true;
     return currentPoseSupplier
-        .get()
-        .getTranslation()
-        .getDistance(waypoints[waypoints.length - 1].getTranslation()) <= tolerance;
+            .get()
+            .getTranslation()
+            .getDistance(waypoints[waypoints.length - 1].getTranslation())
+        <= tolerance;
   }
 
   @Override

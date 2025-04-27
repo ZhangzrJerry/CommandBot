@@ -7,9 +7,8 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * Node connection matrix class, used to represent connection relationships
- * between nodes. -1 indicates no connection, other values indicate connection
- * distance
+ * Node connection matrix class, used to represent connection relationships between nodes. -1
+ * indicates no connection, other values indicate connection distance
  */
 public class NodeConnectionMatrix {
   private final double[][] connectionMatrix;
@@ -47,8 +46,8 @@ public class NodeConnectionMatrix {
   /**
    * Set connection between two nodes
    *
-   * @param node1    First node index
-   * @param node2    Second node index
+   * @param node1 First node index
+   * @param node2 Second node index
    * @param distance Connection distance, -1 indicates no connection
    */
   public void setConnection(int node1, int node2, double distance) {
@@ -60,8 +59,10 @@ public class NodeConnectionMatrix {
 
   public void setConnection(int node1, int node2) {
     if (node1 >= 0 && node1 < nodeCount && node2 >= 0 && node2 < nodeCount) {
-      connectionMatrix[node1][node2] = nodePoses[node1].getTranslation().getDistance(nodePoses[node2].getTranslation());
-      connectionMatrix[node2][node1] = nodePoses[node1].getTranslation().getDistance(nodePoses[node2].getTranslation());
+      connectionMatrix[node1][node2] =
+          nodePoses[node1].getTranslation().getDistance(nodePoses[node2].getTranslation());
+      connectionMatrix[node2][node1] =
+          nodePoses[node1].getTranslation().getDistance(nodePoses[node2].getTranslation());
     }
   }
 

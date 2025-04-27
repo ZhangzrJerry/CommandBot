@@ -16,10 +16,8 @@ import org.littletonrobotics.junction.Logger;
 
 // TODO
 public class Odometry implements PoseService {
-  @Getter
-  private ServiceState state = ServiceState.STOPPED;
-  @Getter
-  private String errorMessage = "";
+  @Getter private ServiceState state = ServiceState.STOPPED;
+  @Getter private String errorMessage = "";
 
   private final HashMap<Double, UncertainPose2d> poseHistory = new HashMap<>();
   private final TunableNumber historyLength = new TunableNumber("Odometry/HistoryLength", 1.5);
@@ -28,8 +26,7 @@ public class Odometry implements PoseService {
   private Translation2d currentVelocity = new Translation2d();
   private Rotation2d currentHeading = new Rotation2d();
 
-  public Odometry() {
-  }
+  public Odometry() {}
 
   @Override
   public String getName() {

@@ -12,35 +12,26 @@ import lombok.experimental.ExtensionMethod;
 import org.littletonrobotics.junction.Logger;
 
 /** rely on visualize service */
-@ExtensionMethod({ GeomUtil.class })
+@ExtensionMethod({GeomUtil.class})
 public class GamePieceVisualize implements Service {
-  @Getter
-  @Setter
-  ServiceState state = ServiceState.STOPPED;
-  @Getter
-  private String errorMessage = "";
+  @Getter @Setter ServiceState state = ServiceState.STOPPED;
+  @Getter private String errorMessage = "";
   private final String name;
 
   private final Pose3d[] scorableGamePiecePose;
   private final Pose3d[] pickableGamePiecePose;
   private final Pose3d[] scoredGamePiecePose;
-  @Getter
-  private boolean hasGamePiece = false;
+  @Getter private boolean hasGamePiece = false;
   private int scoredGamePieceNums = 0;
 
   private static final double PICKABLE_MAX_DISTANCE = 0.45;
   private static final double SCORABLE_MAX_DISTANCE = 0.85;
 
-  @Setter
-  private Supplier<Pose3d> pickMechanismPoseSupplier = () -> new Pose3d();
-  @Setter
-  private Supplier<Pose3d> scoreMechanismPoseSupplier = () -> new Pose3d();
-  @Setter
-  private BooleanSupplier tryPickSupplier = () -> false;
-  @Setter
-  private BooleanSupplier tryEjectSupplier = () -> false;
-  @Setter
-  private BooleanSupplier tryScoreSupplier = () -> false;
+  @Setter private Supplier<Pose3d> pickMechanismPoseSupplier = () -> new Pose3d();
+  @Setter private Supplier<Pose3d> scoreMechanismPoseSupplier = () -> new Pose3d();
+  @Setter private BooleanSupplier tryPickSupplier = () -> false;
+  @Setter private BooleanSupplier tryEjectSupplier = () -> false;
+  @Setter private BooleanSupplier tryScoreSupplier = () -> false;
 
   @Override
   public void update() {
@@ -59,7 +50,8 @@ public class GamePieceVisualize implements Service {
             }
           }
           if (maxDistance < PICKABLE_MAX_DISTANCE) {
-            pickableGamePiecePose[minDistanceIndex] = new Pose3d(0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f, new Rotation3d());
+            pickableGamePiecePose[minDistanceIndex] =
+                new Pose3d(0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f, new Rotation3d());
             hasGamePiece = true;
           }
         }
@@ -111,7 +103,8 @@ public class GamePieceVisualize implements Service {
           }
           // If all positions are scored, score at the closest scored position
           else if (minScoredDistanceIndex != -1 && minScoredDistance < SCORABLE_MAX_DISTANCE) {
-            scoredGamePiecePose[scoredGamePieceNums] = scorableGamePiecePose[minScoredDistanceIndex];
+            scoredGamePiecePose[scoredGamePieceNums] =
+                scorableGamePiecePose[minScoredDistanceIndex];
             scoredGamePieceNums++;
             hasGamePiece = false;
           }
