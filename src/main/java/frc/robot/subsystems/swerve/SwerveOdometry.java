@@ -14,7 +14,7 @@ import frc.robot.interfaces.hardwares.sensors.gyro.GyroIOInputsAutoLogged;
 import frc.robot.interfaces.services.PoseService;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometryThread;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometryThread.WheeledObservation;
-import frc.robot.utils.LoggedUtil;
+import frc.robot.utils.dashboard.LoggedUtil;
 import frc.robot.utils.math.GeomUtil;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 import java.util.concurrent.ArrayBlockingQueue;

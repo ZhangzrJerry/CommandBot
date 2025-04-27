@@ -1,7 +1,7 @@
 package frc.robot.services;
 
 import frc.robot.interfaces.services.Service;
-import frc.robot.utils.dashboard.AlertManager;
+import frc.robot.utils.dashboard.Alert;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +20,7 @@ public class ServiceManager {
   private final Map<String, Service> services = new ConcurrentHashMap<>();
   private final List<Service> serviceList = new ArrayList<>();
   private final List<Integer> servicePriorities = new ArrayList<>();
-  private final List<AlertManager> alertList = new ArrayList<>();
+  private final List<Alert> alertList = new ArrayList<>();
   private final Map<String, String> lastErrorMessages = new ConcurrentHashMap<>();
 
   @AutoLogOutput(key = "Services/Initialized")
@@ -84,7 +84,7 @@ public class ServiceManager {
         }
       }
     }
-    alertList.add(new AlertManager(name + " ERRORED", AlertManager.AlertType.ERROR));
+    alertList.add(new Alert(name + " ERRORED", Alert.AlertType.ERROR));
   }
 
   /**

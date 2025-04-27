@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.commands.BaseCommands;
+import frc.robot.commands.RobotCommand;
 import frc.robot.interfaces.services.PoseService;
 import frc.robot.services.GamePieceVisualize;
 import frc.robot.services.NodeSelector;
@@ -41,7 +41,7 @@ public class RobotContainer {
 
   // ==== command scheduler ====
   CommandScheduler commandScheduler = CommandScheduler.getInstance();
-  BaseCommands baseCommands;
+  RobotCommand robotCommand;
 
   // ==== service manager ====
   ServiceManager serviceManager = ServiceManager.getInstance();
@@ -118,10 +118,10 @@ public class RobotContainer {
       endeffector = Endeffector.createIO();
       climber = Climber.createIO();
     }
-    baseCommands =
-        new BaseCommands(swerve, intake, arm, climber, endeffector, nodeSelector, odometry);
+    robotCommand =
+        new RobotCommand(swerve, intake, arm, climber, endeffector, nodeSelector, odometry);
     if (Robot.isSimulation()) {
-      baseCommands
+      robotCommand
           .resetPoseCmd(
               new Pose2d(ReefScape.Field.LENGTH / 2, ReefScape.Field.WIDTH / 2, Rotation2d.kZero))
           .schedule();
@@ -180,7 +180,7 @@ public class RobotContainer {
     joystick
         .back()
         .debounce(0.3)
-        .onTrue(baseCommands.setClimbingModeCmd().alongWith(joystickRumbleCmd(0.3)));
+        .onTrue(robotCommand.setClimbingModeCmd().alongWith(joystickRumbleCmd(0.3)));
 
     // ===== teleop commands =====
 
@@ -188,13 +188,13 @@ public class RobotContainer {
     joystick
         .leftTrigger(0.3)
         .and(() -> !climber.isClimbing())
-        .whileTrue(baseCommands.coralMagicEjectCmd());
+        .whileTrue(robotCommand.coralMagicEjectCmd());
 
     // ##### RT: algae magic eject #####
     joystick
         .rightTrigger(0.3)
         .and(() -> !climber.isClimbing())
-        .whileTrue(baseCommands.algaeMagicEjectCmd());
+        .whileTrue(robotCommand.algaeMagicEjectCmd());
 
     // ##### LB: left coral station pick / coral reef score with NodeSelector #####
     joystick
@@ -208,7 +208,7 @@ public class RobotContainer {
         .and(() -> !endeffector.hasCoralEndeffectorStoraged())
         .and(() -> leftBumper != BOTTON_STATE.FUNC2)
         .whileTrue(
-            baseCommands
+            robotCommand
                 .coralStationPickCmd(true)
                 .alongWith(Commands.runOnce(() -> leftBumper = BOTTON_STATE.FUNC1)));
 
@@ -218,7 +218,7 @@ public class RobotContainer {
         .and(() -> endeffector.hasCoralEndeffectorStoraged())
         .and(() -> leftBumper != BOTTON_STATE.FUNC1)
         .whileTrue(
-            baseCommands
+            robotCommand
                 .coralReefScoreCmd()
                 .alongWith(Commands.runOnce(() -> leftBumper = BOTTON_STATE.FUNC2)));
 
@@ -234,7 +234,7 @@ public class RobotContainer {
         .and(() -> !endeffector.hasCoralEndeffectorStoraged())
         .and(() -> true || rightBumper != BOTTON_STATE.FUNC2)
         .whileTrue(
-            baseCommands
+            robotCommand
                 .coralStationPickCmd(false)
                 .alongWith(Commands.runOnce(() -> rightBumper = BOTTON_STATE.FUNC1)));
 
@@ -257,7 +257,7 @@ public class RobotContainer {
                 .and(() -> endeffector.hasCoralEndeffectorStoraged())
                 .and(() -> true || rightBumper != BOTTON_STATE.FUNC1)
                 .whileTrue(
-                    baseCommands
+                    robotCommand
                         .coralReefScoreCmd(params.getKey(), params.getValue())
                         .alongWith(Commands.runOnce(() -> rightBumper = BOTTON_STATE.FUNC2))));
 
@@ -270,7 +270,7 @@ public class RobotContainer {
         .and(() -> !endeffector.hasAlgaeEndeffectorStoraged())
         .and(() -> bottonY != BOTTON_STATE.FUNC1)
         .whileTrue(
-            baseCommands
+            robotCommand
                 .algaeReefPickCmd()
                 .alongWith(Commands.runOnce(() -> bottonY = BOTTON_STATE.FUNC2)));
 
@@ -280,18 +280,18 @@ public class RobotContainer {
         .and((() -> endeffector.hasAlgaeEndeffectorStoraged()))
         .and(() -> bottonY != BOTTON_STATE.FUNC2)
         .whileTrue(
-            baseCommands
+            robotCommand
                 .algaeNetScoreCmd()
                 .alongWith(Commands.runOnce(() -> bottonY = BOTTON_STATE.FUNC1)));
 
     // ##### X: algae ground intake #####
-    joystick.x().and(() -> !climber.isClimbing()).whileTrue(baseCommands.algaeIntakePickCmd());
+    joystick.x().and(() -> !climber.isClimbing()).whileTrue(robotCommand.algaeIntakePickCmd());
 
     // ##### B: algae ground pick / processor score #####
-    joystick.b().and(() -> !climber.isClimbing()).whileTrue(baseCommands.algaeProcessorScoreCmd());
+    joystick.b().and(() -> !climber.isClimbing()).whileTrue(robotCommand.algaeProcessorScoreCmd());
 
     // ##### A: arm idle / arm home #####
-    joystick.a().and(() -> !climber.isClimbing()).onTrue(baseCommands.forcedIdleCmd());
+    joystick.a().and(() -> !climber.isClimbing()).onTrue(robotCommand.forcedIdleCmd());
 
     joystick
         .a()
@@ -300,7 +300,7 @@ public class RobotContainer {
         .onTrue(arm.getHomeCmd().alongWith(joystickRumbleCmd(0.3)));
 
     // ##### home gyro #####
-    joystick.start().onTrue(baseCommands.resetHeadingCmd());
+    joystick.start().onTrue(robotCommand.resetHeadingCmd());
   }
 
   void configureSignalBinding() {

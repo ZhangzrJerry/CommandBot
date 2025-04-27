@@ -23,7 +23,7 @@ import frc.robot.utils.AllianceFlipUtil;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 import java.util.function.BooleanSupplier;
 
-public class BaseCommands {
+public class RobotCommand {
   Swerve swerve;
   Intake intake;
   Arm arm;
@@ -35,7 +35,7 @@ public class BaseCommands {
   BooleanSupplier shouldArmLift =
       () -> swerve.atToleranceGoal() || nodeSelector.getIgnoreArmMoveCondition();
 
-  public BaseCommands(
+  public RobotCommand(
       Swerve swerve,
       Intake intake,
       Arm arm,

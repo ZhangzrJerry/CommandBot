@@ -8,11 +8,11 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.commands.CharacterizationCommand;
 import frc.robot.interfaces.hardwares.motors.DCMotorIO;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOInputsAutoLogged;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOSim;
@@ -292,76 +292,27 @@ public class Arm extends SubsystemBase {
   }
 
   public Command getShoulderKsCharacterizationCmd(double outputCurrentRampRateAmp) {
-    final var state = new StaticCharacterizationState();
-    var timer = new Timer();
-
-    return Commands.startRun(
-            () -> {
-              isCharacterizing = true;
-              timer.restart();
-            },
-            () -> {
-              state.characterizationOutput = outputCurrentRampRateAmp * timer.get();
-              shoulderIO.setCurrent(state.characterizationOutput);
-              Logger.recordOutput(
-                  "Arm/Shoulder/StaticCharacterizationCurrentOutputAmp",
-                  state.characterizationOutput);
-            },
-            this)
-        .until(
-            () ->
-                shoulderInputs.appliedVelocity
-                    >= ArmConfig.SHOULDER_STATIC_CHARACTERIZATION_VELOCITY_THRESH_METER_PER_SEC
-                        .get())
-        .finallyDo(
-            () -> {
-              isCharacterizing = false;
-              shoulderIO.setCurrent(0.0);
-              timer.stop();
-              Logger.recordOutput(
-                  "Arm/Shoulder/StaticCharacterizationCurrentOutputAmp",
-                  state.characterizationOutput);
-
-              System.out.println("Calculated Ks: " + state.characterizationOutput + " amps");
-            })
-        .withName("Arm/Shoulder kS Characterization");
+    return CharacterizationCommand.createKsCharacterizationCommand(
+        "Arm/Shoulder",
+        () -> outputCurrentRampRateAmp,
+        () -> ArmConfig.SHOULDER_STATIC_CHARACTERIZATION_VELOCITY_THRESH_METER_PER_SEC.get(),
+        current -> {
+          isCharacterizing = true;
+          shoulderIO.setCurrent(current);
+        },
+        () -> shoulderInputs.appliedVelocity);
   }
 
   public Command getElbowKsCharacterizationCmd(double outputCurrentRampRateAmp) {
-    final var state = new StaticCharacterizationState();
-    var timer = new Timer();
-
-    return Commands.startRun(
-            () -> {
-              isCharacterizing = true;
-              timer.restart();
-            },
-            () -> {
-              state.characterizationOutput = outputCurrentRampRateAmp * timer.get();
-              elbowIO.setCurrent(state.characterizationOutput);
-              Logger.recordOutput(
-                  "Arm/Elbow/StaticCharacterizationCurrentOutputAmp", state.characterizationOutput);
-            },
-            this)
-        .until(
-            () ->
-                elbowInputs.appliedVelocity
-                    >= ArmConfig.ELBOW_STATIC_CHARACTERIZATION_VELOCITY_THRESH_DEGREE_PER_SEC.get())
-        .finallyDo(
-            () -> {
-              isCharacterizing = false;
-              elbowIO.setCurrent(0.0);
-              timer.stop();
-              Logger.recordOutput(
-                  "Arm/Elbow/StaticCharacterizationCurrentOutputAmp", state.characterizationOutput);
-
-              System.out.println("Calculated Ks: " + state.characterizationOutput + " amps");
-            })
-        .withName("Arm/Elbow kS Characterization");
-  }
-
-  private static class StaticCharacterizationState {
-    public double characterizationOutput = 0.0;
+    return CharacterizationCommand.createKsCharacterizationCommand(
+        "Arm/Elbow",
+        () -> outputCurrentRampRateAmp,
+        () -> ArmConfig.ELBOW_STATIC_CHARACTERIZATION_VELOCITY_THRESH_DEGREE_PER_SEC.get(),
+        current -> {
+          isCharacterizing = true;
+          elbowIO.setCurrent(current);
+        },
+        () -> elbowInputs.appliedVelocity);
   }
 
   public Command getHomeCmd() {

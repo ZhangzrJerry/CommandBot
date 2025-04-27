@@ -7,15 +7,15 @@ import com.ctre.phoenix6.signals.S1StateValue;
 import com.ctre.phoenix6.signals.S2StateValue;
 import frc.robot.interfaces.hardwares.CanDevice;
 import frc.robot.utils.PhoenixConfigurator;
-import frc.robot.utils.dashboard.AlertManager;
-import frc.robot.utils.dashboard.AlertManager.AlertType;
+import frc.robot.utils.dashboard.Alert;
+import frc.robot.utils.dashboard.Alert.AlertType;
 
 public class BiDigitalIOCandi implements BiDigitalIO {
   private final CANdi candi;
 
   private final StatusSignal<S1StateValue> s1;
   private final StatusSignal<S2StateValue> s2;
-  private final AlertManager offlineAlert;
+  private final Alert offlineAlert;
 
   public BiDigitalIOCandi(String name, CanDevice device, CANdiConfiguration config) {
     candi = new CANdi(device.id(), device.bus());
@@ -25,7 +25,7 @@ public class BiDigitalIOCandi implements BiDigitalIO {
     s1 = candi.getS1State();
     s2 = candi.getS2State();
 
-    offlineAlert = new AlertManager(name + " offline!", AlertType.WARNING);
+    offlineAlert = new Alert(name + " offline!", AlertType.WARNING);
   }
 
   @Override

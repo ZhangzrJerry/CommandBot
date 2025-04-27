@@ -26,7 +26,7 @@ import frc.robot.interfaces.hardwares.sensors.camera.AtagVisionIOInputsAutoLogge
 import frc.robot.interfaces.hardwares.sensors.camera.AtagVisionIOPhoton;
 import frc.robot.interfaces.hardwares.sensors.camera.AtagVisionIOPhotonSim;
 import frc.robot.interfaces.services.PoseService;
-import frc.robot.utils.dashboard.AlertManager;
+import frc.robot.utils.dashboard.Alert;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,8 +47,7 @@ public class AtagVision extends SubsystemBase {
 
   private PoseService poseService;
 
-  private final AlertManager visionOfflineAlert =
-      new AlertManager("Vision offline!", AlertManager.AlertType.WARNING);
+  private final Alert visionOfflineAlert = new Alert("Vision offline!", Alert.AlertType.WARNING);
 
   public static AtagVision createReal(PoseService poseService) {
     return new AtagVision(

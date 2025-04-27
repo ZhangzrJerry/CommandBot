@@ -22,7 +22,7 @@ import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.interfaces.hardwares.CanDevice;
 import frc.robot.utils.PhoenixConfigurator;
-import frc.robot.utils.dashboard.AlertManager;
+import frc.robot.utils.dashboard.Alert;
 import frc.robot.utils.math.UnitConverter;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +31,7 @@ import lombok.Getter;
 public class DCMotorIOTalonFX implements DCMotorIO {
   private final TalonFX motor;
   private final TalonFXConfiguration config;
-  private final AlertManager offlineAlert;
+  private final Alert offlineAlert;
   private CANcoder cancoder;
   private final List<TalonFX> slaves = new ArrayList<>();
 
@@ -61,7 +61,7 @@ public class DCMotorIOTalonFX implements DCMotorIO {
     PhoenixConfigurator.configure(
         wrappedName + " config", () -> motor.getConfigurator().apply(config));
 
-    offlineAlert = new AlertManager(wrappedName + " offline!", AlertManager.AlertType.WARNING);
+    offlineAlert = new Alert(wrappedName + " offline!", Alert.AlertType.WARNING);
 
     rawPositionSignal = motor.getPosition();
     rawVelocitySignal = motor.getVelocity();
