@@ -187,12 +187,13 @@ public class AutoAlignController implements SwerveController {
     this.goalPoseSupplier = goalPoseSupplier;
     this.currentPoseSupplier = currentPoseSupplier;
     this.config = getConfigForType(type);
-    translationController.setPID(
-        config.translationGains.getKP(),
-        config.translationGains.getKI(),
-        config.translationGains.getKD());
-    rotationController.setPID(
-        config.rotationGains.getKP(), config.rotationGains.getKI(), config.rotationGains.getKD());
+    // translationController.setPID(
+    // config.translationGains.getKP(),
+    // config.translationGains.getKI(),
+    // config.translationGains.getKD());
+    // rotationController.setPID(
+    // config.rotationGains.getKP(), config.rotationGains.getKI(),
+    // config.rotationGains.getKD());
     rotationController.enableContinuousInput(-Math.PI, Math.PI);
   }
 

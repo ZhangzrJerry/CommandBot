@@ -56,7 +56,6 @@ public class CommandSelector implements Service {
   public void update() {
     // ServiceManager should pause this service during autonomous, so no need for
     // special handling here.
-
     var selectedMode = modeChooser.get();
     if (selectedMode == null) {
       return;

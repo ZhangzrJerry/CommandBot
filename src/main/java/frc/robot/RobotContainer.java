@@ -177,7 +177,7 @@ public class RobotContainer {
         .onTrue(joystickRumbleCmd(0.3))
         .onFalse(joystickRumbleCmd(0.2));
 
-    new Trigger(() -> DriverStation.isAutonomous())
+    new Trigger(() -> DriverStation.isEnabled())
         .onTrue(Commands.runOnce(() -> autoModeSelector.pause()))
         .onFalse(Commands.runOnce(() -> autoModeSelector.resume()));
 
