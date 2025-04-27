@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.ReefScape.GamePiece.Type;
 import frc.robot.interfaces.services.PoseService;
 import frc.robot.services.GamePieceVisualize;
 import frc.robot.services.NodeSelector;
@@ -23,10 +24,12 @@ import frc.robot.subsystems.endeffector.Endeffector.AlgaeEndEffectorGoal;
 import frc.robot.subsystems.endeffector.Endeffector.CoralEndEffectorGoal;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.swerve.Swerve;
+import frc.robot.subsystems.swerve.controller.AlongWaypointsController;
 import frc.robot.subsystems.swerve.controller.TeleopHeadlessController;
 import frc.robot.subsystems.vision.AtagVision;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.littletonrobotics.junction.Logger;
 
 public class RobotContainer {
   // ==== command scheduler ====
@@ -142,6 +145,8 @@ public class RobotContainer {
     configureCommandBinding();
     System.out.println("====>  [4/5] Command Binding Done");
     System.out.println("=====> [5/5] RobotContainer Init Done\n");
+
+    Logger.recordOutput("Nodes/Preset", ReefScape.Field.NODE_CONNECTION_MATRIX.getNodePoses());
   }
 
   void configureCommandBinding() {
@@ -149,12 +154,37 @@ public class RobotContainer {
     // ===== default commands =====
 
     swerve.setDefaultCommand(
-        swerve.registerControllerCmd(
-            new TeleopHeadlessController(
-                () -> -joystick.getLeftY(),
-                () -> -joystick.getLeftX(),
-                () -> -joystick.getRightX(),
-                () -> odometry.getCurrentHeading())));
+        swerve
+            .registerControllerCmd(
+                new TeleopHeadlessController(
+                    () -> -joystick.getLeftY(),
+                    () -> -joystick.getLeftX(),
+                    () -> -joystick.getRightX(),
+                    () -> odometry.getCurrentHeading()))
+            .alongWith(
+                Commands.run(
+                    () -> {
+                      Logger.recordOutput(
+                          "Nodes/Closest",
+                          ReefScape.Field.NODE_CONNECTION_MATRIX.getNodePose(
+                              ReefScape.Field.NODE_CONNECTION_MATRIX.getNearestNode(
+                                  odometry.getCurrentPose())));
+                      Logger.recordOutput(
+                          "nulll",
+                          ReefScape.Field.NODE_CONNECTION_MATRIX.getShortestPath(
+                              odometry.getCurrentPose(),
+                              ReefScape.Field.Reef.getScorePoseBySelection(Type.ALGAE, "AB")));
+                    })));
+
+    joystick
+        .povDown()
+        .whileTrue(
+            swerve.registerControllerCmd(
+                new AlongWaypointsController(
+                    () -> odometry.getCurrentPose(),
+                    ReefScape.Field.NODE_CONNECTION_MATRIX.getShortestPath(
+                        odometry.getCurrentPose(),
+                        ReefScape.Field.Reef.getScorePoseBySelection(Type.ALGAE, "AB")))));
 
     climber.setDefaultCommand(climber.registerTeleopPullCmd(joystick.povDown()));
     new Trigger(

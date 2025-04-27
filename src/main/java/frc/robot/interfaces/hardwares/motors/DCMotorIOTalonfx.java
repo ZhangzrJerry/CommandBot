@@ -24,9 +24,9 @@ import frc.robot.interfaces.hardwares.CanDevice;
 import frc.robot.utils.PhoenixConfigurator;
 import frc.robot.utils.dashboard.AlertManager;
 import frc.robot.utils.math.UnitConverter;
-import lombok.Getter;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
 
 public class DCMotorIOTalonFX implements DCMotorIO {
   private final TalonFX motor;
@@ -38,20 +38,13 @@ public class DCMotorIOTalonFX implements DCMotorIO {
   private UnitConverter ratioConverter = UnitConverter.identity();
   private UnitConverter positionConvertor = UnitConverter.identity();
 
-  @Getter
-  private final StatusSignal<Angle> rawPositionSignal;
-  @Getter
-  private final StatusSignal<AngularVelocity> rawVelocitySignal;
-  @Getter
-  private final StatusSignal<AngularAcceleration> rawAccelerationSignal;
-  @Getter
-  private final StatusSignal<Voltage> outputVoltageSignal;
-  @Getter
-  private final StatusSignal<Current> statorCurrentSignal;
-  @Getter
-  private final StatusSignal<Current> supplyCurrentSignal;
-  @Getter
-  private final StatusSignal<Temperature> temperatureSignal;
+  @Getter private final StatusSignal<Angle> rawPositionSignal;
+  @Getter private final StatusSignal<AngularVelocity> rawVelocitySignal;
+  @Getter private final StatusSignal<AngularAcceleration> rawAccelerationSignal;
+  @Getter private final StatusSignal<Voltage> outputVoltageSignal;
+  @Getter private final StatusSignal<Current> statorCurrentSignal;
+  @Getter private final StatusSignal<Current> supplyCurrentSignal;
+  @Getter private final StatusSignal<Temperature> temperatureSignal;
 
   public DCMotorIOTalonFX(
       String name,
@@ -80,29 +73,31 @@ public class DCMotorIOTalonFX implements DCMotorIO {
 
     PhoenixConfigurator.configure(
         wrappedName + " set signals update frequency",
-        () -> BaseStatusSignal.setUpdateFrequencyForAll(
-            100.0,
-            rawPositionSignal,
-            rawVelocitySignal,
-            rawAccelerationSignal,
-            outputVoltageSignal,
-            supplyCurrentSignal,
-            statorCurrentSignal,
-            temperatureSignal));
+        () ->
+            BaseStatusSignal.setUpdateFrequencyForAll(
+                100.0,
+                rawPositionSignal,
+                rawVelocitySignal,
+                rawAccelerationSignal,
+                outputVoltageSignal,
+                supplyCurrentSignal,
+                statorCurrentSignal,
+                temperatureSignal));
     PhoenixConfigurator.configure(
         wrappedName + " optimize CAN utilization", motor::optimizeBusUtilization);
   }
 
   public void updateInputs(DCMotorIOInputs inputs) {
-    inputs.connected = BaseStatusSignal.refreshAll(
-        rawPositionSignal,
-        rawVelocitySignal,
-        rawAccelerationSignal,
-        outputVoltageSignal,
-        supplyCurrentSignal,
-        statorCurrentSignal,
-        temperatureSignal)
-        .isOK();
+    inputs.connected =
+        BaseStatusSignal.refreshAll(
+                rawPositionSignal,
+                rawVelocitySignal,
+                rawAccelerationSignal,
+                outputVoltageSignal,
+                supplyCurrentSignal,
+                statorCurrentSignal,
+                temperatureSignal)
+            .isOK();
 
     offlineAlert.set(!inputs.connected);
 
@@ -168,10 +163,10 @@ public class DCMotorIOTalonFX implements DCMotorIO {
       double position, double velocity, double acceleration, double feedforward) {
     motor.setControl(
         new DynamicMotionMagicTorqueCurrentFOC(
-            ratioConverter.convertInverse(position),
-            ratioConverter.convertInverse(velocity),
-            ratioConverter.convertInverse(acceleration),
-            0.0)
+                ratioConverter.convertInverse(position),
+                ratioConverter.convertInverse(velocity),
+                ratioConverter.convertInverse(acceleration),
+                0.0)
             .withFeedForward(feedforward));
   }
 
@@ -269,7 +264,8 @@ public class DCMotorIOTalonFX implements DCMotorIO {
     return motor.getDeviceID();
   }
 
-  public DCMotorIOTalonFX withCancoder(String name, CanDevice cancoder, CANcoderConfiguration coderConfig) {
+  public DCMotorIOTalonFX withCancoder(
+      String name, CanDevice cancoder, CANcoderConfiguration coderConfig) {
     var wrappedName = "[" + name + "]";
     this.cancoder = new CANcoder(cancoder.id(), cancoder.bus());
     PhoenixConfigurator.configure(
@@ -283,7 +279,8 @@ public class DCMotorIOTalonFX implements DCMotorIO {
     return this;
   }
 
-  public DCMotorIOTalonFX withFollower(CanDevice talonfx, TalonFXConfiguration config, boolean isInverted) {
+  public DCMotorIOTalonFX withFollower(
+      CanDevice talonfx, TalonFXConfiguration config, boolean isInverted) {
     // the main purpose of the config
     // is to set the motor mode when disabled
     TalonFX slave = new TalonFX(talonfx.id(), talonfx.bus());

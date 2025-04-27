@@ -85,10 +85,10 @@ public class Climber extends SubsystemBase {
 
   public Command registerTeleopPullCmd(BooleanSupplier wantPullSupplier) {
     return Commands.run(
-        () -> {
-          this.wantPullSuppliear = wantPullSupplier;
-        },
-        this)
+            () -> {
+              this.wantPullSuppliear = wantPullSupplier;
+            },
+            this)
         .withName("Climber/Teleop Pull");
   }
 
@@ -104,12 +104,13 @@ public class Climber extends SubsystemBase {
     transformTree.registerTransformComponent(
         Constants.Ascope.Component.CLIMBER,
         Constants.Ascope.Component.DRIVETRAIN,
-        () -> ClimberConfig.ZEROED_CLIMBER_TF.plus(
-            new Transform3d(
-                0,
-                0,
-                0,
-                new Rotation3d(0, 0, Units.degreesToRadians(inputs.appliedPosition - 165.0)))));
+        () ->
+            ClimberConfig.ZEROED_CLIMBER_TF.plus(
+                new Transform3d(
+                    0,
+                    0,
+                    0,
+                    new Rotation3d(0, 0, Units.degreesToRadians(inputs.appliedPosition - 165.0)))));
   }
 
   private Climber(DCMotorIO io) {
@@ -137,7 +138,6 @@ public class Climber extends SubsystemBase {
   }
 
   public static Climber createIO() {
-    return new Climber(new DCMotorIO() {
-    });
+    return new Climber(new DCMotorIO() {});
   }
 }

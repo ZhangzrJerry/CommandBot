@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Filesystem;
 import frc.robot.utils.AllianceFlipUtil;
+import frc.robot.utils.NodeConnectionMatrix;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -585,6 +586,49 @@ public class ReefScape {
     public static final double MID_Y = 4.0191121101379395;
     public static final double HIGH_Y = 5.851738929748535;
     public static final Rotation3d ROTATION = new Rotation3d(0.0, Math.PI / 2.0, 0.0);
+
+    public static final double PRESET_ADJUST_X = 1.75;
+    public static final double PRESET_ADJUST_Y = 0.0;
+
+    public static final Pose2d[] PREDEFINED_POSES =
+        new Pose2d[] {
+          PoseUtils.getPoseBasedOnTag(18, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
+          PoseUtils.getPoseBasedOnTag(17, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
+          PoseUtils.getPoseBasedOnTag(22, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
+          PoseUtils.getPoseBasedOnTag(
+              21, PRESET_ADJUST_X - 0.25, PRESET_ADJUST_Y, new Rotation2d()),
+          PoseUtils.getPoseBasedOnTag(20, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
+          PoseUtils.getPoseBasedOnTag(19, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
+          PoseUtils.getPoseBasedOnTag(7, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
+          PoseUtils.getPoseBasedOnTag(8, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
+          PoseUtils.getPoseBasedOnTag(9, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
+          PoseUtils.getPoseBasedOnTag(
+              10, PRESET_ADJUST_X - 0.25, PRESET_ADJUST_Y, new Rotation2d()),
+          PoseUtils.getPoseBasedOnTag(11, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
+          PoseUtils.getPoseBasedOnTag(6, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
+        };
+
+    public static final NodeConnectionMatrix NODE_CONNECTION_MATRIX =
+        new NodeConnectionMatrix(PREDEFINED_POSES);
+
+    static {
+      NODE_CONNECTION_MATRIX.setConnection(0, 1);
+      NODE_CONNECTION_MATRIX.setConnection(1, 2);
+      NODE_CONNECTION_MATRIX.setConnection(2, 3);
+      NODE_CONNECTION_MATRIX.setConnection(3, 4);
+      NODE_CONNECTION_MATRIX.setConnection(4, 5);
+      NODE_CONNECTION_MATRIX.setConnection(5, 0);
+
+      NODE_CONNECTION_MATRIX.setConnection(6, 7);
+      NODE_CONNECTION_MATRIX.setConnection(7, 8);
+      NODE_CONNECTION_MATRIX.setConnection(8, 9);
+      NODE_CONNECTION_MATRIX.setConnection(9, 10);
+      NODE_CONNECTION_MATRIX.setConnection(10, 11);
+      NODE_CONNECTION_MATRIX.setConnection(11, 6);
+
+      NODE_CONNECTION_MATRIX.setConnection(2, 10);
+      NODE_CONNECTION_MATRIX.setConnection(4, 8);
+    }
 
     // 礁石区域相关常量
     public static class Reef {

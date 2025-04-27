@@ -63,8 +63,7 @@ public class Intake extends SubsystemBase {
   private boolean slammed = false;
   private Debouncer slamDebouncer = new Debouncer(0.0);
 
-  @Setter
-  private BooleanSupplier dodgeSignalSupplier = () -> false;
+  @Setter private BooleanSupplier dodgeSignalSupplier = () -> false;
   private final Debouncer needDodgeDebouncer = new Debouncer(0.2, Debouncer.DebounceType.kFalling);
 
   @Override
@@ -83,7 +82,8 @@ public class Intake extends SubsystemBase {
     rollerIO.setVoltage(goal.getRollerVoltageVolt());
 
     if (slamDebouncer.calculate(
-        Math.abs(armIOInputs.appliedVelocity) <= IntakeConfig.slamVelocityThreshDegreePerSec.getAsDouble())) {
+        Math.abs(armIOInputs.appliedVelocity)
+            <= IntakeConfig.slamVelocityThreshDegreePerSec.getAsDouble())) {
       slammed = true;
     }
 
@@ -165,20 +165,19 @@ public class Intake extends SubsystemBase {
   }
 
   public static Intake createIO() {
-    return new Intake(new DCMotorIO() {
-    }, new DCMotorIO() {
-    });
+    return new Intake(new DCMotorIO() {}, new DCMotorIO() {});
   }
 
   public void registerTransform(TransformTree transformTree) {
     transformTree.registerTransformComponent(
         Constants.Ascope.Component.INTAKE,
         Constants.Ascope.Component.DRIVETRAIN,
-        () -> IntakeConfig.ZEROED_INTAKE_TF.plus(
-            new Transform3d(
-                0,
-                0,
-                0,
-                new Rotation3d(Units.degreesToRadians(armIOInputs.appliedPosition), 0, 0))));
+        () ->
+            IntakeConfig.ZEROED_INTAKE_TF.plus(
+                new Transform3d(
+                    0,
+                    0,
+                    0,
+                    new Rotation3d(Units.degreesToRadians(armIOInputs.appliedPosition), 0, 0))));
   }
 }
