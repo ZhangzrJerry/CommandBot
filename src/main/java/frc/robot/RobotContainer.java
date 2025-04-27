@@ -9,13 +9,13 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.BaseCommands;
 import frc.robot.interfaces.services.PoseService;
 import frc.robot.services.GamePieceVisualize;
 import frc.robot.services.NodeSelector;
 import frc.robot.services.Odometry;
 import frc.robot.services.ServiceManager;
 import frc.robot.services.TransformTree;
-import frc.robot.subsystems.SuperStructure;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.climber.Climber;
 import frc.robot.subsystems.endeffector.Endeffector;
@@ -30,14 +30,6 @@ import java.util.Map.Entry;
 import org.littletonrobotics.junction.Logger;
 
 public class RobotContainer {
-  // ==== command scheduler ====
-  CommandScheduler commandScheduler = CommandScheduler.getInstance();
-
-  // ==== service manager ====
-  ServiceManager serviceManager = ServiceManager.getInstance();
-
-  // ==== super structure ====
-  SuperStructure superStructure;
 
   // ==== physical subsystems ====
   private final Swerve swerve;
@@ -47,14 +39,19 @@ public class RobotContainer {
   private final Climber climber;
   private final AtagVision vision;
 
-  // ==== virtual services ====
+  // ==== command scheduler ====
+  CommandScheduler commandScheduler = CommandScheduler.getInstance();
+  BaseCommands baseCommands;
+
+  // ==== service manager ====
+  ServiceManager serviceManager = ServiceManager.getInstance();
   PoseService odometry;
   TransformTree transformTree;
   NodeSelector nodeSelector;
   GamePieceVisualize algaeVisualizer; // -> rely on transform tree
   GamePieceVisualize coralVisualizer; // -> rely on transform tree
 
-  // ==== physical services ====
+  // ====
   private final CommandXboxController joystick =
       new CommandXboxController(Constants.Ports.Joystick.DRIVER);
   private BOTTON_STATE leftBumper = BOTTON_STATE.IDLE;
@@ -121,10 +118,10 @@ public class RobotContainer {
       endeffector = Endeffector.createIO();
       climber = Climber.createIO();
     }
-    superStructure =
-        new SuperStructure(swerve, intake, arm, climber, endeffector, nodeSelector, odometry);
+    baseCommands =
+        new BaseCommands(swerve, intake, arm, climber, endeffector, nodeSelector, odometry);
     if (Robot.isSimulation()) {
-      superStructure
+      baseCommands
           .resetPoseCmd(
               new Pose2d(ReefScape.Field.LENGTH / 2, ReefScape.Field.WIDTH / 2, Rotation2d.kZero))
           .schedule();
@@ -183,7 +180,7 @@ public class RobotContainer {
     joystick
         .back()
         .debounce(0.3)
-        .onTrue(superStructure.setClimbingModeCmd().alongWith(joystickRumbleCmd(0.3)));
+        .onTrue(baseCommands.setClimbingModeCmd().alongWith(joystickRumbleCmd(0.3)));
 
     // ===== teleop commands =====
 
@@ -191,13 +188,13 @@ public class RobotContainer {
     joystick
         .leftTrigger(0.3)
         .and(() -> !climber.isClimbing())
-        .whileTrue(superStructure.coralMagicEjectCmd());
+        .whileTrue(baseCommands.coralMagicEjectCmd());
 
     // ##### RT: algae magic eject #####
     joystick
         .rightTrigger(0.3)
         .and(() -> !climber.isClimbing())
-        .whileTrue(superStructure.algaeMagicEjectCmd());
+        .whileTrue(baseCommands.algaeMagicEjectCmd());
 
     // ##### LB: left coral station pick / coral reef score with NodeSelector #####
     joystick
@@ -211,7 +208,7 @@ public class RobotContainer {
         .and(() -> !endeffector.hasCoralEndeffectorStoraged())
         .and(() -> leftBumper != BOTTON_STATE.FUNC2)
         .whileTrue(
-            superStructure
+            baseCommands
                 .coralStationPickCmd(true)
                 .alongWith(Commands.runOnce(() -> leftBumper = BOTTON_STATE.FUNC1)));
 
@@ -221,7 +218,7 @@ public class RobotContainer {
         .and(() -> endeffector.hasCoralEndeffectorStoraged())
         .and(() -> leftBumper != BOTTON_STATE.FUNC1)
         .whileTrue(
-            superStructure
+            baseCommands
                 .coralReefScoreCmd()
                 .alongWith(Commands.runOnce(() -> leftBumper = BOTTON_STATE.FUNC2)));
 
@@ -237,7 +234,7 @@ public class RobotContainer {
         .and(() -> !endeffector.hasCoralEndeffectorStoraged())
         .and(() -> true || rightBumper != BOTTON_STATE.FUNC2)
         .whileTrue(
-            superStructure
+            baseCommands
                 .coralStationPickCmd(false)
                 .alongWith(Commands.runOnce(() -> rightBumper = BOTTON_STATE.FUNC1)));
 
@@ -260,7 +257,7 @@ public class RobotContainer {
                 .and(() -> endeffector.hasCoralEndeffectorStoraged())
                 .and(() -> true || rightBumper != BOTTON_STATE.FUNC1)
                 .whileTrue(
-                    superStructure
+                    baseCommands
                         .coralReefScoreCmd(params.getKey(), params.getValue())
                         .alongWith(Commands.runOnce(() -> rightBumper = BOTTON_STATE.FUNC2))));
 
@@ -273,7 +270,7 @@ public class RobotContainer {
         .and(() -> !endeffector.hasAlgaeEndeffectorStoraged())
         .and(() -> bottonY != BOTTON_STATE.FUNC1)
         .whileTrue(
-            superStructure
+            baseCommands
                 .algaeReefPickCmd()
                 .alongWith(Commands.runOnce(() -> bottonY = BOTTON_STATE.FUNC2)));
 
@@ -283,21 +280,18 @@ public class RobotContainer {
         .and((() -> endeffector.hasAlgaeEndeffectorStoraged()))
         .and(() -> bottonY != BOTTON_STATE.FUNC2)
         .whileTrue(
-            superStructure
+            baseCommands
                 .algaeNetScoreCmd()
                 .alongWith(Commands.runOnce(() -> bottonY = BOTTON_STATE.FUNC1)));
 
     // ##### X: algae ground intake #####
-    joystick.x().and(() -> !climber.isClimbing()).whileTrue(superStructure.algaeIntakePickCmd());
+    joystick.x().and(() -> !climber.isClimbing()).whileTrue(baseCommands.algaeIntakePickCmd());
 
     // ##### B: algae ground pick / processor score #####
-    joystick
-        .b()
-        .and(() -> !climber.isClimbing())
-        .whileTrue(superStructure.algaeProcessorScoreCmd());
+    joystick.b().and(() -> !climber.isClimbing()).whileTrue(baseCommands.algaeProcessorScoreCmd());
 
     // ##### A: arm idle / arm home #####
-    joystick.a().and(() -> !climber.isClimbing()).onTrue(superStructure.forcedIdleCmd());
+    joystick.a().and(() -> !climber.isClimbing()).onTrue(baseCommands.forcedIdleCmd());
 
     joystick
         .a()
@@ -306,7 +300,7 @@ public class RobotContainer {
         .onTrue(arm.getHomeCmd().alongWith(joystickRumbleCmd(0.3)));
 
     // ##### home gyro #####
-    joystick.start().onTrue(superStructure.resetHeadingCmd());
+    joystick.start().onTrue(baseCommands.resetHeadingCmd());
   }
 
   void configureSignalBinding() {

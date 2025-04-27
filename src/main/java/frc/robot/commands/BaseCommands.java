@@ -1,4 +1,4 @@
-package frc.robot.subsystems;
+package frc.robot.commands;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -23,7 +23,7 @@ import frc.robot.utils.AllianceFlipUtil;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 import java.util.function.BooleanSupplier;
 
-public class SuperStructure {
+public class BaseCommands {
   Swerve swerve;
   Intake intake;
   Arm arm;
@@ -35,7 +35,7 @@ public class SuperStructure {
   BooleanSupplier shouldArmLift =
       () -> swerve.atToleranceGoal() || nodeSelector.getIgnoreArmMoveCondition();
 
-  public SuperStructure(
+  public BaseCommands(
       Swerve swerve,
       Intake intake,
       Arm arm,
