@@ -218,17 +218,22 @@ public class NodeConnectionMatrix {
     Collections.reverse(path);
 
     // Convert node indices to poses
-    Pose2d[] posePath = new Pose2d[path.size() + 1];
+    Pose2d[] posePath = new Pose2d[path.size() + 2];
+    posePath[0] = currentPose;
     for (int i = 0; i < path.size(); i++) {
-      posePath[i] = getNodePose(path.get(i));
+      posePath[i + 1] = getNodePose(path.get(i));
     }
     // Add the target pose at the end
-    posePath[path.size()] = targetPose;
-
+    posePath[path.size() + 1] = targetPose;
     return posePath;
   }
 
   public int getNearestNode(Pose2d pose) {
+    // 检查输入 pose 是否有效
+    if (Double.isNaN(pose.getX()) || Double.isNaN(pose.getY())) {
+      throw new IllegalArgumentException("Invalid pose: contains NaN values");
+    }
+
     double minDistance = Double.MAX_VALUE;
     int nearestNode = -1;
     for (int i = 0; i < nodeCount; i++) {

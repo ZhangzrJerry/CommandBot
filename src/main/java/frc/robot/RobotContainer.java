@@ -154,27 +154,12 @@ public class RobotContainer {
     // ===== default commands =====
 
     swerve.setDefaultCommand(
-        swerve
-            .registerControllerCmd(
-                new TeleopHeadlessController(
-                    () -> -joystick.getLeftY(),
-                    () -> -joystick.getLeftX(),
-                    () -> -joystick.getRightX(),
-                    () -> odometry.getCurrentHeading()))
-            .alongWith(
-                Commands.run(
-                    () -> {
-                      Logger.recordOutput(
-                          "Nodes/Closest",
-                          ReefScape.Field.NODE_CONNECTION_MATRIX.getNodePose(
-                              ReefScape.Field.NODE_CONNECTION_MATRIX.getNearestNode(
-                                  odometry.getCurrentPose())));
-                      Logger.recordOutput(
-                          "nulll",
-                          ReefScape.Field.NODE_CONNECTION_MATRIX.getShortestPath(
-                              odometry.getCurrentPose(),
-                              ReefScape.Field.Reef.getScorePoseBySelection(Type.ALGAE, "AB")));
-                    })));
+        swerve.registerControllerCmd(
+            new TeleopHeadlessController(
+                () -> -joystick.getLeftY(),
+                () -> -joystick.getLeftX(),
+                () -> -joystick.getRightX(),
+                () -> odometry.getCurrentHeading())));
 
     joystick
         .povDown()
