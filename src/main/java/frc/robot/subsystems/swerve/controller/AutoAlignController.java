@@ -22,7 +22,7 @@ public class AutoAlignController implements SwerveController {
     REEF_CORAL,
     REEF_ALGAE,
     CORAL_STATION_LEFT,
-    CORAL_STATION_RIGHT
+    CORAL_STATION_RIGHT,
   }
 
   private static class AlignConfig {

@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.ReefScape;
@@ -18,6 +20,7 @@ import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.controller.AutoAlignController;
 import frc.robot.subsystems.swerve.controller.AutoAlignController.AlignType;
 import frc.robot.utils.AllianceFlipUtil;
+import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 import java.util.function.BooleanSupplier;
 
 public class SuperStructure {
@@ -248,6 +251,48 @@ public class SuperStructure {
                 .withName(name + "/Set Score Pose")));
   }
 
+  public Command coralReefScoreCmd() {
+    return Commands.parallel(
+        Commands.either(
+            Commands.none(),
+            swerve.registerControllerCmd(
+                new AutoAlignController(
+                    AlignType.REEF_CORAL,
+                    () ->
+                        AllianceFlipUtil.isRobotInBlueSide(odometry.getCurrentPose())
+                            ? AllianceFlipUtil.flipPose(
+                                ReefScape.Field.Reef.getScorePoseBySelection(
+                                    ReefScape.GamePiece.Type.CORAL,
+                                    nodeSelector.getSelectedBranch()))
+                            : ReefScape.Field.Reef.getScorePoseBySelection(
+                                ReefScape.GamePiece.Type.CORAL, nodeSelector.getSelectedBranch()),
+                    () -> odometry.getCurrentPose())),
+            () -> nodeSelector.getIgnoreArmMoveCondition()),
+        Commands.sequence(
+            Commands.runOnce(
+                () -> {
+                  arm.setGoal(ArmGoal.IDLE);
+                }),
+            Commands.waitUntil(shouldArmLift),
+            Commands.runOnce(
+                () -> {
+                  switch (nodeSelector.getSelectedLevel()) {
+                    case "1":
+                      arm.setGoal(ArmGoal.CORAL_L1_SCORE);
+                      break;
+                    case "2":
+                      arm.setGoal(ArmGoal.CORAL_L2_SCORE);
+                      break;
+                    case "3":
+                      arm.setGoal(ArmGoal.CORAL_L3_SCORE);
+                      break;
+                    case "4":
+                      arm.setGoal(ArmGoal.CORAL_L4_SCORE);
+                      break;
+                  }
+                })));
+  }
+
   public Command coralMagicEjectCmd() {
     return Commands.startEnd(
             () -> {
@@ -271,6 +316,29 @@ public class SuperStructure {
               arm.setGoal(ArmGoal.CLIMB);
             })
         .withName("Super/Set Climbing");
+  }
+
+  public Command resetPoseCmd(Pose2d pose) {
+    return Commands.runOnce(
+            () -> {
+              odometry.resetPose(pose);
+              swerve.resetWheeledPoseCmd(new UncertainPose2d(pose)).schedule();
+            })
+        .withName("Super/Reset Pose");
+  }
+
+  public Command resetHeadingCmd() {
+    return Commands.runOnce(
+            () -> {
+              swerve
+                  .resetGyroHeadingCmd(
+                      AllianceFlipUtil.isRedAlliance() ? Rotation2d.k180deg : Rotation2d.kZero)
+                  .schedule();
+              odometry.resetHeading(
+                  AllianceFlipUtil.isRedAlliance() ? Rotation2d.k180deg : Rotation2d.kZero);
+            },
+            swerve)
+        .withName("Super/Reset Heading");
   }
 
   public Command autoIdleCmd() {

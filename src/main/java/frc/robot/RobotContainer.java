@@ -1,6 +1,8 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -120,6 +122,12 @@ public class RobotContainer {
     }
     superStructure =
         new SuperStructure(swerve, intake, arm, climber, endeffector, nodeSelector, odometry);
+    if (Robot.isSimulation()) {
+      superStructure
+          .resetPoseCmd(
+              new Pose2d(ReefScape.Field.LENGTH / 2, ReefScape.Field.WIDTH / 2, Rotation2d.kZero))
+          .schedule();
+    }
     System.out.println("==>    [2/5] Subsystem Instantiate Done");
 
     // ======= configure signal subscribers =======
@@ -137,7 +145,9 @@ public class RobotContainer {
   }
 
   void configureCommandBinding() {
+
     // ===== default commands =====
+
     swerve.setDefaultCommand(
         swerve.registerControllerCmd(
             new TeleopHeadlessController(
@@ -145,6 +155,7 @@ public class RobotContainer {
                 () -> -joystick.getLeftX(),
                 () -> -joystick.getRightX(),
                 () -> odometry.getCurrentHeading())));
+
     climber.setDefaultCommand(climber.registerTeleopPullCmd(joystick.povDown()));
     new Trigger(
             () ->
@@ -200,6 +211,16 @@ public class RobotContainer {
             superStructure
                 .coralStationPickCmd(true)
                 .alongWith(Commands.runOnce(() -> leftBumper = BOTTON_STATE.FUNC1)));
+
+    joystick
+        .leftBumper()
+        .and(() -> !climber.isClimbing())
+        .and(() -> endeffector.hasCoralEndeffectorStoraged())
+        .and(() -> leftBumper != BOTTON_STATE.FUNC1)
+        .whileTrue(
+            superStructure
+                .coralReefScoreCmd()
+                .alongWith(Commands.runOnce(() -> leftBumper = BOTTON_STATE.FUNC2)));
 
     // ##### RB: right coral station pick / coral reef score with POV #####
     joystick
@@ -263,6 +284,15 @@ public class RobotContainer {
                 .algaeNetScoreCmd()
                 .alongWith(Commands.runOnce(() -> bottonY = BOTTON_STATE.FUNC1)));
 
+    // ##### X: algae ground intake #####
+    joystick.x().and(() -> !climber.isClimbing()).whileTrue(superStructure.algaeIntakePickCmd());
+
+    // ##### algae ground pick / processor score #####
+    joystick
+        .b()
+        .and(() -> !climber.isClimbing())
+        .whileTrue(superStructure.algaeProcessorScoreCmd());
+
     // ##### arm idle / arm home #####
     joystick.a().and(() -> !climber.isClimbing()).onTrue(superStructure.forcedIdleCmd());
 
@@ -272,11 +302,8 @@ public class RobotContainer {
         .debounce(0.3)
         .onTrue(arm.getHomeCmd().alongWith(joystickRumbleCmd(0.3)));
 
-    // ##### algae ground pick / processor score #####
-    joystick
-        .b()
-        .and(() -> !climber.isClimbing())
-        .whileTrue(superStructure.algaeProcessorScoreCmd());
+    // ##### home gyro #####
+    joystick.start().onTrue(superStructure.resetHeadingCmd());
   }
 
   void configureSignalBinding() {
