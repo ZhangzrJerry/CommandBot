@@ -6,22 +6,26 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-/** 节点连接矩阵类，用于表示节点之间的连接关系 -1表示不连接，其他数值表示连接的距离 */
+/**
+ * Node connection matrix class, used to represent connection relationships
+ * between nodes. -1 indicates no connection, other values indicate connection
+ * distance
+ */
 public class NodeConnectionMatrix {
   private final double[][] connectionMatrix;
   private final int nodeCount;
   private final Pose2d[] nodePoses;
 
   /**
-   * 构造函数
+   * Constructor
    *
-   * @param nodeCount 节点数量
+   * @param nodeCount Number of nodes
    */
   public NodeConnectionMatrix(int nodeCount) {
     this.nodeCount = nodeCount;
     this.connectionMatrix = new double[nodeCount][nodeCount];
     this.nodePoses = new Pose2d[nodeCount];
-    // 初始化所有连接为-1（不连接）
+    // Initialize all connections to -1 (no connection)
     for (int i = 0; i < nodeCount; i++) {
       for (int j = 0; j < nodeCount; j++) {
         connectionMatrix[i][j] = -1;
@@ -41,33 +45,31 @@ public class NodeConnectionMatrix {
   }
 
   /**
-   * 设置两个节点之间的连接
+   * Set connection between two nodes
    *
-   * @param node1 第一个节点索引
-   * @param node2 第二个节点索引
-   * @param distance 连接距离，-1表示不连接
+   * @param node1    First node index
+   * @param node2    Second node index
+   * @param distance Connection distance, -1 indicates no connection
    */
   public void setConnection(int node1, int node2, double distance) {
     if (node1 >= 0 && node1 < nodeCount && node2 >= 0 && node2 < nodeCount) {
       connectionMatrix[node1][node2] = distance;
-      connectionMatrix[node2][node1] = distance; // 无向图，双向连接
+      connectionMatrix[node2][node1] = distance; // Undirected graph, bidirectional connection
     }
   }
 
   public void setConnection(int node1, int node2) {
     if (node1 >= 0 && node1 < nodeCount && node2 >= 0 && node2 < nodeCount) {
-      connectionMatrix[node1][node2] =
-          nodePoses[node1].getTranslation().getDistance(nodePoses[node2].getTranslation());
-      connectionMatrix[node2][node1] =
-          nodePoses[node1].getTranslation().getDistance(nodePoses[node2].getTranslation());
+      connectionMatrix[node1][node2] = nodePoses[node1].getTranslation().getDistance(nodePoses[node2].getTranslation());
+      connectionMatrix[node2][node1] = nodePoses[node1].getTranslation().getDistance(nodePoses[node2].getTranslation());
     }
   }
 
   /**
-   * 设置节点的位置
+   * Set node position
    *
-   * @param node 节点索引
-   * @param pose 节点位置
+   * @param node Node index
+   * @param pose Node position
    */
   public void setNodePose(int node, Pose2d pose) {
     if (node >= 0 && node < nodeCount) {
@@ -76,21 +78,21 @@ public class NodeConnectionMatrix {
   }
 
   /**
-   * 获取节点的位置
+   * Get node position
    *
-   * @param node 节点索引
-   * @return 节点位置，如果未设置则返回null
+   * @param node Node index
+   * @return Node position, returns null if not set
    */
   public Pose2d getNodePose(int node) {
     return nodePoses[node];
   }
 
   /**
-   * 获取两个节点之间的连接距离
+   * Get connection distance between two nodes
    *
-   * @param node1 第一个节点索引
-   * @param node2 第二个节点索引
-   * @return 连接距离，-1表示不连接
+   * @param node1 First node index
+   * @param node2 Second node index
+   * @return Connection distance, -1 indicates no connection
    */
   public double getConnection(int node1, int node2) {
     if (node1 >= 0 && node1 < nodeCount && node2 >= 0 && node2 < nodeCount) {
@@ -112,38 +114,38 @@ public class NodeConnectionMatrix {
   }
 
   /**
-   * 检查两个节点是否连接
+   * Check if two nodes are connected
    *
-   * @param node1 第一个节点索引
-   * @param node2 第二个节点索引
-   * @return 是否连接
+   * @param node1 First node index
+   * @param node2 Second node index
+   * @return Whether connected
    */
   public boolean isConnected(int node1, int node2) {
     return getConnection(node1, node2) >= 0;
   }
 
   /**
-   * 获取节点数量
+   * Get number of nodes
    *
-   * @return 节点数量
+   * @return Number of nodes
    */
   public int getNodeCount() {
     return nodeCount;
   }
 
   /**
-   * 获取连接矩阵
+   * Get connection matrix
    *
-   * @return 连接矩阵
+   * @return Connection matrix
    */
   public double[][] getConnectionMatrix() {
     return connectionMatrix;
   }
 
   /**
-   * 获取所有节点的位置
+   * Get positions of all nodes
    *
-   * @return 节点位置映射
+   * @return Node position mapping
    */
   public Pose2d[] getNodePoses() {
     return nodePoses;

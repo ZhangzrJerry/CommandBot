@@ -19,3 +19,8 @@
 | `Back`     | **Enter Climbing Mode**                     |
 | `Start`    | **Home Gyro**                               |
 | `POV Down` | **Climbing** if in climbing mode            |
+
+Things need to be improved:
+
+- The algorithm in odometry has not yet complete
+-

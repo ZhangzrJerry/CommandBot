@@ -16,8 +16,10 @@ import org.littletonrobotics.junction.Logger;
 
 // TODO
 public class Odometry implements PoseService {
-  @Getter private ServiceState state = ServiceState.STOPPED;
-  @Getter private String errorMessage = "";
+  @Getter
+  private ServiceState state = ServiceState.STOPPED;
+  @Getter
+  private String errorMessage = "";
 
   private final HashMap<Double, UncertainPose2d> poseHistory = new HashMap<>();
   private final TunableNumber historyLength = new TunableNumber("Odometry/HistoryLength", 1.5);
@@ -26,7 +28,8 @@ public class Odometry implements PoseService {
   private Translation2d currentVelocity = new Translation2d();
   private Rotation2d currentHeading = new Rotation2d();
 
-  public Odometry() {}
+  public Odometry() {
+  }
 
   @Override
   public String getName() {
@@ -52,15 +55,15 @@ public class Odometry implements PoseService {
   @Override
   public void update() {
     try {
-      // 更新当前位姿
+      // Update current pose
       updateCurrentPose();
 
-      // 记录到 SmartDashboard
+      // Record to SmartDashboard
       SmartDashboard.putNumber("Odometry/X", currentPose.getX());
       SmartDashboard.putNumber("Odometry/Y", currentPose.getY());
       SmartDashboard.putNumber("Odometry/Heading", currentPose.getRotation().getDegrees());
 
-      // 记录到 Logger
+      // Record to Logger
       Logger.recordOutput("Services/Odometry/Pose", currentPose);
       Logger.recordOutput("Services/Odometry/Velocity", currentVelocity);
     } catch (Exception e) {
@@ -104,14 +107,14 @@ public class Odometry implements PoseService {
       Transform2d transform = observation.transform();
       Matrix<N3, N1> stdDevs = observation.stdDevs();
 
-      // 更新位姿缓冲区
+      // Update pose buffer
       if (poseHistory.isEmpty()) {
         poseHistory.put(startTime, new UncertainPose2d(currentPose, Matrix.eye(Nat.N3())));
       }
       Pose2d endPose = currentPose.plus(transform);
       poseHistory.put(endTime, new UncertainPose2d(endPose, Matrix.eye(Nat.N3())));
 
-      // 清理旧数据
+      // Clean up old data
       cleanupOldData();
     } catch (Exception e) {
       setError("Transform observation error: " + e.getMessage());
@@ -125,10 +128,10 @@ public class Odometry implements PoseService {
       Pose2d pose = observation.pose();
       Matrix<N3, N1> stdDevs = observation.stdDevs();
 
-      // 更新历史记录
+      // Update history
       poseHistory.put(timestamp, new UncertainPose2d(pose, Matrix.eye(Nat.N3())));
 
-      // 清理旧数据
+      // Clean up old data
       cleanupOldData();
     } catch (Exception e) {
       setError("Pose observation error: " + e.getMessage());
@@ -137,7 +140,7 @@ public class Odometry implements PoseService {
 
   private void updateCurrentPose() {
     try {
-      // 使用最新的位姿观测值
+      // Use the latest pose observation
       if (!poseHistory.isEmpty()) {
         double latestTime = poseHistory.keySet().stream().max(Double::compareTo).get();
         UncertainPose2d latestPose = poseHistory.get(latestTime);
@@ -145,7 +148,7 @@ public class Odometry implements PoseService {
         currentHeading = currentPose.getRotation();
       }
 
-      // 计算速度
+      // Calculate velocity
       if (poseHistory.size() >= 2) {
         double currentTime = Timer.getFPGATimestamp();
         double previousTime = currentTime - 0.02; // 20ms
@@ -166,7 +169,7 @@ public class Odometry implements PoseService {
     double currentTime = Timer.getFPGATimestamp();
     double cutoffTime = currentTime - historyLength.get();
 
-    // 清理历史记录
+    // Clean up history
     poseHistory.entrySet().removeIf(entry -> entry.getKey() < cutoffTime);
   }
 }

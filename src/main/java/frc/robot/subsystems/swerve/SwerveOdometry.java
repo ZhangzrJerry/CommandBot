@@ -22,7 +22,7 @@ import lombok.Getter;
 import lombok.experimental.ExtensionMethod;
 import org.littletonrobotics.junction.Logger;
 
-@ExtensionMethod({GeomUtil.class})
+@ExtensionMethod({ GeomUtil.class })
 public class SwerveOdometry {
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
@@ -30,8 +30,7 @@ public class SwerveOdometry {
   ArrayBlockingQueue<WheeledObservation> odometryCachedWheeledObservationQueue;
 
   @Getter
-  private UncertainPose2d pose =
-      new UncertainPose2d(new Pose2d(), 0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f);
+  private UncertainPose2d pose = new UncertainPose2d(new Pose2d(), 0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f);
 
   private Rotation2d lastGyroYaw;
   private SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[4];
@@ -55,8 +54,7 @@ public class SwerveOdometry {
     gyroIO.updateInputs(gyroInputs);
     Logger.processInputs("Swerve/Gyro", gyroInputs);
 
-    var wheeledObservationArray =
-        odometryCachedWheeledObservationQueue.toArray(WheeledObservation[]::new);
+    var wheeledObservationArray = odometryCachedWheeledObservationQueue.toArray(WheeledObservation[]::new);
     odometryCachedWheeledObservationQueue.clear();
 
     for (int i = 0; i < wheeledObservationArray.length; i++) {
@@ -89,12 +87,11 @@ public class SwerveOdometry {
     pose.setYVariance(pose.getYVariance() + translationError);
     pose.setThetaVariance(pose.getThetaVariance() + rotationError);
 
-    // 向poseService发送新的姿态数据
-    Matrix<N3, N1> stdDevs =
-        VecBuilder.fill(
-            Math.sqrt(pose.getXVariance()),
-            Math.sqrt(pose.getYVariance()),
-            Math.sqrt(pose.getThetaVariance()));
+    // Send new pose data to poseService
+    Matrix<N3, N1> stdDevs = VecBuilder.fill(
+        Math.sqrt(pose.getXVariance()),
+        Math.sqrt(pose.getYVariance()),
+        Math.sqrt(pose.getThetaVariance()));
     poseService.addTransformObservation(
         new PoseService.TransformObservation(
             lastTimestamp, observation.timestamp(), twist.exp(), stdDevs));

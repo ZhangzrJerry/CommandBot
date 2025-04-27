@@ -26,7 +26,7 @@ import lombok.Getter;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
-/** 机械臂子系统，控制机械臂的运动 */
+/** Arm subsystem, controls arm movement */
 public class Arm extends SubsystemBase {
   private final DCMotorIO shoulderIO;
   private final DCMotorIO elbowIO;
@@ -34,9 +34,10 @@ public class Arm extends SubsystemBase {
   private final DCMotorIOInputsAutoLogged shoulderInputs = new DCMotorIOInputsAutoLogged();
   private final DCMotorIOInputsAutoLogged elbowInputs = new DCMotorIOInputsAutoLogged();
 
-  @Getter private ArmGoal goal = ArmGoal.START;
+  @Getter
+  private ArmGoal goal = ArmGoal.START;
 
-  // 状态标志
+  // State flags
   private boolean needTransition = true;
   private boolean needGroundIntakeDodge = false;
   private boolean needAvoidReefAlgae = false;
@@ -48,7 +49,7 @@ public class Arm extends SubsystemBase {
 
   private Debouncer homingDebouncer = new Debouncer(0.0);
 
-  /** 构造函数 */
+  /** Constructor */
   private Arm(DCMotorIO shoulderIO, DCMotorIO elbowIO) {
     this.shoulderIO = shoulderIO;
     this.elbowIO = elbowIO;
@@ -63,7 +64,7 @@ public class Arm extends SubsystemBase {
       elbowIO.setAppliedPositionF(elbowInputs.appliedPosition, 0.0);
     }
 
-    // 更新PID增益
+    // Update PID gains
     TunableNumbers.ifChanged(
         this.hashCode(),
         () -> shoulderIO.setGains(ArmConfig.SHOULDER_GAINS),
@@ -75,17 +76,17 @@ public class Arm extends SubsystemBase {
       return;
     }
 
-    // 记录日志
+    // Log data
     Logger.recordOutput("Arm/ElbowGoal", goal.getElbowPositionDegree());
     Logger.recordOutput("Arm/ShoulderGoal", goal.getShoulderHeightMeter());
     Logger.recordOutput("Arm/ElbowAtGoal", elbowAtGoal());
     Logger.recordOutput("Arm/ShoulderAtGoal", shoulderAtGoal());
 
-    // 更新状态和控制运动
+    // Update state and control movement
     updateAndControl();
   }
 
-  /** 更新输入数据 */
+  /** Update input data */
   private void updateInputs() {
     shoulderIO.updateInputs(shoulderInputs);
     Logger.processInputs("Arm/Shoulder", shoulderInputs);
@@ -94,27 +95,26 @@ public class Arm extends SubsystemBase {
     Logger.processInputs("Arm/Elbow", elbowInputs);
   }
 
-  /** 更新状态并控制运动 */
+  /** Update state and control movement */
   private void updateAndControl() {
-    // 更新状态
-    var minSafeGroundIntakeDodgeElevatorHeightMeterVal =
-        ArmConfig.MIN_SAFE_GROUND_INTAKE_DODGE_ELEVATOR_HEIGHT_METER.get();
+    // Update state
+    var minSafeGroundIntakeDodgeElevatorHeightMeterVal = ArmConfig.MIN_SAFE_GROUND_INTAKE_DODGE_ELEVATOR_HEIGHT_METER
+        .get();
     if (shoulderInputs.appliedPosition >= minSafeGroundIntakeDodgeElevatorHeightMeterVal
         && goal.getShoulderHeightMeter() >= minSafeGroundIntakeDodgeElevatorHeightMeterVal) {
       needGroundIntakeDodge = false;
     } else {
-      needGroundIntakeDodge =
-          isRotationEnterSpecificAngleArea(
-                  elbowInputs.appliedPosition, goal.getElbowPositionDegree(), 150, 255)
-              || isRotationEnterSpecificAngleArea(
-                  elbowInputs.appliedPosition, goal.getElbowPositionDegree(), -210, -105)
-              || isRotationEnterSpecificAngleArea(
-                  elbowInputs.appliedPosition, goal.getElbowPositionDegree(), -22.5, 90);
+      needGroundIntakeDodge = isRotationEnterSpecificAngleArea(
+          elbowInputs.appliedPosition, goal.getElbowPositionDegree(), 150, 255)
+          || isRotationEnterSpecificAngleArea(
+              elbowInputs.appliedPosition, goal.getElbowPositionDegree(), -210, -105)
+          || isRotationEnterSpecificAngleArea(
+              elbowInputs.appliedPosition, goal.getElbowPositionDegree(), -22.5, 90);
     }
 
-    // 控制运动
+    // Control movement
     if (needTransition) {
-      // 过渡运动
+      // Transition movement
       shoulderIO.setAppliedPositionF(ArmConfig.TRANSITION_ELEVATOR_HEIGHT_METER.get(), 0.0);
 
       if (needAvoidReefAlgae && !needElbowRotationPassDangerZone) {
@@ -141,7 +141,7 @@ public class Arm extends SubsystemBase {
         }
       }
     } else {
-      // 正常运动
+      // Normal movement
       shoulderIO.setAppliedPositionF(goal.getShoulderHeightMeter(), 0.0);
 
       if (needAvoidReefAlgae) {
@@ -156,35 +156,31 @@ public class Arm extends SubsystemBase {
     }
   }
 
-  /** 设置目标位置 */
+  /** Set target position */
   public void setGoal(ArmGoal goal) {
     if (this.goal != goal) {
-      // 更新目标状态
+      // Update target state
       if (isCoralGoal(goal) || isCoralGoal(this.goal)) {
         needAvoidReefAlgae = false;
       }
 
-      needShoulderFall =
-          shoulderInputs.appliedPosition > ArmConfig.TRANSITION_ELEVATOR_HEIGHT_METER.getAsDouble()
-              && goal.getShoulderHeightMeter()
-                  <= ArmConfig.TRANSITION_ELEVATOR_HEIGHT_METER.getAsDouble();
+      needShoulderFall = shoulderInputs.appliedPosition > ArmConfig.TRANSITION_ELEVATOR_HEIGHT_METER.getAsDouble()
+          && goal.getShoulderHeightMeter() <= ArmConfig.TRANSITION_ELEVATOR_HEIGHT_METER.getAsDouble();
 
-      needElbowRotationPassDangerZone =
-          isRotationEnterSpecificAngleArea(
-              elbowInputs.appliedPosition,
-              needAvoidReefAlgae
-                  ? ArmConfig.ELBOW_AVOID_REEF_ALGAE_POSITION_DEGREE.get()
-                  : goal.getElbowPositionDegree(),
-              -120,
-              -90);
+      needElbowRotationPassDangerZone = isRotationEnterSpecificAngleArea(
+          elbowInputs.appliedPosition,
+          needAvoidReefAlgae
+              ? ArmConfig.ELBOW_AVOID_REEF_ALGAE_POSITION_DEGREE.get()
+              : goal.getElbowPositionDegree(),
+          -120,
+          -90);
 
-      // 更新过渡状态
+      // Update transition state
       if (isAlgaePickGoal(this.goal)) {
         needTransition = !needShoulderFall;
       } else {
-        var needMoveElbowAtBottomAndPassSpecificAngle =
-            shoulderInputs.appliedPosition
-                < ArmConfig.TRANSITION_ELEVATOR_HEIGHT_METER.getAsDouble();
+        var needMoveElbowAtBottomAndPassSpecificAngle = shoulderInputs.appliedPosition < ArmConfig.TRANSITION_ELEVATOR_HEIGHT_METER
+            .getAsDouble();
         needTransition = (needMoveElbowAtBottomAndPassSpecificAngle || needShoulderFall);
       }
 
@@ -197,14 +193,14 @@ public class Arm extends SubsystemBase {
     }
   }
 
-  /** 检查是否是珊瑚目标 */
+  /** Check if it's a coral goal */
   private boolean isCoralGoal(ArmGoal goal) {
     return goal == ArmGoal.CORAL_L2_SCORE
         || goal == ArmGoal.CORAL_L3_SCORE
         || goal == ArmGoal.CORAL_L4_SCORE;
   }
 
-  /** 检查是否是藻类拾取目标 */
+  /** Check if it's an algae pick goal */
   private boolean isAlgaePickGoal(ArmGoal goal) {
     return goal == ArmGoal.ALGAE_LOW_PICK || goal == ArmGoal.ALGAE_HIGH_PICK;
   }
@@ -222,15 +218,14 @@ public class Arm extends SubsystemBase {
     var atEndPosition = shoulderAtGoal() && elbowAtGoal();
 
     if (needStop) {
-      var hasStop =
-          EqualsUtil.epsilonEquals(
-                  0.0,
-                  shoulderInputs.appliedVelocity,
-                  ArmConfig.SHOULDER_STOP_TOLERANCE_METER_PER_SEC.get())
-              && EqualsUtil.epsilonEquals(
-                  0.0,
-                  elbowInputs.appliedVelocity,
-                  ArmConfig.ELBOW_STOP_TOLERANCE_DEGREE_PER_SEC.get());
+      var hasStop = EqualsUtil.epsilonEquals(
+          0.0,
+          shoulderInputs.appliedVelocity,
+          ArmConfig.SHOULDER_STOP_TOLERANCE_METER_PER_SEC.get())
+          && EqualsUtil.epsilonEquals(
+              0.0,
+              elbowInputs.appliedVelocity,
+              ArmConfig.ELBOW_STOP_TOLERANCE_DEGREE_PER_SEC.get());
 
       return !needTransition && !needAvoidReefAlgae && atEndPosition && hasStop;
     } else {
@@ -296,23 +291,21 @@ public class Arm extends SubsystemBase {
     var timer = new Timer();
 
     return Commands.startRun(
-            () -> {
-              isCharacterizing = true;
-              timer.restart();
-            },
-            () -> {
-              state.characterizationOutput = outputCurrentRampRateAmp * timer.get();
-              shoulderIO.setCurrent(state.characterizationOutput);
-              Logger.recordOutput(
-                  "Arm/Shoulder/StaticCharacterizationCurrentOutputAmp",
-                  state.characterizationOutput);
-            },
-            this)
+        () -> {
+          isCharacterizing = true;
+          timer.restart();
+        },
+        () -> {
+          state.characterizationOutput = outputCurrentRampRateAmp * timer.get();
+          shoulderIO.setCurrent(state.characterizationOutput);
+          Logger.recordOutput(
+              "Arm/Shoulder/StaticCharacterizationCurrentOutputAmp",
+              state.characterizationOutput);
+        },
+        this)
         .until(
-            () ->
-                shoulderInputs.appliedVelocity
-                    >= ArmConfig.SHOULDER_STATIC_CHARACTERIZATION_VELOCITY_THRESH_METER_PER_SEC
-                        .get())
+            () -> shoulderInputs.appliedVelocity >= ArmConfig.SHOULDER_STATIC_CHARACTERIZATION_VELOCITY_THRESH_METER_PER_SEC
+                .get())
         .finallyDo(
             () -> {
               isCharacterizing = false;
@@ -332,21 +325,20 @@ public class Arm extends SubsystemBase {
     var timer = new Timer();
 
     return Commands.startRun(
-            () -> {
-              isCharacterizing = true;
-              timer.restart();
-            },
-            () -> {
-              state.characterizationOutput = outputCurrentRampRateAmp * timer.get();
-              elbowIO.setCurrent(state.characterizationOutput);
-              Logger.recordOutput(
-                  "Arm/Elbow/StaticCharacterizationCurrentOutputAmp", state.characterizationOutput);
-            },
-            this)
+        () -> {
+          isCharacterizing = true;
+          timer.restart();
+        },
+        () -> {
+          state.characterizationOutput = outputCurrentRampRateAmp * timer.get();
+          elbowIO.setCurrent(state.characterizationOutput);
+          Logger.recordOutput(
+              "Arm/Elbow/StaticCharacterizationCurrentOutputAmp", state.characterizationOutput);
+        },
+        this)
         .until(
-            () ->
-                elbowInputs.appliedVelocity
-                    >= ArmConfig.ELBOW_STATIC_CHARACTERIZATION_VELOCITY_THRESH_DEGREE_PER_SEC.get())
+            () -> elbowInputs.appliedVelocity >= ArmConfig.ELBOW_STATIC_CHARACTERIZATION_VELOCITY_THRESH_DEGREE_PER_SEC
+                .get())
         .finallyDo(
             () -> {
               isCharacterizing = false;
@@ -365,30 +357,27 @@ public class Arm extends SubsystemBase {
   }
 
   public Command getHomeCmd() {
-    BooleanSupplier hasStall =
-        () ->
-            homingDebouncer.calculate(
-                Math.abs(shoulderInputs.appliedVelocity)
-                    <= ArmConfig.SHOULDER_HOMING_VELOCITY_THRESH_METER_PER_SEC.get());
+    BooleanSupplier hasStall = () -> homingDebouncer.calculate(
+        Math.abs(shoulderInputs.appliedVelocity) <= ArmConfig.SHOULDER_HOMING_VELOCITY_THRESH_METER_PER_SEC.get());
     String name = "Arm/Home";
     return Commands.sequence(
-            Commands.runOnce(
-                    () -> {
-                      setGoal(ArmGoal.HOME);
-                      homingDebouncer = new Debouncer(ArmConfig.SHOULDER_HOMING_TIME_SECS.get());
-                      homingDebouncer.calculate(false);
-                    })
-                .withName(name + "/Set Goal"),
-            Commands.waitUntil(() -> this.atGoal() || (!this.atGoal() && hasStall.getAsBoolean()))
-                .withName(name + "/Wait Until Goal"),
-            Commands.startRun(
-                    () -> isHoming = true,
-                    () -> shoulderIO.setCurrent(ArmConfig.SHOULDER_HOMING_CURRENT_AMP.get()),
-                    this)
-                .until(hasStall)
-                .withName(name + "/Set Current"),
-            Commands.runOnce(() -> shoulderIO.resetAppliedPosition(0.0))
-                .withName(name + "/Reset Applied Position"))
+        Commands.runOnce(
+            () -> {
+              setGoal(ArmGoal.HOME);
+              homingDebouncer = new Debouncer(ArmConfig.SHOULDER_HOMING_TIME_SECS.get());
+              homingDebouncer.calculate(false);
+            })
+            .withName(name + "/Set Goal"),
+        Commands.waitUntil(() -> this.atGoal() || (!this.atGoal() && hasStall.getAsBoolean()))
+            .withName(name + "/Wait Until Goal"),
+        Commands.startRun(
+            () -> isHoming = true,
+            () -> shoulderIO.setCurrent(ArmConfig.SHOULDER_HOMING_CURRENT_AMP.get()),
+            this)
+            .until(hasStall)
+            .withName(name + "/Set Current"),
+        Commands.runOnce(() -> shoulderIO.resetAppliedPosition(0.0))
+            .withName(name + "/Reset Applied Position"))
         .finallyDo(
             () -> {
               setGoal(ArmGoal.IDLE);
@@ -425,19 +414,19 @@ public class Arm extends SubsystemBase {
   public static Arm createReal() {
     return new Arm(
         new DCMotorIOTalonFX(
-                "ArmShoulder",
-                Constants.Ports.Can.ARM_SHOULDER_MASTER,
-                ArmConfig.getShoulderTalonConfig(),
-                UnitConverter.scale(ArmConfig.SHOULDER_METER_PER_ROTATION).withUnits("rot", "m"),
-                UnitConverter.offset(ArmGoal.START.getShoulderHeightMeter()).withUnits("m", "m"))
+            "ArmShoulder",
+            Constants.Ports.Can.ARM_SHOULDER_MASTER,
+            ArmConfig.getShoulderTalonConfig(),
+            UnitConverter.scale(ArmConfig.SHOULDER_METER_PER_ROTATION).withUnits("rot", "m"),
+            UnitConverter.offset(ArmGoal.START.getShoulderHeightMeter()).withUnits("m", "m"))
             .withFollower(
                 Constants.Ports.Can.ARM_SHOULDER_SLAVE, ArmConfig.getShoulderTalonConfig(), true),
         new DCMotorIOTalonFX(
-                "ArmElbow",
-                Constants.Ports.Can.ARM_ELBOW,
-                ArmConfig.getElbowTalonConfig(),
-                UnitConverter.scale(360).withUnits("rot", "deg"),
-                UnitConverter.offset(360 * (-0.2958333 + 0.5)).withUnits("deg", "deg"))
+            "ArmElbow",
+            Constants.Ports.Can.ARM_ELBOW,
+            ArmConfig.getElbowTalonConfig(),
+            UnitConverter.scale(360).withUnits("rot", "deg"),
+            UnitConverter.offset(360 * (-0.2958333 + 0.5)).withUnits("deg", "deg"))
             .withCancoder(
                 "ArmElbow",
                 Constants.Ports.Can.ARM_ELBOW_CANCODER,
@@ -445,7 +434,9 @@ public class Arm extends SubsystemBase {
   }
 
   public static Arm createIO() {
-    return new Arm(new DCMotorIO() {}, new DCMotorIO() {});
+    return new Arm(new DCMotorIO() {
+    }, new DCMotorIO() {
+    });
   }
 
   public void registerTransform(TransformTree transformTree) {
