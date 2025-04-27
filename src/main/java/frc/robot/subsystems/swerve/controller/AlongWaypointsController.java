@@ -24,6 +24,8 @@ public class AlongWaypointsController implements SwerveController {
       new TunableNumber("AlongWaypointsController/TranslationToleranceMeters", 0.05);
   private final TunableNumber rotationTolerance =
       new TunableNumber("AlongWaypointsController/RotationToleranceDegrees", 2.0);
+  private final TunableNumber bangBangThreshold =
+      new TunableNumber("AlongWaypointsController/BangBangThresholdMeters", 0.5);
 
   private final ProfiledPIDController translationController =
       new ProfiledPIDController(
@@ -51,6 +53,8 @@ public class AlongWaypointsController implements SwerveController {
   private boolean hasDone = false;
   private boolean hasHeadingAtGoal = false;
   private boolean hasTranslationAtGoal = false;
+  private AutoAlignController alignController;
+  private boolean isUsingAlignController = false;
 
   public AlongWaypointsController(Supplier<Pose2d> currentPoseSupplier, Pose2d... waypoints) {
     this.currentPoseSupplier = currentPoseSupplier;
@@ -69,10 +73,23 @@ public class AlongWaypointsController implements SwerveController {
     this.currentGoalPose = currentPoseSupplier.get();
     Logger.recordOutput("Swerve/AlongWaypointsController/Waypoints", waypoints);
     this.rotationController.enableContinuousInput(-Math.PI, Math.PI);
+
+    // 初始化align controller
+    this.alignController =
+        new AutoAlignController(
+            AutoAlignController.AlignType.PROCESSOR,
+            () -> waypoints[waypoints.length - 1],
+            currentPoseSupplier);
   }
 
   @Override
   public ChassisSpeeds getChassisSpeeds() {
+    // 如果已经到达最后一个路径点，切换到align controller
+    if (currentIdx == waypoints.length - 1) {
+      isUsingAlignController = true;
+      return alignController.getChassisSpeeds();
+    }
+
     translationController.setP(translationGains.getKP());
     translationController.setI(translationGains.getKI());
     translationController.setD(translationGains.getKD());
@@ -88,7 +105,8 @@ public class AlongWaypointsController implements SwerveController {
       timestamp = currentTime;
 
       Transform2d errorToNextWaypoint = waypoints[currentIdx + 1].minus(currentGoalPose);
-      double maxDistanceThisStep = SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC * deltaTime * 0.5;
+      double maxDistanceThisStep =
+          SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC * deltaTime * 0.65;
 
       if (errorToNextWaypoint.getTranslation().getNorm() <= maxDistanceThisStep) {
         // Move to next waypoint
@@ -134,7 +152,19 @@ public class AlongWaypointsController implements SwerveController {
     }
 
     // 计算联合平移输出
-    double translationVelocity = translationController.calculate(0, translationErrorNorm);
+    double translationVelocity;
+    if (currentIdx < waypoints.length - 1) {
+      // 在到达最后一个路径点之前使用bang-bang控制
+      if (translationErrorNorm > bangBangThreshold.get()) {
+        translationVelocity = SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC * 0.85;
+      } else {
+        translationVelocity = translationController.calculate(0, translationErrorNorm);
+      }
+    } else {
+      // 在最后一个路径点使用PID控制
+      translationVelocity = translationController.calculate(0, translationErrorNorm);
+    }
+
     Translation2d velocityVector =
         translationError.div(translationErrorNorm).times(translationVelocity);
 
@@ -150,16 +180,25 @@ public class AlongWaypointsController implements SwerveController {
 
   @Override
   public Boolean headingAtGoal() {
+    if (isUsingAlignController) {
+      return alignController.headingAtGoal();
+    }
     return hasHeadingAtGoal;
   }
 
   @Override
   public Boolean translationAtGoal() {
+    if (isUsingAlignController) {
+      return alignController.translationAtGoal();
+    }
     return hasTranslationAtGoal;
   }
 
   @Override
   public Boolean translationErrorWithin() {
+    if (isUsingAlignController) {
+      return alignController.translationErrorWithin();
+    }
     if (waypoints.length == 0) return true;
     return currentPoseSupplier
             .get()
@@ -170,6 +209,9 @@ public class AlongWaypointsController implements SwerveController {
 
   @Override
   public Boolean translationErrorWithin(double tolerance) {
+    if (isUsingAlignController) {
+      return alignController.translationErrorWithin(tolerance);
+    }
     if (waypoints.length == 0) return true;
     return currentPoseSupplier
             .get()

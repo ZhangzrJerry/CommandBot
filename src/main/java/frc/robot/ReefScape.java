@@ -587,7 +587,7 @@ public class ReefScape {
     public static final double HIGH_Y = 5.851738929748535;
     public static final Rotation3d ROTATION = new Rotation3d(0.0, Math.PI / 2.0, 0.0);
 
-    public static final double PRESET_ADJUST_X = 1.75;
+    public static final double PRESET_ADJUST_X = 2.0;
     public static final double PRESET_ADJUST_Y = 0.0;
 
     public static final Pose2d[] PREDEFINED_POSES =
@@ -595,15 +595,13 @@ public class ReefScape {
           PoseUtils.getPoseBasedOnTag(18, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
           PoseUtils.getPoseBasedOnTag(17, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
           PoseUtils.getPoseBasedOnTag(22, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
-          PoseUtils.getPoseBasedOnTag(
-              21, PRESET_ADJUST_X - 0.25, PRESET_ADJUST_Y, new Rotation2d()),
+          PoseUtils.getPoseBasedOnTag(21, PRESET_ADJUST_X - 0.3, PRESET_ADJUST_Y, new Rotation2d()),
           PoseUtils.getPoseBasedOnTag(20, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
           PoseUtils.getPoseBasedOnTag(19, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
           PoseUtils.getPoseBasedOnTag(7, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
           PoseUtils.getPoseBasedOnTag(8, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
           PoseUtils.getPoseBasedOnTag(9, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
-          PoseUtils.getPoseBasedOnTag(
-              10, PRESET_ADJUST_X - 0.25, PRESET_ADJUST_Y, new Rotation2d()),
+          PoseUtils.getPoseBasedOnTag(10, PRESET_ADJUST_X - 0.3, PRESET_ADJUST_Y, new Rotation2d()),
           PoseUtils.getPoseBasedOnTag(11, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
           PoseUtils.getPoseBasedOnTag(6, PRESET_ADJUST_X, PRESET_ADJUST_Y, new Rotation2d()),
         };

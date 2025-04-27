@@ -167,6 +167,7 @@ public class AutoAlignController implements SwerveController {
           4.0, // rotKP, rotKI, rotKD, rotTol
           60.0 // alignmentAngle
           );
+
   private static final double maxTranslationVelMeterPerSec =
       SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC;
   private static final double maxRotationVelRadPerSec = SwerveConfig.MAX_ANGULAR_VEL_RAD_PER_SEC;
