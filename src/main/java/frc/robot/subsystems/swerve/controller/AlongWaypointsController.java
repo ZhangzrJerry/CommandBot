@@ -56,9 +56,10 @@ public class AlongWaypointsController implements SwerveController {
   private AutoAlignController alignController;
   private boolean isUsingAlignController = false;
 
-  public AlongWaypointsController(Supplier<Pose2d> currentPoseSupplier, Pose2d... waypoints) {
+  public AlongWaypointsController(
+      Supplier<Pose2d> currentPoseSupplier, Supplier<Pose2d[]> waypointsSupplier) {
     this.currentPoseSupplier = currentPoseSupplier;
-    this.waypoints = waypoints;
+    this.waypoints = waypointsSupplier.get();
 
     // Ensure all waypoints have the final rotation
     for (int i = 0; i < waypoints.length; i++) {
@@ -69,7 +70,6 @@ public class AlongWaypointsController implements SwerveController {
               waypoints[waypoints.length - 1].getRotation());
     }
 
-    // this.currentGoalPose = waypoints[0];
     this.currentGoalPose = currentPoseSupplier.get();
     Logger.recordOutput("Swerve/AlongWaypointsController/Waypoints", waypoints);
     this.rotationController.enableContinuousInput(-Math.PI, Math.PI);
@@ -105,8 +105,7 @@ public class AlongWaypointsController implements SwerveController {
       timestamp = currentTime;
 
       Transform2d errorToNextWaypoint = waypoints[currentIdx + 1].minus(currentGoalPose);
-      double maxDistanceThisStep =
-          SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC * deltaTime * 0.65;
+      double maxDistanceThisStep = SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC * deltaTime * 0.7;
 
       if (errorToNextWaypoint.getTranslation().getNorm() <= maxDistanceThisStep) {
         // Move to next waypoint

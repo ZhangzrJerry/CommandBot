@@ -9,7 +9,6 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.ReefScape.GamePiece.Type;
 import frc.robot.interfaces.services.PoseService;
 import frc.robot.services.GamePieceVisualize;
 import frc.robot.services.NodeSelector;
@@ -24,7 +23,6 @@ import frc.robot.subsystems.endeffector.Endeffector.AlgaeEndEffectorGoal;
 import frc.robot.subsystems.endeffector.Endeffector.CoralEndEffectorGoal;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.swerve.Swerve;
-import frc.robot.subsystems.swerve.controller.AlongWaypointsController;
 import frc.robot.subsystems.swerve.controller.TeleopHeadlessController;
 import frc.robot.subsystems.vision.AtagVision;
 import java.util.Map;
@@ -161,16 +159,6 @@ public class RobotContainer {
                 () -> -joystick.getRightX(),
                 () -> odometry.getCurrentHeading())));
 
-    joystick
-        .povDown()
-        .whileTrue(
-            swerve.registerControllerCmd(
-                new AlongWaypointsController(
-                    () -> odometry.getCurrentPose(),
-                    ReefScape.Field.NODE_CONNECTION_MATRIX.getShortestPath(
-                        odometry.getCurrentPose(),
-                        ReefScape.Field.Reef.getScorePoseBySelection(Type.ALGAE, "AB")))));
-
     climber.setDefaultCommand(climber.registerTeleopPullCmd(joystick.povDown()));
     new Trigger(
             () ->
@@ -302,13 +290,13 @@ public class RobotContainer {
     // ##### X: algae ground intake #####
     joystick.x().and(() -> !climber.isClimbing()).whileTrue(superStructure.algaeIntakePickCmd());
 
-    // ##### algae ground pick / processor score #####
+    // ##### B: algae ground pick / processor score #####
     joystick
         .b()
         .and(() -> !climber.isClimbing())
         .whileTrue(superStructure.algaeProcessorScoreCmd());
 
-    // ##### arm idle / arm home #####
+    // ##### A: arm idle / arm home #####
     joystick.a().and(() -> !climber.isClimbing()).onTrue(superStructure.forcedIdleCmd());
 
     joystick

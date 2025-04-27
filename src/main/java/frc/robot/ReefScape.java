@@ -697,32 +697,32 @@ public class ReefScape {
               case "A":
               case "B":
               case "AB":
-                return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("AB"));
+                return Field.Reef.SCORE_POSES.get("AB");
               case "C":
               case "D":
               case "CD":
-                return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("CD"));
+                return Field.Reef.SCORE_POSES.get("CD");
               case "E":
               case "F":
               case "EF":
-                return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("EF"));
+                return Field.Reef.SCORE_POSES.get("EF");
               case "G":
               case "H":
               case "GH":
-                return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("GH"));
+                return Field.Reef.SCORE_POSES.get("GH");
               case "I":
               case "J":
               case "IJ":
-                return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("IJ"));
+                return Field.Reef.SCORE_POSES.get("IJ");
               case "K":
               case "L":
               case "KL":
-                return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("KL"));
+                return Field.Reef.SCORE_POSES.get("KL");
             }
             break;
           case CORAL:
             if (!selectedBranch.isEmpty()) {
-              return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get(selectedBranch));
+              return Field.Reef.SCORE_POSES.get(selectedBranch);
             }
             break;
           default:
@@ -818,6 +818,20 @@ public class ReefScape {
                 Math.max(pose.getY(), Field.WIDTH / 2 + 0.4),
                 SCORE_HEADING.plus(Rotation2d.k180deg));
           }
+        }
+      }
+
+      public static Pose2d getAlgaeScoredPose(double dist) {
+        if (AllianceFlipUtil.isRedAlliance()) {
+          return new Pose2d(
+              AllianceFlipUtil.flipX(SCORE_X),
+              Math.min(dist, Field.WIDTH / 2 - 0.4),
+              SCORE_HEADING.plus(Rotation2d.k180deg));
+        } else {
+          return new Pose2d(
+              SCORE_X,
+              AllianceFlipUtil.flipY(Math.min(dist, Field.WIDTH / 2 - 0.4)),
+              SCORE_HEADING.plus(Rotation2d.k180deg));
         }
       }
     }

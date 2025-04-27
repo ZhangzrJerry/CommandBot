@@ -70,7 +70,7 @@ public class AutoAlignController implements SwerveController {
       new AlignConfig(
           "Swerve/AlignController/Processor",
           3.0,
-          1.2, // maxY, maxX
+          3.0, // maxY, maxX
           2.1,
           0.0,
           0.1,
@@ -103,8 +103,8 @@ public class AutoAlignController implements SwerveController {
   private static final AlignConfig REEF_CORAL_CONFIG =
       new AlignConfig(
           "Swerve/AlignController/ReefCoral",
-          1.0,
-          0.6, // maxY, maxX
+          5.0,
+          3.0, // maxY, maxX
           2.0,
           0.0,
           0.08,
@@ -137,8 +137,8 @@ public class AutoAlignController implements SwerveController {
   private static final AlignConfig LEFT_CORAL_STATION_CONFIG =
       new AlignConfig(
           "Swerve/AlignController/LeftCoralStation",
-          1.0,
-          0.6, // maxY, maxX
+          2.0,
+          2.0, // maxY, maxX
           2.0,
           0.0,
           0.08,
@@ -154,8 +154,8 @@ public class AutoAlignController implements SwerveController {
   private static final AlignConfig RIGHT_CORAL_STATION_CONFIG =
       new AlignConfig(
           "Swerve/AlignController/RightCoralStation",
-          1.0,
-          0.6, // maxY, maxX
+          2.0,
+          2.0, // maxY, maxX
           2.0,
           0.0,
           0.08,

@@ -156,6 +156,32 @@ public class SuperStructure {
                 .withName(name + "/Set Score Pose")));
   }
 
+  public Command algaeNetScoreCmd(double dist) {
+    String name = "Super/Algae Net Score";
+    return Commands.parallel(
+        Commands.either(
+            Commands.none(),
+            swerve.registerControllerCmd(
+                new AutoAlignController(
+                    AlignType.NET,
+                    () -> ReefScape.Field.Barge.getAlgaeScoredPose(dist),
+                    () -> odometry.getCurrentPose())),
+            () -> nodeSelector.getIgnoreArmMoveCondition()),
+        Commands.sequence(
+            Commands.waitUntil(() -> swerve.atToleranceGoal(3)),
+            Commands.runOnce(
+                () -> {
+                  arm.setGoal(ArmGoal.IDLE);
+                }),
+            Commands.waitUntil(shouldArmLift),
+            Commands.runOnce(
+                    () -> {
+                      arm.setGoal(ArmGoal.ALGAE_NET_SCORE);
+                    },
+                    arm)
+                .withName(name + "/Set Score Pose")));
+  }
+
   public Command algaeProcessorScoreCmd() {
     String name = "Super/Algae Processor Score";
     return Commands.parallel(
@@ -259,7 +285,7 @@ public class SuperStructure {
                 new AutoAlignController(
                     AlignType.REEF_CORAL,
                     () ->
-                        AllianceFlipUtil.isRobotInBlueSide(odometry.getCurrentPose())
+                        !AllianceFlipUtil.isRobotInBlueSide(odometry.getCurrentPose())
                             ? AllianceFlipUtil.flipPose(
                                 ReefScape.Field.Reef.getScorePoseBySelection(
                                     ReefScape.GamePiece.Type.CORAL,
@@ -341,13 +367,70 @@ public class SuperStructure {
         .withName("Super/Reset Heading");
   }
 
-  public Command autoIdleCmd() {
-    return Commands.runOnce(
+  public Command laserNetScoreCmd(double dist) {
+    return Commands.sequence(
+        algaeNetScoreCmd(dist),
+        Commands.waitUntil(() -> swerve.atGoal() && arm.stopAtGoal()),
+        Commands.runOnce(
             () -> {
-              if (!swerve.atToleranceGoal() && swerve.atToleranceGoal(3.5)) {
-                arm.setGoal(ArmGoal.IDLE);
-              }
-            })
-        .withName("Super/Auto Idle");
+              endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.SCORE);
+            }),
+        Commands.waitUntil(() -> !endeffector.hasAlgaeEndeffectorStoraged()),
+        Commands.runOnce(
+            () -> {
+              endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.IDLE);
+            }));
+  }
+
+  public Command laserReefScoreCmd(String branch, String layer) {
+    return Commands.sequence(
+        Commands.runOnce(
+            () -> {
+              nodeSelector.setSelected(ReefScape.GamePiece.Type.CORAL, branch, layer);
+            }),
+        Commands.waitUntil(
+            () ->
+                nodeSelector.getSelectedLevel().equals(layer)
+                    && nodeSelector.getSelectedBranch().equals(branch)),
+        coralReefScoreCmd(),
+        Commands.waitUntil(() -> swerve.atGoal() && arm.stopAtGoal()),
+        Commands.runOnce(
+            () -> {
+              endeffector.setCoralGoal(CoralEndEffectorGoal.SCORE);
+            }),
+        Commands.waitUntil(() -> !endeffector.hasCoralEndeffectorStoraged()),
+        Commands.runOnce(
+            () -> {
+              endeffector.setCoralGoal(CoralEndEffectorGoal.IDLE);
+            }));
+  }
+
+  public Command laserReefCollectCmd(String branch) {
+    return Commands.sequence(
+        Commands.runOnce(
+            () -> {
+              nodeSelector.setSelected(ReefScape.GamePiece.Type.CORAL, branch, "");
+            }),
+        swerve.registerControllerCmd(
+            new AutoAlignController(
+                AlignType.REEF_CORAL,
+                () ->
+                    !AllianceFlipUtil.isRedAlliance()
+                        ? ReefScape.Field.Reef.getScorePoseBySelection(
+                            ReefScape.GamePiece.Type.ALGAE, branch)
+                        : AllianceFlipUtil.flipPose(
+                            ReefScape.Field.Reef.getScorePoseBySelection(
+                                ReefScape.GamePiece.Type.ALGAE, branch)),
+                () -> odometry.getCurrentPose())),
+        Commands.waitUntil(() -> swerve.atGoal() && arm.stopAtGoal()),
+        Commands.runOnce(
+            () -> {
+              endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.COLLECT);
+            }),
+        Commands.waitUntil(() -> endeffector.hasAlgaeEndeffectorStoraged()),
+        Commands.runOnce(
+            () -> {
+              endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.HOLDING);
+            }));
   }
 }

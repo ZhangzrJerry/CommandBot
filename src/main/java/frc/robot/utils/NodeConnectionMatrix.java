@@ -4,6 +4,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
 /** 节点连接矩阵类，用于表示节点之间的连接关系 -1表示不连接，其他数值表示连接的距离 */
 public class NodeConnectionMatrix {
@@ -148,10 +149,11 @@ public class NodeConnectionMatrix {
     return nodePoses;
   }
 
-  public Pose2d[] getShortestPath(Pose2d currentPose, Pose2d targetPose) {
+  public Pose2d[] getShortestPath(
+      Supplier<Pose2d> currentPoseSupplier, Supplier<Pose2d> targetPoseSupplier) {
     // First find the nearest nodes
-    int startNode = getNearestNode(currentPose);
-    int endNode = getNearestNode(targetPose);
+    int startNode = getNearestNode(currentPoseSupplier.get());
+    int endNode = getNearestNode(targetPoseSupplier.get());
 
     // if (startNode == endNode) {
     // return new Pose2d[] { getNodePose(endNode), targetPose };
@@ -219,12 +221,12 @@ public class NodeConnectionMatrix {
 
     // Convert node indices to poses
     Pose2d[] posePath = new Pose2d[path.size() + 2];
-    posePath[0] = currentPose;
+    posePath[0] = currentPoseSupplier.get();
     for (int i = 0; i < path.size(); i++) {
       posePath[i + 1] = getNodePose(path.get(i));
     }
     // Add the target pose at the end
-    posePath[path.size() + 1] = targetPose;
+    posePath[path.size() + 1] = targetPoseSupplier.get();
     return posePath;
   }
 
