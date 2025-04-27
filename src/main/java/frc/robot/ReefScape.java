@@ -813,6 +813,22 @@ public class ReefScape {
         }
       }
     }
+
+    public int getSingleTagPoseIdBySelection(String selectedBranch, Pose2d currentPose) {
+      return switch (selectedBranch) {
+        case "A", "B", "AB" -> AllianceFlipUtil.isRobotInBlueSide(currentPose) ? 7 : 18;
+        case "C", "D", "CD" -> AllianceFlipUtil.isRobotInBlueSide(currentPose) ? 8 : 17;
+        case "E", "F", "EF" -> AllianceFlipUtil.isRobotInBlueSide(currentPose) ? 9 : 22;
+        case "G", "H", "GH" -> AllianceFlipUtil.isRobotInBlueSide(currentPose) ? 10 : 21;
+        case "I", "J", "IJ" -> AllianceFlipUtil.isRobotInBlueSide(currentPose) ? 11 : 20;
+        case "K", "L", "KL" -> AllianceFlipUtil.isRobotInBlueSide(currentPose) ? 6 : 19;
+        default -> -1;
+      };
+    }
+
+    public static int getSingleTagPoseIdByCurrentPose(Pose2d currentPose) {
+      return -1;
+    }
   }
 
   public static final FieldType FIELD_TYPE = FieldType.ANDYMARK;

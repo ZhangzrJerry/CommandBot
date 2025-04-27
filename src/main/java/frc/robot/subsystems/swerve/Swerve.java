@@ -23,6 +23,7 @@ import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfx;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfxCancoder;
 import frc.robot.interfaces.hardwares.sensors.gyro.GyroIO;
 import frc.robot.interfaces.hardwares.sensors.gyro.GyroIOPigeon2;
+import frc.robot.interfaces.services.PoseService;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometryPhoenixThread;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometrySimThread;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometryThread;
@@ -228,7 +229,7 @@ public class Swerve extends SubsystemBase {
         goalVel.omegaRadiansPerSecond);
   }
 
-  public static Swerve createSim() {
+  public static Swerve createSim(PoseService poseService) {
     UnitConverter driveRatioConverter =
         UnitConverter.scale(SwerveConfig.WHEEL_RADIUS_METER).withUnits("rad", "m");
     UnitConverter steerRatioConverter = UnitConverter.identity().withUnits("rad", "rad");
@@ -303,11 +304,20 @@ public class Swerve extends SubsystemBase {
             () -> frSteerIO.getAppliedPosition());
 
     return new Swerve(
-        flDriveIO, flSteerIO, blDriveIO, blSteerIO, brDriveIO, brSteerIO, frDriveIO, frSteerIO,
-        gyroIO, thread);
+        flDriveIO,
+        flSteerIO,
+        blDriveIO,
+        blSteerIO,
+        brDriveIO,
+        brSteerIO,
+        frDriveIO,
+        frSteerIO,
+        gyroIO,
+        thread,
+        poseService);
   }
 
-  public static Swerve createReal() {
+  public static Swerve createReal(PoseService poseService) {
     UnitConverter driveRatioConverter =
         UnitConverter.scale(2 * Math.PI * SwerveConfig.WHEEL_RADIUS_METER).withUnits("rot", "m");
     UnitConverter steerRatioConverter = UnitConverter.scale(2 * Math.PI).withUnits("rot", "rad");
@@ -397,8 +407,17 @@ public class Swerve extends SubsystemBase {
             SwerveConfig.WHEEL_RADIUS_METER);
 
     return new Swerve(
-        flDriveIO, flSteerIO, blDriveIO, blSteerIO, brDriveIO, brSteerIO, frDriveIO, frSteerIO,
-        gyroIO, thread);
+        flDriveIO,
+        flSteerIO,
+        blDriveIO,
+        blSteerIO,
+        brDriveIO,
+        brSteerIO,
+        frDriveIO,
+        frSteerIO,
+        gyroIO,
+        thread,
+        poseService);
   }
 
   public static Swerve createIO() {
@@ -412,7 +431,8 @@ public class Swerve extends SubsystemBase {
         new DCMotorIO() {},
         new DCMotorIO() {},
         new GyroIO() {},
-        new WheeledOdometryThread() {});
+        new WheeledOdometryThread() {},
+        new PoseService() {});
   }
 
   private Swerve(
@@ -425,13 +445,14 @@ public class Swerve extends SubsystemBase {
       DCMotorIO frDriveIO,
       DCMotorIO frSteerIO,
       GyroIO gyroIO,
-      WheeledOdometryThread odometryThread) {
+      WheeledOdometryThread odometryThread,
+      PoseService poseService) {
 
     modules[0] = new SwerveModule(flDriveIO, flSteerIO, "ModuleFL");
     modules[1] = new SwerveModule(blDriveIO, blSteerIO, "ModuleBL");
     modules[2] = new SwerveModule(brDriveIO, brSteerIO, "ModuleBR");
     modules[3] = new SwerveModule(frDriveIO, frSteerIO, "ModuleFR");
-    odometry = new SwerveOdometry(gyroIO, odometryThread.start());
+    odometry = new SwerveOdometry(gyroIO, odometryThread.start(), poseService);
   }
 
   public void registerTransform(TransformTree transformTree) {

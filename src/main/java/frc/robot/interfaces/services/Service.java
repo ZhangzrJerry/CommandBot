@@ -22,14 +22,16 @@ public interface Service {
    *
    * @return Current service state
    */
-  ServiceState getState();
+  default ServiceState getState() {
+    return ServiceState.STOPPED;
+  }
 
   /**
    * Sets the service state.
    *
    * @param state New state to set
    */
-  void setState(ServiceState state);
+  default void setState(ServiceState state) {}
 
   /**
    * Gets the service name.

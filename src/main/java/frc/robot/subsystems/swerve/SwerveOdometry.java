@@ -1,23 +1,32 @@
 package frc.robot.subsystems.swerve;
 
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.Timer;
 import frc.robot.interfaces.hardwares.sensors.gyro.GyroIO;
 import frc.robot.interfaces.hardwares.sensors.gyro.GyroIOInputsAutoLogged;
+import frc.robot.interfaces.services.PoseService;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometryThread;
 import frc.robot.interfaces.threads.wheeled.WheeledOdometryThread.WheeledObservation;
 import frc.robot.utils.LoggedUtil;
+import frc.robot.utils.math.GeomUtil;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 import java.util.concurrent.ArrayBlockingQueue;
 import lombok.Getter;
+import lombok.experimental.ExtensionMethod;
 import org.littletonrobotics.junction.Logger;
 
+@ExtensionMethod({GeomUtil.class})
 public class SwerveOdometry {
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
-
+  private final PoseService poseService;
   ArrayBlockingQueue<WheeledObservation> odometryCachedWheeledObservationQueue;
 
   @Getter
@@ -26,12 +35,14 @@ public class SwerveOdometry {
 
   private Rotation2d lastGyroYaw;
   private SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[4];
+  private double lastTimestamp = Timer.getFPGATimestamp();
 
-  public SwerveOdometry(GyroIO gyroIO, ArrayBlockingQueue<WheeledObservation> observations) {
+  public SwerveOdometry(
+      GyroIO gyroIO, ArrayBlockingQueue<WheeledObservation> observations, PoseService poseService) {
     this.gyroIO = gyroIO;
     this.odometryCachedWheeledObservationQueue = observations;
     this.odometryCachedWheeledObservationQueue.clear();
-
+    this.poseService = poseService;
     // Initialize last module positions
     for (int i = 0; i < 4; i++) {
       lastModulePositions[i] = new SwerveModulePosition();
@@ -77,6 +88,17 @@ public class SwerveOdometry {
     pose.setXVariance(pose.getXVariance() + translationError);
     pose.setYVariance(pose.getYVariance() + translationError);
     pose.setThetaVariance(pose.getThetaVariance() + rotationError);
+
+    // 向poseService发送新的姿态数据
+    Matrix<N3, N1> stdDevs =
+        VecBuilder.fill(
+            Math.sqrt(pose.getXVariance()),
+            Math.sqrt(pose.getYVariance()),
+            Math.sqrt(pose.getThetaVariance()));
+    poseService.addTransformObservation(
+        new PoseService.TransformObservation(
+            lastTimestamp, observation.timestamp(), twist.exp(), stdDevs));
+    lastTimestamp = observation.timestamp();
   }
 
   public void resetGyroHeading(Rotation2d heading) {

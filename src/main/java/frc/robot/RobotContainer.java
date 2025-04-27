@@ -8,8 +8,10 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.interfaces.services.PoseService;
 import frc.robot.services.GamePieceVisualize;
 import frc.robot.services.NodeSelector;
+import frc.robot.services.Odometry;
 import frc.robot.services.ServiceManager;
 import frc.robot.services.TransformTree;
 import frc.robot.subsystems.SuperStructure;
@@ -42,6 +44,7 @@ public class RobotContainer {
   private final AtagVision vision;
 
   // ==== virtual services ====
+  PoseService odometry;
   TransformTree transformTree;
   NodeSelector nodeSelector;
   GamePieceVisualize algaeVisualizer; // -> rely on transform tree
@@ -56,8 +59,10 @@ public class RobotContainer {
     // ===== instantiate services =====
     transformTree = new TransformTree();
     nodeSelector = new NodeSelector();
-    serviceManager.registerService(transformTree, 20);
-    serviceManager.registerService(nodeSelector, 0);
+    odometry = new Odometry();
+    serviceManager.registerService(transformTree, 50);
+    serviceManager.registerService(nodeSelector, 20);
+    serviceManager.registerService(odometry, 0);
 
     if (Robot.isReal()) {
       algaeVisualizer = new GamePieceVisualize("Algae Visualizer", new Pose3d[0], new Pose3d[0]);
@@ -85,21 +90,21 @@ public class RobotContainer {
 
     // ===== instantiate subsystems =====
     if (Robot.isReal()) {
-      swerve = Swerve.createReal();
+      swerve = Swerve.createReal(odometry);
       arm = Arm.createReal();
       intake = Intake.createReal();
       endeffector = Endeffector.createReal();
       climber = Climber.createReal();
-      vision = AtagVision.createReal();
+      vision = AtagVision.createReal(odometry);
     } else if (Robot.isSimulation()) {
-      swerve = Swerve.createSim();
+      swerve = Swerve.createSim(odometry);
       arm = Arm.createSim();
       intake = Intake.createSim();
       climber = Climber.createSim();
       endeffector =
           Endeffector.createSim(
               () -> algaeVisualizer.isHasGamePiece(), () -> coralVisualizer.isHasGamePiece());
-      vision = AtagVision.createSim(() -> swerve.getPose());
+      vision = AtagVision.createSim(odometry, () -> swerve.getPose());
     } else {
       swerve = Swerve.createIO();
       arm = Arm.createIO();

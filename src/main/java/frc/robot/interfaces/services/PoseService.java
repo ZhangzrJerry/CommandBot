@@ -12,7 +12,7 @@ import edu.wpi.first.math.numbers.N3;
  * Robot pose service interface that provides robot position and orientation information. This
  * service is responsible for tracking and estimating the robot's pose in 2D space.
  */
-public interface RobotPoseService extends Service {
+public interface PoseService extends Service {
   /**
    * Represents a relative motion observation with associated uncertainty.
    *
@@ -38,21 +38,27 @@ public interface RobotPoseService extends Service {
    *
    * @return The current robot pose in field coordinates
    */
-  Pose2d getCurrentPose();
+  default Pose2d getCurrentPose() {
+    return new Pose2d();
+  }
 
   /**
    * Gets the current heading (rotation) of the robot.
    *
    * @return The current robot heading as a Rotation2d
    */
-  Rotation2d getCurrentHeading();
+  default Rotation2d getCurrentHeading() {
+    return new Rotation2d();
+  }
 
   /**
    * Gets the current velocity of the robot.
    *
    * @return The current robot velocity as a Translation2d
    */
-  Translation2d getCurrentVelocity();
+  default Translation2d getCurrentVelocity() {
+    return new Translation2d();
+  }
 
   /**
    * Resets the robot pose to a specific position and orientation. This is typically used when the
@@ -60,7 +66,7 @@ public interface RobotPoseService extends Service {
    *
    * @param pose The new pose to set
    */
-  void resetPose(Pose2d pose);
+  default void resetPose(Pose2d pose) {}
 
   /**
    * Resets the robot heading to a specific angle. This is typically used when the robot's heading
@@ -68,7 +74,7 @@ public interface RobotPoseService extends Service {
    *
    * @param heading The new heading to set
    */
-  void resetHeading(Rotation2d heading);
+  default void resetHeading(Rotation2d heading) {}
 
   /**
    * Gets the estimated position accuracy of the pose estimation system. This represents the
@@ -96,7 +102,7 @@ public interface RobotPoseService extends Service {
    *
    * @param observation The transform observation to add
    */
-  void addTransformObservation(TransformObservation observation);
+  default void addTransformObservation(TransformObservation observation) {}
 
   /**
    * Adds an absolute position observation to the pose estimation system. This is typically used for
@@ -104,5 +110,5 @@ public interface RobotPoseService extends Service {
    *
    * @param observation The pose observation to add
    */
-  void addPoseObservation(PoseObservation observation);
+  default void addPoseObservation(PoseObservation observation) {}
 }

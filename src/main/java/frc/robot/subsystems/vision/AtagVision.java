@@ -13,16 +13,19 @@
 
 package frc.robot.subsystems.vision;
 
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.interfaces.hardwares.sensors.camera.AtagVisionIO;
 import frc.robot.interfaces.hardwares.sensors.camera.AtagVisionIOInputsAutoLogged;
 import frc.robot.interfaces.hardwares.sensors.camera.AtagVisionIOPhoton;
 import frc.robot.interfaces.hardwares.sensors.camera.AtagVisionIOPhotonSim;
+import frc.robot.interfaces.services.PoseService;
 import frc.robot.utils.dashboard.AlertManager;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 import java.util.LinkedList;
@@ -36,17 +39,20 @@ public class AtagVision extends SubsystemBase {
   private final AtagVisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
 
-  @Getter private double latestTimestamp = 0.0;
+  @Getter private double latestTimestamp = Timer.getFPGATimestamp();
 
   @Getter
   private UncertainPose2d latestPose =
       new UncertainPose2d(new Pose2d(), 0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f);
 
+  private PoseService poseService;
+
   private final AlertManager visionOfflineAlert =
       new AlertManager("Vision offline!", AlertManager.AlertType.WARNING);
 
-  public static AtagVision createReal() {
+  public static AtagVision createReal(PoseService poseService) {
     return new AtagVision(
+        poseService,
         new AtagVisionIOPhoton(
             VisionConfig.REEF_BACK_LEFT_NAME,
             VisionConfig.REEF_BACK_LEFT_IN_ROBOT,
@@ -58,11 +64,12 @@ public class AtagVision extends SubsystemBase {
   }
 
   public static AtagVision createIO() {
-    return new AtagVision(new AtagVisionIO() {}, new AtagVisionIO() {});
+    return new AtagVision(new PoseService() {}, new AtagVisionIO() {}, new AtagVisionIO() {});
   }
 
-  public static AtagVision createSim(Supplier<Pose2d> pose) {
+  public static AtagVision createSim(PoseService poseService, Supplier<Pose2d> pose) {
     return new AtagVision(
+        poseService,
         new AtagVisionIOPhotonSim(
             VisionConfig.REEF_BACK_LEFT_NAME,
             VisionConfig.REEF_BACK_LEFT_IN_ROBOT,
@@ -75,7 +82,8 @@ public class AtagVision extends SubsystemBase {
             VisionConfig.aprilTagLayout));
   }
 
-  private AtagVision(AtagVisionIO... io) {
+  private AtagVision(PoseService poseService, AtagVisionIO... io) {
+    this.poseService = poseService;
     this.io = io;
 
     // Initialize inputs
@@ -157,13 +165,9 @@ public class AtagVision extends SubsystemBase {
         robotPoses.add(observation.pose());
         if (rejectPose) {
           robotPosesRejected.add(observation.pose());
+          continue;
         } else {
           robotPosesAccepted.add(observation.pose());
-        }
-
-        // Skip if rejected
-        if (rejectPose) {
-          continue;
         }
 
         // Calculate standard deviations
@@ -179,6 +183,15 @@ public class AtagVision extends SubsystemBase {
           linearStdDev *= VisionConfig.cameraStdDevFactors[cameraIndex];
           angularStdDev *= VisionConfig.cameraStdDevFactors[cameraIndex];
         }
+
+        poseService.addPoseObservation(
+            new PoseService.PoseObservation(
+                observation.timestamp(),
+                new Pose2d(
+                    observation.pose().getX(),
+                    observation.pose().getY(),
+                    observation.pose().getRotation().toRotation2d()),
+                VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev)));
 
         // Update estimated pose and covariance
         if (robotPosesAccepted.size() > 0) {
