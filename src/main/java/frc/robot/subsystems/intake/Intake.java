@@ -11,7 +11,7 @@ import frc.robot.Constants;
 import frc.robot.interfaces.hardwares.motors.DCMotorIO;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOInputsAutoLogged;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOSim;
-import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonfx;
+import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonFX;
 import frc.robot.services.TransformTree;
 import frc.robot.utils.Gains.GainsImpl;
 import frc.robot.utils.Gains.KpGainsImpl;
@@ -63,7 +63,8 @@ public class Intake extends SubsystemBase {
   private boolean slammed = false;
   private Debouncer slamDebouncer = new Debouncer(0.0);
 
-  @Setter private BooleanSupplier dodgeSignalSupplier = () -> false;
+  @Setter
+  private BooleanSupplier dodgeSignalSupplier = () -> false;
   private final Debouncer needDodgeDebouncer = new Debouncer(0.2, Debouncer.DebounceType.kFalling);
 
   @Override
@@ -82,8 +83,7 @@ public class Intake extends SubsystemBase {
     rollerIO.setVoltage(goal.getRollerVoltageVolt());
 
     if (slamDebouncer.calculate(
-        Math.abs(armIOInputs.appliedVelocity)
-            <= IntakeConfig.slamVelocityThreshDegreePerSec.getAsDouble())) {
+        Math.abs(armIOInputs.appliedVelocity) <= IntakeConfig.slamVelocityThreshDegreePerSec.getAsDouble())) {
       slammed = true;
     }
 
@@ -133,12 +133,12 @@ public class Intake extends SubsystemBase {
 
   public static Intake createReal() {
     return new Intake(
-        new DCMotorIOTalonfx(
+        new DCMotorIOTalonFX(
             "IntakeRoller",
             Constants.Ports.Can.INTAKE_ROLLER,
             IntakeConfig.getRollerTalonConfig(),
             UnitConverter.scale(2 * Math.PI).withUnits("rot", "rad")),
-        new DCMotorIOTalonfx(
+        new DCMotorIOTalonFX(
             "IntakeArm",
             Constants.Ports.Can.INTAKE_ARM,
             IntakeConfig.getArmTalonConfig(),
@@ -165,19 +165,20 @@ public class Intake extends SubsystemBase {
   }
 
   public static Intake createIO() {
-    return new Intake(new DCMotorIO() {}, new DCMotorIO() {});
+    return new Intake(new DCMotorIO() {
+    }, new DCMotorIO() {
+    });
   }
 
   public void registerTransform(TransformTree transformTree) {
     transformTree.registerTransformComponent(
         Constants.Ascope.Component.INTAKE,
         Constants.Ascope.Component.DRIVETRAIN,
-        () ->
-            IntakeConfig.ZEROED_INTAKE_TF.plus(
-                new Transform3d(
-                    0,
-                    0,
-                    0,
-                    new Rotation3d(Units.degreesToRadians(armIOInputs.appliedPosition), 0, 0))));
+        () -> IntakeConfig.ZEROED_INTAKE_TF.plus(
+            new Transform3d(
+                0,
+                0,
+                0,
+                new Rotation3d(Units.degreesToRadians(armIOInputs.appliedPosition), 0, 0))));
   }
 }
