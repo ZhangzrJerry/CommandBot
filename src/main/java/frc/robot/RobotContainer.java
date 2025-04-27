@@ -65,7 +65,7 @@ public class RobotContainer {
     System.out.println("\n>      [0/5] RobotContainer Init ...");
 
     // ===== instantiate services =====
-    transformTree = new TransformTree();
+    transformTree = new TransformTree("Transform Tree");
     nodeSelector = new NodeSelector();
     odometry = new Odometry();
     autoModeSelector = new CommandSelector("Auto Mode Selector", "Auto");
@@ -177,7 +177,7 @@ public class RobotContainer {
         .onTrue(joystickRumbleCmd(0.3))
         .onFalse(joystickRumbleCmd(0.2));
 
-    new Trigger(() -> DriverStation.isEnabled())
+    new Trigger(() -> DriverStation.isAutonomous())
         .onTrue(Commands.runOnce(() -> autoModeSelector.pause()))
         .onFalse(Commands.runOnce(() -> autoModeSelector.resume()));
 

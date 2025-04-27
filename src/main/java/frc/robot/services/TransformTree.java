@@ -23,9 +23,10 @@ public class TransformTree implements Service {
   @Getter @Setter ServiceState state = ServiceState.STOPPED;
   @Getter @Setter private String errorMessage = "";
 
-  @Override
-  public String getName() {
-    return "Transform Tree";
+  @Getter private final String name;
+
+  public TransformTree(String name) {
+    this.name = name;
   }
 
   @Override
