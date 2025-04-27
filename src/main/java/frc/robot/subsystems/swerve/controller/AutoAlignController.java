@@ -187,6 +187,12 @@ public class AutoAlignController implements SwerveController {
     this.goalPoseSupplier = goalPoseSupplier;
     this.currentPoseSupplier = currentPoseSupplier;
     this.config = getConfigForType(type);
+    translationController.setPID(
+        config.translationGains.getKP(),
+        config.translationGains.getKI(),
+        config.translationGains.getKD());
+    rotationController.setPID(
+        config.rotationGains.getKP(), config.rotationGains.getKI(), config.rotationGains.getKD());
     rotationController.enableContinuousInput(-Math.PI, Math.PI);
   }
 
@@ -213,6 +219,20 @@ public class AutoAlignController implements SwerveController {
   public ChassisSpeeds getChassisSpeeds() {
     Pose2d currentPose = currentPoseSupplier.get();
     Pose2d goalPose = getShiftedGoalPose();
+
+    hasHeadingAtGoal =
+        Math.abs(
+                MathUtil.angleModulus(
+                    currentPose.getRotation().getRadians()
+                        - goalPoseSupplier.get().getRotation().getRadians()))
+            <= config.rotationToleranceDegree.get();
+    hasTranslationAtGoal =
+        currentPose.getTranslation().getDistance(goalPoseSupplier.get().getTranslation())
+            <= config.translationToleranceMeter.get();
+    hasDone = hasHeadingAtGoal && hasTranslationAtGoal;
+    if (hasDone) {
+      return new ChassisSpeeds(0, 0, 0);
+    }
 
     // Calculate angle relative to target point
     double angleToGoal =
@@ -250,15 +270,13 @@ public class AutoAlignController implements SwerveController {
     var yDistance = Math.abs(offset.getY());
     var xDistance = Math.abs(offset.getX());
 
-    // 计算相对于目标点的角度
+    // calculate the angle between the current pose and the goal pose
     var relativeAngle = Math.atan2(offset.getY(), offset.getX());
     var alignmentAngle = Math.toRadians(config.alignmentAngleDegree.get());
 
-    // 计算偏移量，考虑当前相对位置和目标对齐角度的关系
     var angleDiff = MathUtil.angleModulus(relativeAngle - alignmentAngle);
     var distance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
 
-    // 根据角度差计算偏移比例
     var shiftT =
         MathUtil.clamp(
             (distance / (Field.CoralStation.FACE_LENGTH * 2.0))
@@ -266,7 +284,6 @@ public class AutoAlignController implements SwerveController {
             0.0,
             1.0);
 
-    // 计算偏移方向
     var shiftX = -shiftT * config.maxLineupShiftingXMeter.get() * Math.cos(alignmentAngle);
     var shiftY = shiftT * config.maxLineupShiftingYMeter.get() * Math.sin(alignmentAngle);
 

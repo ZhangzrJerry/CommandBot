@@ -22,7 +22,6 @@ import edu.wpi.first.networktables.DoubleArraySubscriber;
 import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.RobotController;
-import frc.robot.interfaces.hardwares.sensors.camera.AtagVisionIO.AtagVisionIOInputs;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;

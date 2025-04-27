@@ -234,7 +234,7 @@ public class NodeConnectionMatrix {
   }
 
   public int getNearestNode(Pose2d pose) {
-    // 检查输入 pose 是否有效
+    // check if the pose is valid
     if (Double.isNaN(pose.getX()) || Double.isNaN(pose.getY())) {
       throw new IllegalArgumentException("Invalid pose: contains NaN values");
     }

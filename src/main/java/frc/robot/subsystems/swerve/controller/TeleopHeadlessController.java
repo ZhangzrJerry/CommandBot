@@ -2,7 +2,7 @@ package frc.robot.subsystems.swerve.controller;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import frc.robot.utils.FieldUtil;
+import frc.robot.utils.AllianceFlipUtil;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
@@ -19,7 +19,7 @@ public class TeleopHeadlessController extends TeleopHeaderController {
   public Translation2d getTranslation2d() {
     return super.getTranslation2d()
         .rotateBy(yawSupplier.get().unaryMinus())
-        .rotateBy(FieldUtil.isRedAlliance() ? Rotation2d.kPi : Rotation2d.kZero);
+        .rotateBy(AllianceFlipUtil.isRedAlliance() ? Rotation2d.kPi : Rotation2d.kZero);
   }
 
   @Override

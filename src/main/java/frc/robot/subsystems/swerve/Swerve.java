@@ -1,7 +1,6 @@
 package frc.robot.subsystems.swerve;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -14,12 +13,12 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.Ports;
+import frc.robot.commands.CharacterizationCommand;
 import frc.robot.interfaces.hardwares.motors.DCMotorIO;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOSim;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonFX;
@@ -62,6 +61,7 @@ public class Swerve extends SubsystemBase {
         new SwerveModuleState()
       };
 
+  @AutoLogOutput(key = "Swerve/goalWheelRadiusCharacterizationAngularVel")
   private double goalWheelRadiusCharacterizationAngularVel = 0.0;
 
   public Command registerControllerCmd(SwerveController controller) {
@@ -513,99 +513,47 @@ public class Swerve extends SubsystemBase {
     return Arrays.stream(modules).mapToDouble(SwerveModule::getDrivePositionRad).toArray();
   }
 
-  public void setGoalWheelRadiusCharacterizationAngularVel(double angularVelRadPerSec) {
-    isKsCharacterization = false;
-    isWheelRadiusCharacterization = true;
-    goalWheelRadiusCharacterizationAngularVel = angularVelRadPerSec;
-  }
-
-  public void endWheelRadiusCharacterization() {
-    isKsCharacterization = false;
-    isWheelRadiusCharacterization = false;
-    goalWheelRadiusCharacterizationAngularVel = 0.0;
-  }
-
   public Command getKsCharacterizationCmd() {
-    final var timer = new Timer();
-    final var state = new StaticCharacterizationState();
-
-    return Commands.run(
-            () -> {
-              timer.start();
-              state.characterizationOutput = timer.get() * SwerveConfig.currentRampFactor.get();
-              setModuleDriveCharacterizationCurrent(state.characterizationOutput);
-
-              Logger.recordOutput(
-                  "Swerve/StaticCharacterizationCurrentOutputAmp", state.characterizationOutput);
-            })
-        .until(() -> getModuleDriveCharacterizationVel() >= SwerveConfig.minVelocity.get())
-        .finallyDo(
-            () -> {
-              Logger.recordOutput(
-                  "Swerve/StaticCharacterizationCurrentOutputAmp", state.characterizationOutput);
-              System.out.println("Calculated Ks: " + state.characterizationOutput + " amps");
-            })
-        .withName("Swerve kS Characterization");
+    return CharacterizationCommand.createKsCharacterizationCommand(
+        "Swerve",
+        () -> SwerveConfig.currentRampFactor.get(),
+        () -> SwerveConfig.minVelocity.get(),
+        current -> {
+          isKsCharacterization = true;
+          isWheelRadiusCharacterization = false;
+          for (var module : modules) {
+            module.setDriveCharacterizationCurrent(current);
+          }
+        },
+        this::getModuleDriveCharacterizationVel);
   }
 
   public Command getWheelRadiusCharacterizationCmd(Direction rotateDirection) {
-    final var omegaLimiter = new SlewRateLimiter(1.0);
-    final var state = new WheelRadiusCharacterizationState();
-
-    return Commands.run(
-            () -> {
-              setGoalWheelRadiusCharacterizationAngularVel(
-                  omegaLimiter.calculate(
-                      rotateDirection.value
-                          * Units.degreesToRadians(
-                              SwerveConfig.characterizationSpeedDegreePerSec.get())));
-
-              double currentGyroYawRads = odometry.getPose().getPose().getRotation().getRadians();
-              state.sumGyroYawRads +=
-                  MathUtil.angleModulus(currentGyroYawRads - state.lastGyroYawRads);
-              state.lastGyroYawRads = currentGyroYawRads;
-
-              var sumWheelPosition = 0.0;
-              var wheelPositions = getWheelRadiusCharacterizationPosition();
-              for (int i = 0; i < 4; i++) {
-                sumWheelPosition += Math.abs(wheelPositions[i] - state.startWheelPositions[i]);
-              }
-              var avgWheelPosition = sumWheelPosition / 4.0;
-
-              state.currentEffectiveWheelRadius =
-                  (state.sumGyroYawRads * (SwerveConfig.WHEELBASE_DIAGONAL_METER / 2.0))
-                      / avgWheelPosition;
-              Logger.recordOutput(
-                  "Swerve/WheelRadiusCharacterization/DrivePosition", avgWheelPosition);
-              Logger.recordOutput(
-                  "Swerve/WheelRadiusCharacterization/AccumGyroYawRads", state.sumGyroYawRads);
-              Logger.recordOutput(
-                  "Swerve/WheelRadiusCharacterization/CurrentWheelRadiusMeters",
-                  state.currentEffectiveWheelRadius);
-            })
-        .finallyDo(
-            () -> {
-              endWheelRadiusCharacterization();
-
-              if (state.sumGyroYawRads <= Math.PI * 2.0) {
-                System.out.println("No enough data for characterization");
-              } else {
-                System.out.println(
-                    "Effective Wheel Radius: " + state.currentEffectiveWheelRadius + " meters");
-              }
-            })
-        .withName("Swerve Wheel Radius Characterization");
-  }
-
-  private static class StaticCharacterizationState {
-    public double characterizationOutput = 0.0;
-  }
-
-  private static class WheelRadiusCharacterizationState {
-    public double lastGyroYawRads = 0.0;
-    public double sumGyroYawRads = 0.0;
-    public double[] startWheelPositions;
-    public double currentEffectiveWheelRadius = 0.0;
+    return CharacterizationCommand.createWheelRadiusCharacterizationCommand(
+        "Swerve",
+        () ->
+            rotateDirection.value
+                * Units.degreesToRadians(SwerveConfig.characterizationSpeedDegreePerSec.get()),
+        angularVel -> {
+          isKsCharacterization = false;
+          isWheelRadiusCharacterization = true;
+          goalWheelRadiusCharacterizationAngularVel = angularVel;
+        },
+        () -> odometry.getPose().getPose().getRotation().getRadians(),
+        () -> {
+          var sumWheelPosition = 0.0;
+          var wheelPositions = getWheelRadiusCharacterizationPosition();
+          for (int i = 0; i < 4; i++) {
+            sumWheelPosition += Math.abs(wheelPositions[i]);
+          }
+          return sumWheelPosition / 4.0;
+        },
+        () -> SwerveConfig.WHEELBASE_DIAGONAL_METER,
+        () -> {
+          isKsCharacterization = false;
+          isWheelRadiusCharacterization = false;
+          goalWheelRadiusCharacterizationAngularVel = 0.0;
+        });
   }
 
   public enum Direction {
