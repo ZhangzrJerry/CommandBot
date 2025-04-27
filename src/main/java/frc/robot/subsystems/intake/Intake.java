@@ -15,7 +15,6 @@ import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonFX;
 import frc.robot.services.TransformTree;
 import frc.robot.utils.Gains.GainsImpl;
 import frc.robot.utils.Gains.KpGainsImpl;
-import frc.robot.utils.dashboard.TunableNumber;
 import frc.robot.utils.math.UnitConverter;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -28,15 +27,11 @@ import org.littletonrobotics.junction.Logger;
 public class Intake extends SubsystemBase {
   @RequiredArgsConstructor
   public enum IntakeGoal {
-    IDLE(() -> 0.0, IntakeConfig.slamUpCurrentAmp),
-    IIDLE(() -> 0.0, IntakeConfig.slamUpCurrentAmp),
-    DODGE(() -> 0.0, IntakeConfig.slamDownCurrentAmp),
-    COLLECT(
-        new TunableNumber("Intake/Roller/Goal/CollectVoltageVolt", -5.5),
-        IntakeConfig.slamDownCurrentAmp),
-    EJECT(
-        new TunableNumber("Intake/Roller/Goal/EjectVoltageVolt", 5.5),
-        IntakeConfig.slamDownCurrentAmp);
+    IDLE(() -> 0.0, () -> IntakeConfig.slamUpCurrentAmp.get()),
+    IIDLE(() -> 0.0, () -> IntakeConfig.slamUpCurrentAmp.get()),
+    DODGE(() -> 0.0, () -> IntakeConfig.slamDownCurrentAmp.get()),
+    COLLECT(() -> -5.5, () -> IntakeConfig.slamDownCurrentAmp.get()),
+    EJECT(() -> 5.5, () -> IntakeConfig.slamDownCurrentAmp.get());
 
     private final DoubleSupplier rollerVoltageVoltSupplier;
     private final DoubleSupplier slamCurrentAmpSupplier;

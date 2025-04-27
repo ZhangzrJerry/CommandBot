@@ -17,8 +17,6 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.interfaces.hardwares.sensors.camera.AtagVisionIO;
@@ -27,6 +25,7 @@ import frc.robot.interfaces.hardwares.sensors.camera.AtagVisionIOPhoton;
 import frc.robot.interfaces.hardwares.sensors.camera.AtagVisionIOPhotonSim;
 import frc.robot.interfaces.services.PoseService;
 import frc.robot.utils.dashboard.Alert;
+import frc.robot.utils.dashboard.Alert.AlertType;
 import frc.robot.utils.math.PoseUtil.UncertainPose2d;
 import java.util.LinkedList;
 import java.util.List;
@@ -96,7 +95,7 @@ public class AtagVision extends SubsystemBase {
     for (int i = 0; i < disconnectedAlerts.length; i++) {
       disconnectedAlerts[i] =
           new Alert(
-              "Vision camera " + Integer.toString(i) + " is disconnected.", AlertType.kWarning);
+              "Vision camera " + Integer.toString(i) + " is disconnected.", AlertType.WARNING);
     }
   }
 
