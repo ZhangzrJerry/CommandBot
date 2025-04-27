@@ -97,7 +97,7 @@ public class AutoAlignController implements SwerveController {
           0.0,
           0.1,
           3.0, // rotKP, rotKI, rotKD, rotTol
-          180.0 // alignmentAngle
+          0.0 // alignmentAngle
           );
 
   private static final AlignConfig REEF_CORAL_CONFIG =
@@ -120,13 +120,13 @@ public class AutoAlignController implements SwerveController {
   private static final AlignConfig REEF_ALGAE_CONFIG =
       new AlignConfig(
           "Swerve/AlignController/ReefAlgae",
-          1.0,
-          0.6, // maxY, maxX
+          3.0,
+          1.5, // maxY, maxX
           2.0,
           0.0,
           0.08,
           0.06,
-          0.15, // transKP, transKI, transKD, transTol, preTransTol
+          0.45, // transKP, transKI, transKD, transTol, preTransTol
           3.5,
           0.0,
           0.0,
@@ -319,6 +319,16 @@ public class AutoAlignController implements SwerveController {
                 .getTranslation()
                 .getDistance(goalPoseSupplier.get().getTranslation()))
         <= config.preTranslationToleranceMeter.get();
+  }
+
+  @Override
+  public Boolean translationErrorWithin(double tolerance) {
+    return Math.abs(
+            currentPoseSupplier
+                .get()
+                .getTranslation()
+                .getDistance(goalPoseSupplier.get().getTranslation()))
+        <= tolerance;
   }
 
   @Override

@@ -1,9 +1,9 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.ReefScape;
+import frc.robot.interfaces.services.PoseService;
 import frc.robot.services.NodeSelector;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmGoal;
@@ -28,7 +28,7 @@ public class SuperStructure {
   Endeffector endeffector;
 
   NodeSelector nodeSelector;
-
+  PoseService odometry;
   BooleanSupplier shouldArmLift =
       () -> swerve.atToleranceGoal() || nodeSelector.getIgnoreArmMoveCondition();
 
@@ -38,7 +38,8 @@ public class SuperStructure {
       Arm arm,
       Climber climber,
       Endeffector endeffector,
-      NodeSelector nodeSelector) {
+      NodeSelector nodeSelector,
+      PoseService odometry) {
     // subsystems
     this.swerve = swerve;
     this.intake = intake;
@@ -48,6 +49,7 @@ public class SuperStructure {
 
     // services
     this.nodeSelector = nodeSelector;
+    this.odometry = odometry;
   }
 
   public Command forcedIdleCmd() {
@@ -80,25 +82,31 @@ public class SuperStructure {
         .withName("Super/Algae Collect");
   }
 
-  public Command algaeReefPickCmd(boolean highPick) {
+  public Command algaeReefPickCmd() {
     String name = "Super/Algae Reef Pick";
-    SmartDashboard.putBoolean("name", highPick);
-    return Commands.sequence(
-            Commands.runOnce(
-                    () -> {
-                      endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.COLLECT);
-                      arm.setGoal(highPick ? ArmGoal.ALGAE_HIGH_PICK : ArmGoal.ALGAE_LOW_PICK);
-                    },
-                    arm)
-                .withName(name + "/Set Pick Goal"),
-            Commands.waitUntil(() -> endeffector.hasAlgaeEndeffectorStoraged())
-                .withName(name + "/Wait For Pick"),
-            Commands.runOnce(
+    return Commands.parallel(
+            swerve.registerControllerCmd(
+                new AutoAlignController(
+                    AlignType.REEF_ALGAE,
+                    () -> ReefScape.Field.Reef.getAlgaeScoredPose(odometry.getCurrentPose()),
+                    () -> odometry.getCurrentPose())),
+            Commands.sequence(
+                Commands.waitUntil(() -> swerve.atToleranceGoal(3)),
+                Commands.runOnce(
                     () -> {
                       arm.setGoal(ArmGoal.IDLE);
-                      endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.HOLDING);
-                    })
-                .withName(name + "/Set Holding Goal"))
+                    }),
+                Commands.waitUntil(shouldArmLift),
+                Commands.runOnce(
+                        () -> {
+                          endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.COLLECT);
+                          arm.setGoal(
+                              ReefScape.PoseUtils.isAlgaeHighPick(odometry.getCurrentPose())
+                                  ? ArmGoal.ALGAE_HIGH_PICK
+                                  : ArmGoal.ALGAE_LOW_PICK);
+                        },
+                        arm)
+                    .withName(name + "/Set Pick Goal")))
         .withName(name);
   }
 
@@ -121,14 +129,28 @@ public class SuperStructure {
 
   public Command algaeNetScoreCmd() {
     String name = "Super/Algae Net Score";
-    return Commands.sequence(
+    return Commands.parallel(
+        Commands.either(
+            Commands.none(),
+            swerve.registerControllerCmd(
+                new AutoAlignController(
+                    AlignType.NET,
+                    () -> ReefScape.Field.Barge.getAlgaeScoredPose(odometry.getCurrentPose()),
+                    () -> odometry.getCurrentPose())),
+            () -> nodeSelector.getIgnoreArmMoveCondition()),
+        Commands.sequence(
+            Commands.waitUntil(() -> swerve.atToleranceGoal(3)),
+            Commands.runOnce(
+                () -> {
+                  arm.setGoal(ArmGoal.IDLE);
+                }),
+            Commands.waitUntil(shouldArmLift),
             Commands.runOnce(
                     () -> {
                       arm.setGoal(ArmGoal.ALGAE_NET_SCORE);
                     },
                     arm)
-                .withName(name + "/Set Score Pose"))
-        .withName(name);
+                .withName(name + "/Set Score Pose")));
   }
 
   public Command algaeProcessorScoreCmd() {
@@ -140,10 +162,10 @@ public class SuperStructure {
                 new AutoAlignController(
                     AlignType.PROCESSOR,
                     () ->
-                        AllianceFlipUtil.isRobotInBlueSide(swerve.getPose())
+                        AllianceFlipUtil.isRobotInBlueSide(odometry.getCurrentPose())
                             ? ReefScape.Field.Processor.SCORE_POSE
                             : AllianceFlipUtil.flipPose(ReefScape.Field.Processor.SCORE_POSE),
-                    () -> swerve.getPose())),
+                    () -> odometry.getCurrentPose())),
             () -> nodeSelector.getIgnoreArmMoveCondition()),
         Commands.sequence(
             Commands.runOnce(
@@ -163,7 +185,7 @@ public class SuperStructure {
                 new AutoAlignController(
                     isLeft ? AlignType.CORAL_STATION_LEFT : AlignType.CORAL_STATION_RIGHT,
                     () ->
-                        AllianceFlipUtil.isRobotInBlueSide(swerve.getPose())
+                        AllianceFlipUtil.isRobotInBlueSide(odometry.getCurrentPose())
                             ? (isLeft
                                 ? ReefScape.Field.CoralStation.LEFT_CENTER_COLLECT_POSE
                                 : ReefScape.Field.CoralStation.RIGHT_CENTER_COLLECT_POSE)
@@ -172,7 +194,7 @@ public class SuperStructure {
                                     ReefScape.Field.CoralStation.LEFT_CENTER_COLLECT_POSE)
                                 : AllianceFlipUtil.flipPose(
                                     ReefScape.Field.CoralStation.RIGHT_CENTER_COLLECT_POSE)),
-                    () -> swerve.getPose())),
+                    () -> odometry.getCurrentPose())),
             () -> nodeSelector.getIgnoreArmMoveCondition()),
         Commands.sequence(
             Commands.runOnce(
@@ -184,9 +206,28 @@ public class SuperStructure {
                 .withName(name + "/Set Collect Pose")));
   }
 
-  public Command coralReefScoreCmd(int layer) {
+  public Command coralReefScoreCmd(int layer, boolean isLeft) {
     String name = "Super/Coral Reef Score";
-    return Commands.sequence(
+    return Commands.parallel(
+        Commands.either(
+            Commands.none(),
+            swerve.registerControllerCmd(
+                new AutoAlignController(
+                    AlignType.REEF_CORAL,
+                    () ->
+                        layer > 1
+                            ? ReefScape.Field.Reef.getCoralScoredPose(
+                                odometry.getCurrentPose(), isLeft)
+                            : ReefScape.Field.Reef.getAlgaeScoredPose(odometry.getCurrentPose()),
+                    () -> odometry.getCurrentPose())),
+            () -> nodeSelector.getIgnoreArmMoveCondition()),
+        Commands.sequence(
+            Commands.waitUntil(() -> swerve.atToleranceGoal(3)),
+            Commands.runOnce(
+                () -> {
+                  arm.setGoal(ArmGoal.IDLE);
+                }),
+            Commands.waitUntil(shouldArmLift),
             Commands.runOnce(
                     () -> {
                       switch (layer) {
@@ -204,8 +245,7 @@ public class SuperStructure {
                           break;
                       }
                     })
-                .withName(name + "/Set Score Pose"))
-        .withName(name);
+                .withName(name + "/Set Score Pose")));
   }
 
   public Command coralMagicEjectCmd() {
@@ -231,5 +271,15 @@ public class SuperStructure {
               arm.setGoal(ArmGoal.CLIMB);
             })
         .withName("Super/Set Climbing");
+  }
+
+  public Command autoIdleCmd() {
+    return Commands.runOnce(
+            () -> {
+              if (!swerve.atToleranceGoal() && swerve.atToleranceGoal(3.5)) {
+                arm.setGoal(ArmGoal.IDLE);
+              }
+            })
+        .withName("Super/Auto Idle");
   }
 }

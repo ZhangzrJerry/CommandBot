@@ -55,24 +55,6 @@ public class NodeSelector implements Service {
     isAutoPublisher = table.getBooleanTopic("is_auto").publish();
     isConnectedPublisher = table.getBooleanTopic("is_connected").publish();
     errorMessagePublisher = table.getStringTopic("error_message").publish();
-
-    try {
-      server =
-          Javalin.create(
-              config ->
-                  config.staticFiles.add(
-                      Paths.get(Filesystem.getDeployDirectory().getAbsolutePath(), "nodeselector")
-                          .toString(),
-                      Location.EXTERNAL));
-      server.start(5800);
-      isServerConnected.set(true);
-      setState(ServiceState.RUNNING);
-    } catch (Exception e) {
-      String error = "Failed to start server: " + e.getMessage();
-      errorMessage = error;
-      errorMessagePublisher.set(error);
-      setError(error);
-    }
   }
 
   @Override
@@ -103,7 +85,23 @@ public class NodeSelector implements Service {
 
   @Override
   public void init() {
-    setState(ServiceState.RUNNING);
+    try {
+      server =
+          Javalin.create(
+              config ->
+                  config.staticFiles.add(
+                      Paths.get(Filesystem.getDeployDirectory().getAbsolutePath(), "nodeselector")
+                          .toString(),
+                      Location.EXTERNAL));
+      server.start(5800);
+      isServerConnected.set(true);
+      setState(ServiceState.RUNNING);
+    } catch (Exception e) {
+      String error = "Failed to start server: " + e.getMessage();
+      errorMessage = error;
+      errorMessagePublisher.set(error);
+      setError(error);
+    }
   }
 
   @Override

@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Filesystem;
 import frc.robot.utils.AllianceFlipUtil;
@@ -80,6 +81,10 @@ public class ReefScape {
           new Pose3d[] {
             Field.Processor.ALGAE_POSE,
             AllianceFlipUtil.flipPose(Field.Processor.ALGAE_POSE),
+            Field.Processor.ALGAE_POSE.plus(new Transform3d(0.435, 0, -0.05, new Rotation3d())),
+            AllianceFlipUtil.flipPose(
+                Field.Processor.ALGAE_POSE.plus(
+                    new Transform3d(0.435, 0, -0.05, new Rotation3d()))),
             Field.Barge.getPoseBasedOnY(Field.WIDTH / 2 + LIMIT + 0 * DIAMETER, false),
             Field.Barge.getPoseBasedOnY(Field.WIDTH / 2 + LIMIT + 1 * DIAMETER, false),
             Field.Barge.getPoseBasedOnY(Field.WIDTH / 2 + LIMIT + 2 * DIAMETER, false),
@@ -568,56 +573,6 @@ public class ReefScape {
             PoseUtils.getPoseBasedOnTag(13, -0.08, 0, 1.1, Math.toRadians(35.0)),
           };
     }
-
-    /**
-     * 根据选择的游戏部件类型和分支位置获取得分位置
-     *
-     * @param selectedGamePieceType 游戏部件类型
-     * @param selectedBranch 分支位置
-     * @return 得分位置
-     */
-    public static Pose2d getScorePoseBySelection(
-        Type selectedGamePieceType, String selectedBranch) {
-      switch (selectedGamePieceType) {
-        case ALGAE:
-          switch (selectedBranch) {
-            case "A":
-            case "B":
-            case "AB":
-              return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("AB"));
-            case "C":
-            case "D":
-            case "CD":
-              return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("CD"));
-            case "E":
-            case "F":
-            case "EF":
-              return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("EF"));
-            case "G":
-            case "H":
-            case "GH":
-              return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("GH"));
-            case "I":
-            case "J":
-            case "IJ":
-              return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("IJ"));
-            case "K":
-            case "L":
-            case "KL":
-              return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("KL"));
-          }
-          break;
-        case CORAL:
-          if (!selectedBranch.isEmpty()) {
-            return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get(selectedBranch));
-          }
-          break;
-        default:
-          break;
-      }
-
-      return new Pose2d();
-    }
   }
 
   // 场地相关常量
@@ -685,6 +640,55 @@ public class ReefScape {
         SCORE_POSES.put("KL", getScorePose(19, 0.0));
       }
 
+      /**
+       * 根据选择的游戏部件类型和分支位置获取得分位置
+       *
+       * @param selectedGamePieceType 游戏部件类型
+       * @param selectedBranch 分支位置
+       * @return 得分位置
+       */
+      public static Pose2d getScorePoseBySelection(
+          GamePiece.Type selectedGamePieceType, String selectedBranch) {
+        switch (selectedGamePieceType) {
+          case ALGAE:
+            switch (selectedBranch) {
+              case "A":
+              case "B":
+              case "AB":
+                return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("AB"));
+              case "C":
+              case "D":
+              case "CD":
+                return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("CD"));
+              case "E":
+              case "F":
+              case "EF":
+                return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("EF"));
+              case "G":
+              case "H":
+              case "GH":
+                return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("GH"));
+              case "I":
+              case "J":
+              case "IJ":
+                return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("IJ"));
+              case "K":
+              case "L":
+              case "KL":
+                return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get("KL"));
+            }
+            break;
+          case CORAL:
+            if (!selectedBranch.isEmpty()) {
+              return AllianceFlipUtil.flipPose(Field.Reef.SCORE_POSES.get(selectedBranch));
+            }
+            break;
+          default:
+            break;
+        }
+        return new Pose2d();
+      }
+
       private static Pose2d getScorePose(int id, double adjustY) {
         return getPoseBasedOnTag(id, SCORE_ADJUST_X, adjustY, new Rotation2d());
       }
@@ -707,6 +711,34 @@ public class ReefScape {
       public static Pose3d getAlgaePose(int id, double height) {
         return PoseUtils.getPoseBasedOnTag(id, ALGAE_ADJUST_X, 0.0, height, 0.0);
       }
+
+      public static Pose2d getAlgaeScoredPose(Pose2d pose) {
+        return AllianceFlipUtil.isRobotInBlueSide(pose)
+            ? SCORE_POSES.get(getSideByCurrentPose(pose))
+            : AllianceFlipUtil.flipPose(SCORE_POSES.get(getSideByCurrentPose(pose)));
+      }
+
+      public static Pose2d getCoralScoredPose(Pose2d pose, boolean isLeft) {
+        String side = getSideByCurrentPose(pose);
+        String key = isLeft ? side.substring(0, 1) : side.substring(1, 2);
+        return AllianceFlipUtil.isRobotInBlueSide(pose)
+            ? SCORE_POSES.get(key)
+            : AllianceFlipUtil.flipPose(SCORE_POSES.get(key));
+      }
+
+      public static String getSideByCurrentPose(Pose2d currentPose) {
+        if (!AllianceFlipUtil.isRobotInBlueSide(currentPose)) {
+          currentPose = AllianceFlipUtil.flipPose(currentPose);
+        }
+        Rotation2d angle = currentPose.getTranslation().minus(CENTER).getAngle();
+        if (angle.getSin() > 0.5) {
+          return angle.getCos() > 0 ? "IJ" : "KL";
+        } else if (angle.getSin() < -0.5) {
+          return angle.getCos() > 0 ? "EF" : "CD";
+        } else {
+          return angle.getCos() > 0 ? "GH" : "AB";
+        }
+      }
     }
 
     // 驳船区域相关常量
@@ -723,6 +755,29 @@ public class ReefScape {
             NET_HEIGHT - GamePiece.Algae.DIAMETER / 2.0,
             new Rotation3d());
       }
+
+      public static Pose2d getAlgaeScoredPose(Pose2d pose) {
+        if (AllianceFlipUtil.isRedAlliance()) {
+          if (AllianceFlipUtil.isRobotInBlueSide(pose)) {
+            return new Pose2d(SCORE_X, Math.min(pose.getY(), Field.WIDTH / 2 - 0.4), SCORE_HEADING);
+          } else {
+            return new Pose2d(
+                AllianceFlipUtil.flipX(SCORE_X),
+                Math.min(pose.getY(), Field.WIDTH / 2 - 0.4),
+                SCORE_HEADING.plus(Rotation2d.k180deg));
+          }
+
+        } else {
+          if (AllianceFlipUtil.isRobotInBlueSide(pose)) {
+            return new Pose2d(SCORE_X, Math.max(pose.getY(), Field.WIDTH / 2 + 0.4), SCORE_HEADING);
+          } else {
+            return new Pose2d(
+                AllianceFlipUtil.flipX(SCORE_X),
+                Math.max(pose.getY(), Field.WIDTH / 2 + 0.4),
+                SCORE_HEADING.plus(Rotation2d.k180deg));
+          }
+        }
+      }
     }
 
     // 处理器区域相关常量
@@ -733,7 +788,7 @@ public class ReefScape {
       public static final Pose3d ALGAE_POSE =
           new Pose3d(
               CENTER.getX(),
-              CENTER.getY() + 0.32,
+              CENTER.getY() - 1.032 - 0.32,
               GamePiece.Algae.DIAMETER / 2.0 + 0.1,
               new Rotation3d());
       public static final Pose2d SCORE_POSE =
@@ -814,7 +869,7 @@ public class ReefScape {
       }
     }
 
-    public int getSingleTagPoseIdBySelection(String selectedBranch, Pose2d currentPose) {
+    public int getSingleTagIdBySelection(String selectedBranch, Pose2d currentPose) {
       return switch (selectedBranch) {
         case "A", "B", "AB" -> AllianceFlipUtil.isRobotInBlueSide(currentPose) ? 7 : 18;
         case "C", "D", "CD" -> AllianceFlipUtil.isRobotInBlueSide(currentPose) ? 8 : 17;
@@ -824,10 +879,6 @@ public class ReefScape {
         case "K", "L", "KL" -> AllianceFlipUtil.isRobotInBlueSide(currentPose) ? 6 : 19;
         default -> -1;
       };
-    }
-
-    public static int getSingleTagPoseIdByCurrentPose(Pose2d currentPose) {
-      return -1;
     }
   }
 

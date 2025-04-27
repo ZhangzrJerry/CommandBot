@@ -25,7 +25,7 @@ public class GamePieceVisualize implements Service {
   private int scoredGamePieceNums = 0;
 
   private static final double PICKABLE_MAX_DISTANCE = 0.45;
-  private static final double SCORABLE_MAX_DISTANCE = 0.7;
+  private static final double SCORABLE_MAX_DISTANCE = 0.85;
 
   @Setter private Supplier<Pose3d> pickMechanismPoseSupplier = () -> new Pose3d();
   @Setter private Supplier<Pose3d> scoreMechanismPoseSupplier = () -> new Pose3d();

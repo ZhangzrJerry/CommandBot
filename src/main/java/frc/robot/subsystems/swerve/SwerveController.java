@@ -30,6 +30,10 @@ public interface SwerveController {
     return false;
   }
 
+  default Boolean translationErrorWithin(double tolerance) {
+    return false;
+  }
+
   default String getName() {
     return "Swerve Controller";
   }
