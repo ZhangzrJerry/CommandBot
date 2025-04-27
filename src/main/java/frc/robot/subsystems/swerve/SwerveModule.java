@@ -67,4 +67,12 @@ public class SwerveModule {
     driveIO.stop();
     steerIO.stop();
   }
+
+  public double getDriveVelMeterPerSec() {
+    return driveIO.getAppliedVelocity();
+  }
+
+  public double getDrivePositionRad() {
+    return driveIO.getAppliedPosition();
+  }
 }
