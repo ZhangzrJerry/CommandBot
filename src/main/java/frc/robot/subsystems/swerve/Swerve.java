@@ -18,7 +18,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.Ports;
-import frc.robot.commands.CharacterizationCommand;
+import frc.robot.commands.CharacterizationCommandFactory;
 import frc.robot.interfaces.hardwares.motors.DCMotorIO;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOSim;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOTalonFX;
@@ -514,7 +514,7 @@ public class Swerve extends SubsystemBase {
   }
 
   public Command getKsCharacterizationCmd() {
-    return CharacterizationCommand.createKsCharacterizationCommand(
+    return CharacterizationCommandFactory.createKsCharacterizationCommand(
         "Swerve",
         () -> SwerveConfig.currentRampFactor.get(),
         () -> SwerveConfig.minVelocity.get(),
@@ -528,11 +528,11 @@ public class Swerve extends SubsystemBase {
         this::getModuleDriveCharacterizationVel);
   }
 
-  public Command getWheelRadiusCharacterizationCmd(Direction rotateDirection) {
-    return CharacterizationCommand.createWheelRadiusCharacterizationCommand(
+  public Command getWheelRadiusCharacterizationCmd(Boolean ccw) {
+    return CharacterizationCommandFactory.createWheelRadiusCharacterizationCommand(
         "Swerve",
         () ->
-            rotateDirection.value
+            (ccw ? 1 : -1)
                 * Units.degreesToRadians(SwerveConfig.characterizationSpeedDegreePerSec.get()),
         angularVel -> {
           isKsCharacterization = false;
@@ -554,16 +554,5 @@ public class Swerve extends SubsystemBase {
           isWheelRadiusCharacterization = false;
           goalWheelRadiusCharacterizationAngularVel = 0.0;
         });
-  }
-
-  public enum Direction {
-    CLOCKWISE(-1),
-    COUNTER_CLOCKWISE(1);
-
-    private final int value;
-
-    Direction(int value) {
-      this.value = value;
-    }
   }
 }

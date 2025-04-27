@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.commands.CharacterizationCommand;
+import frc.robot.commands.CharacterizationCommandFactory;
 import frc.robot.interfaces.hardwares.motors.DCMotorIO;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOInputsAutoLogged;
 import frc.robot.interfaces.hardwares.motors.DCMotorIOSim;
@@ -292,7 +292,7 @@ public class Arm extends SubsystemBase {
   }
 
   public Command getShoulderKsCharacterizationCmd(double outputCurrentRampRateAmp) {
-    return CharacterizationCommand.createKsCharacterizationCommand(
+    return CharacterizationCommandFactory.createKsCharacterizationCommand(
         "Arm/Shoulder",
         () -> outputCurrentRampRateAmp,
         () -> ArmConfig.SHOULDER_STATIC_CHARACTERIZATION_VELOCITY_THRESH_METER_PER_SEC.get(),
@@ -304,7 +304,7 @@ public class Arm extends SubsystemBase {
   }
 
   public Command getElbowKsCharacterizationCmd(double outputCurrentRampRateAmp) {
-    return CharacterizationCommand.createKsCharacterizationCommand(
+    return CharacterizationCommandFactory.createKsCharacterizationCommand(
         "Arm/Elbow",
         () -> outputCurrentRampRateAmp,
         () -> ArmConfig.ELBOW_STATIC_CHARACTERIZATION_VELOCITY_THRESH_DEGREE_PER_SEC.get(),

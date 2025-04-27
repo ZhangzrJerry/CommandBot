@@ -3,14 +3,16 @@ package frc.robot;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.commands.RobotCommand;
+import frc.robot.commands.RobotCommandFactory;
 import frc.robot.interfaces.services.PoseService;
+import frc.robot.services.CommandSelector;
 import frc.robot.services.GamePieceVisualize;
 import frc.robot.services.NodeSelector;
 import frc.robot.services.Odometry;
@@ -41,13 +43,14 @@ public class RobotContainer {
 
   // ==== command scheduler ====
   CommandScheduler commandScheduler = CommandScheduler.getInstance();
-  RobotCommand robotCommand;
+  RobotCommandFactory robotCommand;
 
   // ==== service manager ====
   ServiceManager serviceManager = ServiceManager.getInstance();
   PoseService odometry;
   TransformTree transformTree;
   NodeSelector nodeSelector;
+  CommandSelector autoModeSelector;
   GamePieceVisualize algaeVisualizer; // -> rely on transform tree
   GamePieceVisualize coralVisualizer; // -> rely on transform tree
 
@@ -65,26 +68,34 @@ public class RobotContainer {
     transformTree = new TransformTree();
     nodeSelector = new NodeSelector();
     odometry = new Odometry();
+    autoModeSelector = new CommandSelector("Auto Mode Selector", "Auto");
     serviceManager.registerService(transformTree, 50);
     serviceManager.registerService(nodeSelector, 20);
     serviceManager.registerService(odometry, 0);
+    serviceManager.registerService(autoModeSelector, 20);
 
     if (Robot.isReal()) {
-      algaeVisualizer = new GamePieceVisualize("Algae Visualizer", new Pose3d[0], new Pose3d[0]);
-      coralVisualizer = new GamePieceVisualize("Coral Visualizer", new Pose3d[0], new Pose3d[0]);
+      algaeVisualizer =
+          new GamePieceVisualize("Algae Visualizer", 0, 0, new Pose3d[0], new Pose3d[0]);
+      coralVisualizer =
+          new GamePieceVisualize("Coral Visualizer", 0, 0, new Pose3d[0], new Pose3d[0]);
 
       // register services
     } else if (Robot.isSimulation()) {
       algaeVisualizer =
           new GamePieceVisualize(
               "Algae Visualizer",
-              ReefScape.GamePiece.Algae.SCORABLE_POSES,
-              ReefScape.GamePiece.Algae.PICKABLE_POSES);
+              0.2,
+              1.0,
+              ReefScape.GamePiece.Algae.PICKABLE_POSES,
+              ReefScape.GamePiece.Algae.SCORABLE_POSES);
       coralVisualizer =
           new GamePieceVisualize(
               "Coral Visualizer",
-              ReefScape.GamePiece.Coral.SCORABLE_POSES,
-              ReefScape.GamePiece.Coral.PICKABLE_POSES);
+              0.45,
+              0.2,
+              ReefScape.GamePiece.Coral.PICKABLE_POSES,
+              ReefScape.GamePiece.Coral.SCORABLE_POSES);
 
       // register services
       serviceManager.registerService(algaeVisualizer);
@@ -119,7 +130,7 @@ public class RobotContainer {
       climber = Climber.createIO();
     }
     robotCommand =
-        new RobotCommand(swerve, intake, arm, climber, endeffector, nodeSelector, odometry);
+        new RobotCommandFactory(swerve, intake, arm, climber, endeffector, nodeSelector, odometry);
     if (Robot.isSimulation()) {
       robotCommand
           .resetPoseCmd(
@@ -157,12 +168,18 @@ public class RobotContainer {
                 () -> odometry.getCurrentHeading())));
 
     climber.setDefaultCommand(climber.registerTeleopPullCmd(joystick.povDown()));
-    new Trigger(
-            () ->
-                endeffector.hasAlgaeEndeffectorStoraged()
-                    || endeffector.hasCoralEndeffectorStoraged())
+
+    new Trigger(() -> endeffector.hasAlgaeEndeffectorStoraged())
         .onTrue(joystickRumbleCmd(0.3))
         .onFalse(joystickRumbleCmd(0.2));
+
+    new Trigger(() -> endeffector.hasCoralEndeffectorStoraged())
+        .onTrue(joystickRumbleCmd(0.3))
+        .onFalse(joystickRumbleCmd(0.2));
+
+    new Trigger(() -> DriverStation.isEnabled())
+        .onTrue(Commands.runOnce(() -> autoModeSelector.pause()))
+        .onFalse(Commands.runOnce(() -> autoModeSelector.resume()));
 
     // ===== mode commands =====
     joystick
@@ -314,12 +331,16 @@ public class RobotContainer {
     endeffector.setAlgaeSignalSupplier(joystick.povLeft());
     endeffector.setCoralSignalSupplier(joystick.povRight());
 
-    // ===== visualize service =====
+    // ===== kinematic service =====
     swerve.registerTransform(transformTree);
     arm.registerTransform(transformTree);
     intake.registerTransform(transformTree);
     endeffector.registerTransform(transformTree);
     climber.registerTransform(transformTree);
+
+    // ===== automode selector service =====
+    autoModeSelector.addMode("Wheel R", swerve.getWheelRadiusCharacterizationCmd(true));
+    autoModeSelector.addMode("x", swerve.getKsCharacterizationCmd());
 
     // ===== algae game piece visualize =====
     algaeVisualizer.setPickMechanismPoseSupplier(

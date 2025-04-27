@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
-public class CharacterizationCommand {
+public class CharacterizationCommandFactory {
   private static class StaticCharacterizationState {
     public double characterizationOutput = 0.0;
   }

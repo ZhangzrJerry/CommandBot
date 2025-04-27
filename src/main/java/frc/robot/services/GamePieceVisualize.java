@@ -24,8 +24,8 @@ public class GamePieceVisualize implements Service {
   @Getter private boolean hasGamePiece = false;
   private int scoredGamePieceNums = 0;
 
-  private static final double PICKABLE_MAX_DISTANCE = 0.45;
-  private static final double SCORABLE_MAX_DISTANCE = 0.85;
+  private static double pickableMaxDistance;
+  private static double scorableMaxDistance;
 
   @Setter private Supplier<Pose3d> pickMechanismPoseSupplier = () -> new Pose3d();
   @Setter private Supplier<Pose3d> scoreMechanismPoseSupplier = () -> new Pose3d();
@@ -49,7 +49,7 @@ public class GamePieceVisualize implements Service {
               minDistanceIndex = i;
             }
           }
-          if (maxDistance < PICKABLE_MAX_DISTANCE) {
+          if (maxDistance < pickableMaxDistance) {
             pickableGamePiecePose[minDistanceIndex] =
                 new Pose3d(0x3f3f3f3f, 0x3f3f3f3f, 0x3f3f3f3f, new Rotation3d());
             hasGamePiece = true;
@@ -96,13 +96,13 @@ public class GamePieceVisualize implements Service {
           }
 
           // If an unscored position is found within threshold, score at that position
-          if (minDistanceIndex != -1 && minDistance < SCORABLE_MAX_DISTANCE) {
+          if (minDistanceIndex != -1 && minDistance < scorableMaxDistance) {
             scoredGamePiecePose[scoredGamePieceNums] = scorableGamePiecePose[minDistanceIndex];
             scoredGamePieceNums++;
             hasGamePiece = false;
           }
           // If all positions are scored, score at the closest scored position
-          else if (minScoredDistanceIndex != -1 && minScoredDistance < SCORABLE_MAX_DISTANCE) {
+          else if (minScoredDistanceIndex != -1 && minScoredDistance < scorableMaxDistance) {
             scoredGamePiecePose[scoredGamePieceNums] =
                 scorableGamePiecePose[minScoredDistanceIndex];
             scoredGamePieceNums++;
@@ -131,8 +131,14 @@ public class GamePieceVisualize implements Service {
   }
 
   public GamePieceVisualize(
-      String name, Pose3d[] scorableGamePiecePose, Pose3d[] pickableGamePiecePose) {
+      String name,
+      double maxPickableDistance,
+      double maxScorableDistance,
+      Pose3d[] pickableGamePiecePose,
+      Pose3d[] scorableGamePiecePose) {
     this.name = name;
+    this.pickableMaxDistance = pickableMaxDistance;
+    this.scorableMaxDistance = scorableMaxDistance;
     this.scorableGamePiecePose = scorableGamePiecePose;
     this.pickableGamePiecePose = pickableGamePiecePose;
     this.scoredGamePiecePose = new Pose3d[pickableGamePiecePose.length];
