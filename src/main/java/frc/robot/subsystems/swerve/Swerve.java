@@ -98,6 +98,8 @@ public class Swerve extends SubsystemBase {
   }
 
   public Boolean atGoal() {
+    Logger.recordOutput(
+        "Swerve/atGoal", controller.headingAtGoal() && controller.translationAtGoal());
     return controller.headingAtGoal() && controller.translationAtGoal();
   }
 

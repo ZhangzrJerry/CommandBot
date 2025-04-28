@@ -21,7 +21,7 @@ public class GamePieceVisualize implements Service {
   private final Pose3d[] scorableGamePiecePose;
   private final Pose3d[] pickableGamePiecePose;
   private final Pose3d[] scoredGamePiecePose;
-  @Getter private boolean hasGamePiece = false;
+  @Getter @Setter private boolean hasGamePiece = false;
   private int scoredGamePieceNums = 0;
 
   private final double pickableMaxDistance;

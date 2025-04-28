@@ -109,7 +109,7 @@ public class AutoAlignController implements SwerveController {
           0.0,
           0.08,
           0.06,
-          0.15, // transKP, transKI, transKD, transTol, preTransTol
+          0.45, // transKP, transKI, transKD, transTol, preTransTol
           3.5,
           0.0,
           0.0,

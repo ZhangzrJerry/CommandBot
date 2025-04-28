@@ -368,89 +368,128 @@ public class RobotCommandFactory {
   }
 
   public Command laserNetScoreCmd(double dist) {
-    return Commands.sequence(
+    return Commands.parallel(
         algaeNetScoreCmd(dist),
-        Commands.waitUntil(() -> swerve.atGoal() && arm.stopAtGoal()),
-        Commands.runOnce(
-            () -> {
-              endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.SCORE);
-            }),
-        Commands.waitUntil(() -> !endeffector.hasAlgaeEndeffectorStoraged()),
-        Commands.runOnce(
-            () -> {
-              endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.IDLE);
-            }));
+        Commands.sequence(
+                Commands.waitUntil(() -> swerve.atGoal() && arm.stopAtGoal()),
+                Commands.runOnce(
+                    () -> {
+                      endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.SCORE);
+                    }))
+            .until(() -> !endeffector.hasAlgaeEndeffectorStoraged())
+            .andThen(
+                Commands.runOnce(
+                    () -> {
+                      endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.IDLE);
+                    })));
   }
 
   public Command laserReefScoreCmd(String branch, String layer) {
-    return Commands.sequence(
-        Commands.runOnce(
-            () -> {
-              nodeSelector.setSelected(ReefScape.GamePiece.Type.CORAL, branch, layer);
-            }),
-        Commands.waitUntil(
-            () ->
-                nodeSelector.getSelectedLevel().equals(layer)
-                    && nodeSelector.getSelectedBranch().equals(branch)),
-        coralReefScoreCmd(),
-        Commands.waitUntil(() -> swerve.atGoal() && arm.stopAtGoal()),
-        Commands.runOnce(
-            () -> {
-              endeffector.setCoralGoal(CoralEndEffectorGoal.SCORE);
-            }),
-        Commands.waitUntil(() -> !endeffector.hasCoralEndeffectorStoraged()),
-        Commands.runOnce(
-            () -> {
-              endeffector.setCoralGoal(CoralEndEffectorGoal.IDLE);
-            }));
+    return Commands.parallel(
+            Commands.runOnce(
+                () -> {
+                  nodeSelector.setSelected(ReefScape.GamePiece.Type.CORAL, branch, layer);
+                }),
+            swerve.registerControllerCmd(
+                new AutoAlignController(
+                    AutoAlignController.AlignType.REEF_CORAL,
+                    () ->
+                        !AllianceFlipUtil.isRedAlliance()
+                            ? ReefScape.Field.Reef.getScorePoseBySelection(
+                                ReefScape.GamePiece.Type.CORAL, branch)
+                            : AllianceFlipUtil.flipPose(
+                                ReefScape.Field.Reef.getScorePoseBySelection(
+                                    ReefScape.GamePiece.Type.CORAL, branch)),
+                    () -> odometry.getCurrentPose())),
+            Commands.sequence(
+                Commands.waitUntil(shouldArmLift),
+                Commands.runOnce(
+                    () -> {
+                      switch (layer) {
+                        case "1":
+                          arm.setGoal(ArmGoal.CORAL_L1_SCORE);
+                          break;
+                        case "2":
+                          arm.setGoal(ArmGoal.CORAL_L2_SCORE);
+                          break;
+                        case "3":
+                          arm.setGoal(ArmGoal.CORAL_L3_SCORE);
+                          break;
+                        case "4":
+                          arm.setGoal(ArmGoal.CORAL_L4_SCORE);
+                          break;
+                      }
+                    }),
+                Commands.waitUntil(() -> swerve.atGoal() && arm.stopAtGoal()),
+                Commands.runOnce(
+                    () -> {
+                      endeffector.setCoralGoal(CoralEndEffectorGoal.SCORE);
+                    })))
+        .until(() -> !endeffector.hasCoralEndeffectorStoraged())
+        .andThen(
+            Commands.runOnce(
+                () -> {
+                  arm.setGoal(ArmGoal.IDLE);
+                }));
   }
 
   public Command laserReefCollectCmd(String branch) {
-    return Commands.sequence(
-        Commands.runOnce(
-            () -> {
-              nodeSelector.setSelected(ReefScape.GamePiece.Type.CORAL, branch, "");
-            }),
-        swerve.registerControllerCmd(
-            new AutoAlignController(
-                AlignType.REEF_CORAL,
-                () ->
-                    !AllianceFlipUtil.isRedAlliance()
-                        ? ReefScape.Field.Reef.getScorePoseBySelection(
-                            ReefScape.GamePiece.Type.ALGAE, branch)
-                        : AllianceFlipUtil.flipPose(
-                            ReefScape.Field.Reef.getScorePoseBySelection(
-                                ReefScape.GamePiece.Type.ALGAE, branch)),
-                () -> odometry.getCurrentPose())),
-        Commands.waitUntil(() -> swerve.atGoal() && arm.stopAtGoal()),
-        Commands.runOnce(
-            () -> {
-              endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.COLLECT);
-            }),
-        Commands.waitUntil(() -> endeffector.hasAlgaeEndeffectorStoraged()),
-        Commands.runOnce(
-            () -> {
-              endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.HOLDING);
-            }));
+    return Commands.parallel(
+            Commands.runOnce(
+                () -> {
+                  nodeSelector.setSelected(ReefScape.GamePiece.Type.CORAL, branch, "");
+                }),
+            swerve.registerControllerCmd(
+                new AutoAlignController(
+                    AlignType.REEF_CORAL,
+                    () ->
+                        !AllianceFlipUtil.isRedAlliance()
+                            ? ReefScape.Field.Reef.getScorePoseBySelection(
+                                ReefScape.GamePiece.Type.ALGAE, branch)
+                            : AllianceFlipUtil.flipPose(
+                                ReefScape.Field.Reef.getScorePoseBySelection(
+                                    ReefScape.GamePiece.Type.ALGAE, branch)),
+                    () -> odometry.getCurrentPose())),
+            Commands.sequence(
+                Commands.waitUntil(() -> swerve.atGoal() && arm.stopAtGoal()),
+                Commands.runOnce(
+                    () -> {
+                      endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.COLLECT);
+                    })))
+        .until(() -> !endeffector.hasAlgaeEndeffectorStoraged())
+        .andThen(
+            Commands.runOnce(
+                () -> {
+                  endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.HOLDING);
+                }));
+  }
+
+  public Command laserCoralStationCollectCmd(boolean isLeft) {
+    return coralStationPickCmd(isLeft).until(() -> !endeffector.hasCoralEndeffectorStoraged());
   }
 
   public Command tempAutoCmd() {
     return Commands.sequence(
-        resetPoseCmd(AllianceFlipUtil.applyPose(new Pose2d(7, 4, Rotation2d.k180deg))),
+        resetPoseCmd(AllianceFlipUtil.applyPose(new Pose2d(7, 2, Rotation2d.kZero))),
+        forcedIdleCmd(),
         laserReefScoreCmd("E", "4"),
-        coralStationPickCmd(false),
+        laserCoralStationCollectCmd(false),
         Commands.waitUntil(() -> endeffector.hasCoralEndeffectorStoraged()),
+        forcedIdleCmd(),
         laserReefScoreCmd("D", "4"),
-        coralStationPickCmd(false),
+        laserCoralStationCollectCmd(false),
         Commands.waitUntil(() -> endeffector.hasCoralEndeffectorStoraged()),
+        forcedIdleCmd(),
         laserReefScoreCmd("C", "4"),
-        coralStationPickCmd(false),
+        laserCoralStationCollectCmd(false),
         Commands.waitUntil(() -> endeffector.hasCoralEndeffectorStoraged()),
+        forcedIdleCmd(),
         laserReefScoreCmd("B", "4"),
-        coralStationPickCmd(false),
+        laserCoralStationCollectCmd(false),
         Commands.waitUntil(() -> endeffector.hasCoralEndeffectorStoraged()),
+        forcedIdleCmd(),
         laserReefScoreCmd("A", "4"),
-        coralStationPickCmd(false),
+        laserCoralStationCollectCmd(false),
         Commands.waitUntil(() -> endeffector.hasCoralEndeffectorStoraged()));
   }
 }

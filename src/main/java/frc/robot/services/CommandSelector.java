@@ -8,10 +8,9 @@ import frc.robot.interfaces.services.Service;
 import frc.robot.utils.dashboard.SwitchableChooser;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import lombok.Getter;
-import org.littletonrobotics.junction.AutoLogOutput;
+import lombok.Setter;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -20,6 +19,7 @@ public class CommandSelector implements Service {
   private static final CommandMode DEFAULT_MODE =
       new CommandMode("Silence", List.of(), rs -> Commands.none());
   @Getter private final String name;
+  @Getter @Setter private ServiceState state = ServiceState.STOPPED;
 
   public record CommandMode(
       String name, List<CommandQuestion> questions, Function<List<String>, Command> modeBuilder) {}
@@ -108,10 +108,5 @@ public class CommandSelector implements Service {
   public Command getCmd() {
     System.out.println("Command mode built " + lastMode.name);
     return lastMode.modeBuilder.apply(lastResponses);
-  }
-
-  @AutoLogOutput(key = "CommandSelector/Is Silence")
-  public BooleanSupplier isSilenceMode() {
-    return () -> DEFAULT_MODE.equals(modeChooser.get());
   }
 }
