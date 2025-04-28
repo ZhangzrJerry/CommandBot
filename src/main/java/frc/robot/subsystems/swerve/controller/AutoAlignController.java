@@ -3,6 +3,7 @@ package frc.robot.subsystems.swerve.controller;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.robot.ReefScape.Field;
 import frc.robot.subsystems.swerve.SwerveConfig;
@@ -12,7 +13,6 @@ import frc.robot.utils.dashboard.TunableNumber;
 import frc.robot.utils.dashboard.TunableNumbers;
 import frc.robot.utils.math.GeomUtil;
 import java.util.function.Supplier;
-import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class AutoAlignController implements SwerveController {
@@ -172,7 +172,6 @@ public class AutoAlignController implements SwerveController {
       SwerveConfig.MAX_TRANSLATION_VEL_METER_PER_SEC;
   private static final double maxRotationVelRadPerSec = SwerveConfig.MAX_ANGULAR_VEL_RAD_PER_SEC;
 
-  @AutoLogOutput(key = "Swerve/AlignController/GoalPose")
   private final Supplier<Pose2d> goalPoseSupplier;
 
   private final Supplier<Pose2d> currentPoseSupplier;
@@ -219,10 +218,6 @@ public class AutoAlignController implements SwerveController {
 
   @Override
   public ChassisSpeeds getChassisSpeeds() {
-    Pose2d currentPose = currentPoseSupplier.get();
-    Pose2d goalPose = getShiftedGoalPose();
-    Logger.recordOutput("Swerve/AlignController/ShiftedGoalPose", goalPose);
-
     TunableNumbers.ifChanged(
         this.config.hashCode(),
         () -> {
@@ -243,73 +238,83 @@ public class AutoAlignController implements SwerveController {
         },
         config.rotationGains);
 
-    hasHeadingAtGoal =
-        Math.abs(
-                MathUtil.angleModulus(
-                    currentPose.getRotation().getRadians()
-                        - goalPoseSupplier.get().getRotation().getRadians()))
-            <= config.rotationToleranceDegree.get();
-    hasTranslationAtGoal =
-        currentPose.getTranslation().getDistance(goalPoseSupplier.get().getTranslation())
-            <= config.translationToleranceMeter.get();
+    Pose2d currentPose = currentPoseSupplier.get();
+    Pose2d shiftedGoalPose = getShiftedGoalPose();
+    Logger.recordOutput("Swerve/AlignController/GoalPose", shiftedGoalPose);
+
+    var currentDistance =
+        currentPose.getTranslation().getDistance(shiftedGoalPose.getTranslation());
+    Logger.recordOutput(
+        "Swerve/CoralStationAlignController/TranslationErrorMeter", currentDistance);
+
+    var translationDir =
+        currentPose.getTranslation().minus(shiftedGoalPose.getTranslation()).getAngle();
+
+    var translationFeedback = translationController.calculate(currentDistance, 0.0);
+
+    var rotationErrorDegree =
+        currentPose.getRotation().minus(shiftedGoalPose.getRotation()).getDegrees();
+    Logger.recordOutput(
+        "Swerve/CoralStationAlignController/RotationErrorDegree", rotationErrorDegree);
+
+    hasHeadingAtGoal = Math.abs(rotationErrorDegree) <= config.rotationToleranceDegree.get();
+    hasTranslationAtGoal = Math.abs(currentDistance) <= config.translationToleranceMeter.get();
     hasDone = hasHeadingAtGoal && hasTranslationAtGoal;
+
     if (hasDone) {
-      return new ChassisSpeeds(0, 0, 0);
+      return new ChassisSpeeds();
     }
+    var translationOutputScalar =
+        hasHeadingAtGoal ? 1.0 : 1.0 - Math.abs(rotationErrorDegree) / 180.0;
+    Logger.recordOutput(
+        "Swerve/CoralStationAlignController/TranslationOutputScalar", translationOutputScalar);
 
-    // Calculate angle relative to target point
-    double angleToGoal =
-        Math.atan2(goalPose.getY() - currentPose.getY(), goalPose.getX() - currentPose.getX());
+    var translationVel =
+        new Translation2d(
+            MathUtil.clamp(
+                translationFeedback * translationOutputScalar,
+                -maxTranslationVelMeterPerSec,
+                maxTranslationVelMeterPerSec),
+            translationDir);
+    var rotationVel =
+        MathUtil.clamp(
+            rotationController.calculate(
+                MathUtil.angleModulus(currentPose.getRotation().getRadians()),
+                MathUtil.angleModulus(shiftedGoalPose.getRotation().getRadians())),
+            -maxRotationVelRadPerSec,
+            maxRotationVelRadPerSec);
 
-    // Calculate offset considering current relative position and target alignment
-    // angle
-    double offsetX = goalPose.getX() - currentPose.getX();
-    double offsetY = goalPose.getY() - currentPose.getY();
-
-    // Calculate offset ratio based on angle difference
-    double angleDiff = Math.abs(angleToGoal - goalPose.getRotation().getRadians());
-    double offsetRatio = Math.cos(angleDiff);
-
-    // Calculate offset direction
-    double offsetDirection =
-        Math.signum(offsetX * Math.cos(angleToGoal) + offsetY * Math.sin(angleToGoal));
-
-    double translationOutput = translationController.calculate(0, offsetRatio * offsetDirection);
-    double rotationOutput =
-        rotationController.calculate(
-            currentPose.getRotation().getRadians(), goalPose.getRotation().getRadians());
-
-    return new ChassisSpeeds(
-        translationOutput * maxTranslationVelMeterPerSec,
-        0,
-        rotationOutput * maxRotationVelRadPerSec);
+    return ChassisSpeeds.fromFieldRelativeSpeeds(
+        translationVel.getX(), translationVel.getY(), rotationVel, currentPose.getRotation());
   }
 
   private Pose2d getShiftedGoalPose() {
     var goalPose = goalPoseSupplier.get();
     var currentPose = currentPoseSupplier.get();
 
+    // 计算相对位置和距离
     var offset = currentPose.relativeTo(goalPose);
     var yDistance = Math.abs(offset.getY());
     var xDistance = Math.abs(offset.getX());
+    var totalDistance = Math.hypot(xDistance, yDistance);
 
-    // calculate the angle between the current pose and the goal pose
+    // 计算相对角度
     var relativeAngle = Math.atan2(offset.getY(), offset.getX());
     var alignmentAngle = Math.toRadians(config.alignmentAngleDegree.get());
 
+    // 计算角度差
     var angleDiff = MathUtil.angleModulus(relativeAngle - alignmentAngle);
-    var distance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
 
-    var shiftT =
-        MathUtil.clamp(
-            (distance / (Field.CoralStation.FACE_LENGTH * 2.0))
-                * (1.0 - Math.abs(angleDiff) / Math.PI),
-            0.0,
-            1.0);
+    // 计算调整因子
+    var distanceFactor = Math.min(1.0, totalDistance / (Field.CoralStation.FACE_LENGTH * 2.0));
+    var angleFactor = 1.0 - Math.abs(angleDiff) / Math.PI;
+    var shiftFactor = distanceFactor * angleFactor;
 
-    var shiftX = -shiftT * config.maxLineupShiftingXMeter.get() * Math.cos(alignmentAngle);
-    var shiftY = shiftT * config.maxLineupShiftingYMeter.get() * Math.sin(alignmentAngle);
+    // 计算调整量
+    var shiftX = -shiftFactor * config.maxLineupShiftingXMeter.get() * Math.cos(alignmentAngle);
+    var shiftY = shiftFactor * config.maxLineupShiftingYMeter.get() * Math.sin(alignmentAngle);
 
+    // 应用调整
     var shiftedGoalPose = goalPose.transformBy(GeomUtil.toTransform2d(shiftX, shiftY));
 
     return new Pose2d(shiftedGoalPose.getTranslation(), goalPose.getRotation());

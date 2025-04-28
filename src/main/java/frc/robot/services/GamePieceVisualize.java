@@ -24,8 +24,8 @@ public class GamePieceVisualize implements Service {
   @Getter private boolean hasGamePiece = false;
   private int scoredGamePieceNums = 0;
 
-  private static double pickableMaxDistance;
-  private static double scorableMaxDistance;
+  private final double pickableMaxDistance;
+  private final double scorableMaxDistance;
 
   @Setter private Supplier<Pose3d> pickMechanismPoseSupplier = () -> new Pose3d();
   @Setter private Supplier<Pose3d> scoreMechanismPoseSupplier = () -> new Pose3d();
@@ -137,8 +137,8 @@ public class GamePieceVisualize implements Service {
       Pose3d[] pickableGamePiecePose,
       Pose3d[] scorableGamePiecePose) {
     this.name = name;
-    this.pickableMaxDistance = pickableMaxDistance;
-    this.scorableMaxDistance = scorableMaxDistance;
+    this.pickableMaxDistance = maxPickableDistance;
+    this.scorableMaxDistance = maxScorableDistance;
     this.scorableGamePiecePose = scorableGamePiecePose;
     this.pickableGamePiecePose = pickableGamePiecePose;
     this.scoredGamePiecePose = new Pose3d[pickableGamePiecePose.length];

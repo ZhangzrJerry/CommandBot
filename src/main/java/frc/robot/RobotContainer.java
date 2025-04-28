@@ -85,7 +85,7 @@ public class RobotContainer {
       algaeVisualizer =
           new GamePieceVisualize(
               "Algae Visualizer",
-              0.2,
+              0.4,
               1.0,
               ReefScape.GamePiece.Algae.PICKABLE_POSES,
               ReefScape.GamePiece.Algae.SCORABLE_POSES);
@@ -93,7 +93,7 @@ public class RobotContainer {
           new GamePieceVisualize(
               "Coral Visualizer",
               0.45,
-              0.2,
+              0.4,
               ReefScape.GamePiece.Coral.PICKABLE_POSES,
               ReefScape.GamePiece.Coral.SCORABLE_POSES);
 
@@ -156,7 +156,6 @@ public class RobotContainer {
   }
 
   void configureCommandBinding() {
-
     // ===== default commands =====
 
     swerve.setDefaultCommand(
