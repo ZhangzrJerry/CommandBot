@@ -256,7 +256,7 @@ public class RobotContainer {
         .rightBumper()
         .and(() -> !climber.isClimbing())
         .and(() -> !endeffector.hasCoralEndeffectorStoraged())
-        .and(() -> true || rightBumper != BOTTON_STATE.FUNC2)
+        .and(() -> rightBumper != BOTTON_STATE.FUNC2)
         .whileTrue(
             robotCommand
                 .coralStationPickCmd(false)
@@ -279,7 +279,7 @@ public class RobotContainer {
                 .and(trigger)
                 .and(() -> !climber.isClimbing())
                 .and(() -> endeffector.hasCoralEndeffectorStoraged())
-                .and(() -> true || rightBumper != BOTTON_STATE.FUNC1)
+                .and(() -> rightBumper != BOTTON_STATE.FUNC1)
                 .whileTrue(
                     robotCommand
                         .coralReefScoreCmd(params.getKey(), params.getValue())

@@ -1,0 +1,599 @@
+{
+  "hubs": [
+    {
+      "x": 1382,
+      "y": -944,
+      "width": 839,
+      "height": 655,
+      "state": {
+        "sidebar": {
+          "width": 264,
+          "expanded": [
+            "/DriverStation/Joystick0/POVs",
+            "/DriverStation/Joystick0/AxisValues",
+            "/Swerve/Gyro/YawPosition",
+            "/AmpArm/Roller",
+            "/RealOutputs/ApriltagVision/AllGoodRobotInField/0",
+            "/RealOutputs/ApriltagVision/AllGoodRobotInField/0/rotation",
+            "/RealOutputs/ApriltagVision/AllGoodRobotInField/0/rotation/q",
+            "/RealOutputs/Odometry/EstimatedPose/rotation",
+            "/RealOutputs/Odometry/EstimatedPose/translation",
+            "/RealOutputs/Odometry/WheeledPose/rotation",
+            "/RealOutputs/Odometry/WheeledPose/translation",
+            "/Swerve/Odometry/OdometryBLPositions/0",
+            "/Swerve/Odometry/OdometryBLPositions/0/angle",
+            "/DashboardInputs/TunableNumbers/ApriltagVision/BackLeft/PoseInRobot",
+            "/DashboardInputs/TunableNumbers/ApriltagVision/BackMid",
+            "/DashboardInputs/TunableNumbers",
+            "/RealOutputs/ApriltagVision/AllUsedTagInField/0/rotation",
+            "/RealOutputs/ApriltagVision/AllUsedTagInField/1",
+            "/RealOutputs/ApriltagVision/AllUsedTagInField/1/rotation",
+            "/ApriltagVision/BackLeft/ApriltagIdsUsed",
+            "/ApriltagVision/BackLeft/TargetPitchInCamera",
+            "/ApriltagVision/BackLeft/TargetYawInCamera",
+            "/RealOutputs/GamePieces/AllLivedNotes/0/rotation",
+            "/RealOutputs/GamePieces/AllLivedNotes/1/rotation",
+            "/RealOutputs/GamePieces/AllLivedNotes/1/translation",
+            "/RealOutputs/GamePieces/AllLivedNotes/0/translation",
+            "/RealOutputs/GamePieces/AllLivedNotes",
+            "/ObjectDetectionVision/FrontMid",
+            "/ObjectDetectionVision/FrontMid/TargetPitchInCamera",
+            "/ObjectDetectionVision/FrontMid/TargetPitchInCamera/0",
+            "/ObjectDetectionVision/FrontMid/TargetPitchInCamera/1",
+            "/ObjectDetectionVision/FrontMid/TargetPitchInCamera/2",
+            "/ObjectDetectionVision/FrontMid/TargetPitchInCamera/3",
+            "/ObjectDetectionVision/FrontMid/TargetYawInCamera/0",
+            "/RealOutputs/Swerve/SwerveStates/GoalModuleStates/3",
+            "/RealOutputs/Odometry/EstimatedPose",
+            "/RealOutputs/ShootingPlanner",
+            "/RealOutputs/ShootingPlanner/OrgRobotFlywheelVel",
+            "/Feeder/Pitch",
+            "/Feeder/Roller",
+            "/RealOutputs/magic dynamic translation 3d?",
+            "/RealOutputs/CompensatedShootingDirection/q",
+            "/NetworkInputs/SmartDashboard/Auto",
+            "/NetworkInputs/TunableNumbers",
+            "/NetworkInputs/TunableNumbers/Intake",
+            "/NetworkInputs/TunableNumbers/Intake/Align",
+            "/NetworkInputs/TunableNumbers/Intake/Align/Goal",
+            "/NetworkInputs/TunableNumbers/Intake/Roller",
+            "/NetworkInputs/TunableNumbers/Intake/Roller/Goal",
+            "/NetworkInputs/Tuning",
+            "/NetworkInputs/Tuning/Intake",
+            "/NetworkInputs/Tuning/Intake/Align",
+            "/NetworkInputs/Tuning/Intake/Align/Goal",
+            "/NetworkInputs/Tuning/KsCharacterization",
+            "/Tuning/Intake/Align",
+            "/Tuning/Intake/Align/Goal",
+            "/Tuning/Swerve/TrajectoryController",
+            "/AdvantageKit/ObjectDetectionVision/FrontMid",
+            "/AdvantageKit/ObjectDetectionVision/FrontMid/Yaw",
+            "/AdvantageKit/ObjectDetectionVision/FrontMid/Pitch",
+            "/AdvantageKit/ApriltagVision/BackMid",
+            "/AdvantageKit/ApriltagVision/BackMid/Ids",
+            "/AdvantageKit/ApriltagVision/BackLeft/PoseObservations",
+            "/AdvantageKit/ApriltagVision/BackLeft/PoseObservations/0",
+            "/AdvantageKit/ObjectDetectionVision/FrontMid/Timestamp",
+            "/AdvantageKit/RealOutputs/GamePieceTracker/AllAlgae",
+            "/AdvantageKit/RealOutputs/GamePieceTracker/AllCorals",
+            "/AdvantageKit/RealOutputs/Mechanism/Swerve",
+            "/AdvantageKit/RealOutputs/Mechanism/Swerve/Module_0",
+            "/AdvantageKit/RealOutputs/Mechanism/Module_0",
+            "/AdvantageKit/RealOutputs/ZeroedComponentPoses/0",
+            "/AdvantageKit/RealOutputs/Swerve/ModuleStates/0",
+            "/AdvantageKit/RealOutputs/test",
+            "/AdvantageKit/RealOutputs/test/origin",
+            "/AdvantageKit/RealOutputs/test/pose",
+            "/AdvantageKit/RealOutputs/test/invPose",
+            "/AdvantageKit/RealOutputs/test/origin/rotation",
+            "/AdvantageKit/RealOutputs/test/origin/translation",
+            "/AdvantageKit/RealOutputs/test/pose/rotation",
+            "/AdvantageKit/RealOutputs/test/pose/translation",
+            "/AdvantageKit/RealOutputs/test/invPose/translation",
+            "/AdvantageKit/RealOutputs/test/invPose/rotation",
+            "/AdvantageKit/RealOutputs/test/giao",
+            "/AdvantageKit/RealOutputs/test/giao/q",
+            "/AdvantageKit/RealOutputs/Visualize/Component/0/rotation",
+            "/AdvantageKit/RealOutputs/Visualize/Component/0/translation",
+            "/AdvantageKit/RealOutputs/Visualize/Component/0/rotation/q",
+            "/Tuning/Arm/Elbow/Goal",
+            "/AdvantageKit/RealOutputs/Visualize/Component/5/translation",
+            "/AdvantageKit/RealOutputs/Visualize/Component/4/translation",
+            "/AdvantageKit/RealOutputs/Visualize/Component/6/translation",
+            "/AdvantageKit/RealOutputs/Visualize/Component/6/rotation",
+            "/AdvantageKit/RealOutputs/Visualize/Component/6/rotation/q",
+            "/AdvantageKit/RealOutputs/Visualize/Component/5/rotation",
+            "/AdvantageKit/RealOutputs/Visualize/Component/5/rotation/q",
+            "/AdvantageKit/RealOutputs/Visualize/Component/4/rotation/q",
+            "/AdvantageKit/RealOutputs/Visualize/TFtree",
+            "/AdvantageKit/RealOutputs/Visualize/Debug",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/5",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/5/TF",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/5/deltaTF",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/5/deltaTF/rotation",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/5/deltaTF/rotation/q",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/5/parentTF",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/5/TF/rotation",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/5/parentTF/rotation",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/5/parentTF/rotation/q",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/5/TF/rotation/q",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/6",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/6/parentTF",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/6/parentTF/rotation",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/6/parentTF/rotation/q",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/6/TF",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/6/TF/rotation",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/6/TF/rotation/q",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/6/deltaTF",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/6/deltaTF/rotation",
+            "/AdvantageKit/RealOutputs/Visualize/Debug/6/deltaTF/rotation/q",
+            "/AdvantageKit/Arm Elevator",
+            "/AdvantageKit/RealOutputs/Swerve/TeleopController/HeadingMaintainer",
+            "/AdvantageKit/RealOutputs/Swerve/LaserController",
+            "/AdvantageKit/Swerve/Gyro/YawPosition",
+            "/Tuning/CoralEndEffector/Goal",
+            "/Tuning/Swerve/LaserController",
+            "/Tuning/Odometry/TxTyObservation",
+            "/RealOutputs/Visualize",
+            "/RealOutputs/Swerve/SwerveStates",
+            "/RealOutputs/Swerve/LaserController",
+            "/RealOutputs",
+            "/RealOutputs/Swerve",
+            "/RealOutputs/AlgaeEndEffector",
+            "/RollerSensor",
+            "/NodeSelector",
+            "/Tuning/AlgaeEndEffector/Goal",
+            "/Tuning/Auto",
+            "/AdvantageKit/GroundIntake/Arm",
+            "/Tuning/AlgaeGroundIntake/Roller",
+            "/Tuning/AlgaeGroundIntake/Roller/Goal",
+            "/Tuning/AlgaeGroundIntake/Slam",
+            "/AdvantageKit/RealOutputs/AlgaeEndEffector",
+            "/AdvantageKit/AlgaeGroundIntake/Roller",
+            "/AdvantageKit/AlgaeGroundIntake/Arm",
+            "/SmartDashboard/Auto/Question #2 Chooser",
+            "/SmartDashboard/Auto/Question #1 Chooser",
+            "/SmartDashboard/Auto/Mode",
+            "/Tuning/Arm/Shoulder/Goal",
+            "/photonvision/ReefBackRight",
+            "/Tuning/EndEffector/Goal",
+            "/AdvantageKit/RealOutputs/damn",
+            "/AdvantageKit/RealOutputs/damn/0",
+            "/AdvantageKit/RealOutputs/damn/0/rotation",
+            "/AdvantageKit/RealOutputs/damn/0/translation",
+            "/AdvantageKit/RealOutputs/damninit",
+            "/AdvantageKit/RealOutputs/Visualize/Component",
+            "/AdvantageKit/RealOutputs/Led",
+            "/AdvantageKit/RealOutputs/EndEffector",
+            "/AdvantageKit/RealOutputs/AlgaeGroundIntake",
+            "/Tuning/AlgaeGroundIntake",
+            "/AdvantageKit/RealOutputs/Swerve/ProcessorAlignController",
+            "/AdvantageKit/Swerve/Odometry",
+            "/AdvantageKit/RealOutputs/Swerve/TrajectoryController",
+            "/AdvantageKit/RealOutputs/ApriltagVision",
+            "/AdvantageKit/RealOutputs/ApriltagVision/AllGoodRobotInField",
+            "/AdvantageKit/RealOutputs/joystick",
+            "/AdvantageKit/RealOutputs/Joystick",
+            "/AdvantageKit/RollerSensor",
+            "/AdvantageKit/RealOutputs/NodeSelector",
+            "/AdvantageKit/NodeSelector",
+            "/CameraPublisher/CasualMidRight-processed",
+            "/CameraPublisher/CasualMidRight-processed/streams",
+            "/SmartDashboard/Alerts/errors",
+            "/SmartDashboard/Alerts/infos",
+            "/SmartDashboard/Alerts/warnings",
+            "/AdvantageKit/RealOutputs/Swerve/ControllerModuleStates/0",
+            "/AdvantageKit/RealOutputs/Odometry/EstimatedPose/translation",
+            "/AdvantageKit/RealOutputs/Odometry/EstimatedPose/rotation",
+            "/AdvantageKit/RealOutputs/Odometry/LastModulePositions",
+            "/AdvantageKit/RealOutputs/Odometry/LastModulePositions/0",
+            "/AdvantageKit/RealOutputs/Odometry/LastModulePositions/0/angle",
+            "/AdvantageKit/RealOutputs/Odometry/LastModulePositions/3",
+            "/AdvantageKit/RealOutputs/Swerve/ModuleStates/0/angle",
+            "/AdvantageKit/RealOutputs/ASDF",
+            "/AdvantageKit/RealOutputs/ASDF/angle",
+            "/AdvantageKit/RealOutputs/Swerve/GoalStates/0",
+            "/AdvantageKit/RealOutputs/Swerve/GoalStates/0/angle",
+            "/AdvantageKit/RealOutputs/Swerve/GoalStates/1",
+            "/AdvantageKit/RealOutputs/Swerve/GoalStates/1/angle",
+            "/AdvantageKit/RealOutputs/Swerve/ModuleStates/1",
+            "/AdvantageKit/RealOutputs/Swerve/ModuleStates/1/angle",
+            "/AdvantageKit/RealOutputs/Swerve/ModuleStates/2",
+            "/AdvantageKit/RealOutputs/Swerve/ModuleStates/2/angle",
+            "/AdvantageKit/RealOutputs/Swerve/ModuleStates/3",
+            "/AdvantageKit/RealOutputs/Swerve/ModuleStates/3/angle",
+            "/AdvantageKit/RealOutputs/Swerve/GoalStates/3",
+            "/AdvantageKit/RealOutputs/Swerve/GoalStates/3/angle",
+            "/AdvantageKit/RealOutputs/Swerve/GoalStates/2",
+            "/AdvantageKit/RealOutputs/Swerve/GoalStates/2/angle",
+            "/AdvantageKit/RealOutputs/Swerve/FR",
+            "/AdvantageKit/RealOutputs/Swerve/FL/Drive",
+            "/AdvantageKit/Swerve/ModuleBL/Drive",
+            "/AdvantageKit/Swerve/ModuleBL/Steer",
+            "/AdvantageKit/RealOutputs/Swerve/HeadingController",
+            "/AdvantageKit/RealOutputs/Swerve/HeadingController/TargetYaw",
+            "/AdvantageKit/RealOutputs/Swerve/HeadingController/Yaw",
+            "/AdvantageKit/DriverStation/Joystick0/AxisValues",
+            "/TunableGains",
+            "/TunableGains/Swerve",
+            "/TunableGains/Swerve/Module",
+            "/TunableGains/Swerve/Module/DriveGains",
+            "/Tuning/TeleopHeadingController",
+            "/Tuning/TeleopHeadingController/headingGains",
+            "/AdvantageKit/RealOutputs/SwerveModule",
+            "/AdvantageKit/RealOutputs/SwerveModule/ModuleFL",
+            "/AdvantageKit/RealOutputs/SwerveModule/ModuleFR",
+            "/AdvantageKit/RealOutputs/SwerveModule/ModuleFR/Drive",
+            "/AdvantageKit/RealOutputs/Odometry/Observation/wheel",
+            "/AdvantageKit/RealOutputs/Odometry/Observation/wheel/Pose",
+            "/AdvantageKit/RealOutputs/Odometry/Observation/wheel/Pose/rotation",
+            "/AdvantageKit/RealOutputs/Odometry/Observation/wheel/Pose/translation",
+            "/AdvantageKit/RealOutputs/Odometry/Observation/Wheeled",
+            "/AdvantageKit/RealOutputs/CommandsAll/[Swerve] toggle controller",
+            "/AdvantageKit/RealOutputs/CommandsUnique/[Swerve] set controller",
+            "/AdvantageKit/RealOutputs/CommandsAll/[Swerve] set controller",
+            "/AdvantageKit/RealOutputs/Vision/Camera0/RobotPoses",
+            "/AdvantageKit/RealOutputs/Odometry/Covariance",
+            "/AdvantageKit/RealOutputs/Swerve/WheeledPoseCovariance",
+            "/AdvantageKit/RealOutputs/Swerve/Odometry/EstimatedPoseCovariance/1",
+            "/AdvantageKit/RealOutputs/Swerve/Odometry/EstimatedPoseCovariance/2",
+            "/AdvantageKit/RealOutputs/Swerve/SwerveStates/GoalModuleStates/0",
+            "/AdvantageKit/RealOutputs/Swerve/Odometry/ModulePositions/0",
+            "/AdvantageKit/RealOutputs/Swerve/Odometry/ModulePositions/1",
+            "/AdvantageKit/RealOutputs/Swerve/Odometry/EstimatedPose/rotation",
+            "/AdvantageKit/RealOutputs/giaogiaogiao",
+            "/AdvantageKit/RealOutputs/giaogiaogiao/translation",
+            "/AdvantageKit/RealOutputs/giaogiaogiao/rotation",
+            "/AdvantageKit/RealOutputs/giaogiao",
+            "/AdvantageKit/RealOutputs/giaogiao/rotation",
+            "/AdvantageKit/RealOutputs/giaogiao/translation",
+            "/AdvantageKit/RealOutputs/Swerve/ResetPose",
+            "/AdvantageKit/RealOutputs/Swerve/ResetPose/rotation",
+            "/AdvantageKit/RealOutputs/Swerve/ResetPose/translation",
+            "/AdvantageKit/RealOutputs/Asdfasdf",
+            "/AdvantageKit/RealOutputs/Asdfasdf/rotation",
+            "/AdvantageKit/RealOutputs/Asdfasdf/translation",
+            "/AdvantageKit/RealOutputs/CommandsAll/[Swerve] Register Controller",
+            "/AdvantageKit/RealOutputs/Swerve/Odometry/EstimatedPose/translation",
+            "/AdvantageKit/RealOutputs/Odometry/Observation/AtagVision/Covariance",
+            "/AdvantageKit/RealOutputs/Odometry/Observation/AtagVision/Pose/rotation",
+            "/AdvantageKit/RealOutputs/Odometry/Observation/AtagVision/Pose/translation",
+            "/AdvantageKit/RealOutputs/Odometry/Observation/Wheeled/Pose/translation",
+            "/AdvantageKit/RealOutputs/Odometry/Observation",
+            "/AdvantageKit/RealOutputs/Odometry/Observation/AtagVision",
+            "/AdvantageKit/RealOutputs/Odometry/Observation/AtagVision/Covariance/0",
+            "/AdvantageKit/RealOutputs/Odometry/Observation/Wheeled/Covariance/0",
+            "/AdvantageKit/RealOutputs/Odometry/EstimatedCovariance/0",
+            "/AdvantageKit/RealOutputs/Odometry/Observation/Wheeled/Covariance",
+            "/AdvantageKit/RealOutputs/Swerve/Odometry/EstimatedPoseCovariance",
+            "/AdvantageKit/RealOutputs/Odometry/EstimatedCovariance",
+            "/AdvantageKit/RealOutputs/Swerve/Odometry/EstimatedPoseCovariance/0",
+            "/AdvantageKit/RealOutputs/Odometry/EstimatedPose",
+            "/AdvantageKit/RealOutputs/Subsystems/Swerve",
+            "/AdvantageKit/RealOutputs/Subsystems/Swerve/Odometry",
+            "/AdvantageKit/RealOutputs/Vision/Summary",
+            "/AdvantageKit/RealOutputs/CommandsAll/Super",
+            "/AdvantageKit/Intake/Arm",
+            "/Tuning/Swerve/Module/DriveGains",
+            "/Tuning/Swerve/Module/SteerGains",
+            "/Tuning/Arm/Elbow/Gains",
+            "/Tuning/Arm/Shoulder/Gains",
+            "/AdvantageKit/RealOutputs/CommandsAll/Climber",
+            "/AdvantageKit/RealOutputs/CommandsAll/Arm",
+            "/AdvantageKit/RealOutputs/Services/Visualize",
+            "/AdvantageKit/RealOutputs/Services/Visualize/Components/11/translation",
+            "/AdvantageKit/RealOutputs/Services/Visualize/Components/13/translation",
+            "/AdvantageKit/RealOutputs/Services/Visualize/Components/12/translation",
+            "/AdvantageKit/RealOutputs/Services/Visualizer",
+            "/AdvantageKit/RealOutputs/Services/Coral Visualizer/scoredGamePiecePose/3/translation",
+            "/AdvantageKit/RealOutputs/Services/Coral Visualizer/scoredGamePiecePose/1/translation",
+            "/AdvantageKit/RealOutputs/Services/NodeSelector",
+            "/Tuning/Arm/Goal/CoralStationCollect",
+            "/AdvantageKit/RealOutputs/Odometry",
+            "/AdvantageKit/RealOutputs/Services/Odometry/Velocity",
+            "/AdvantageKit/RealOutputs/Services/Algae Visualizer",
+            "/SmartDashboard/Super",
+            "/AdvantageKit/RealOutputs/nulll",
+            "/AdvantageKit/RealOutputs/Nodes/Preset",
+            "/AdvantageKit/RealOutputs/Swerve",
+            "/AdvantageKit/RealOutputs/Swerve/AlongWaypointsController",
+            "/AdvantageKit/RealOutputs/Services/Auto Mode Selector",
+            "/AdvantageKit",
+            "/Tuning",
+            "/AdvantageKit/RealOutputs",
+            "/Tuning/Swerve",
+            "/Tuning/Swerve/AlignController/ReefAlgae/TranslationGains",
+            "/Tuning/Swerve/AlignController/ReefAlgae/RotationGains",
+            "/Tuning/Swerve/AlignController/Processor/RotationGains",
+            "/Tuning/Swerve/AlignController/Processor/TranslationGains",
+            "/AdvantageKit/RealOutputs/Swerve/AlignController",
+            "/AdvantageKit/RealOutputs/Endeffector"
+          ]
+        },
+        "tabs": {
+          "selected": 2,
+          "tabs": [
+            {
+              "type": 0,
+              "title": "",
+              "controller": null,
+              "controllerUUID": "12f9dcah8q681upfwoozm23czhplfwbx",
+              "renderer": "#/",
+              "controlsHeight": 0
+            },
+            {
+              "type": 9,
+              "title": "Swerve(Live)",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "chassisSpeeds",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/RawGoalVel",
+                    "logType": "ChassisSpeeds",
+                    "visible": true,
+                    "options": {
+                      "color": "#0000ff"
+                    }
+                  },
+                  {
+                    "type": "states",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/SwerveStates/OptimizedGoalModuleStates",
+                    "logType": "SwerveModuleState[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#0000ff",
+                      "arrangement": "0,3,1,2"
+                    }
+                  },
+                  {
+                    "type": "states",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/ModuleStates",
+                    "logType": "SwerveModuleState[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff8c00",
+                      "arrangement": "0,3,1,2"
+                    }
+                  },
+                  {
+                    "type": "chassisSpeeds",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/FinalGoalVel",
+                    "logType": "ChassisSpeeds",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ff00"
+                    }
+                  },
+                  {
+                    "type": "chassisSpeeds",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/RobotCentricVel",
+                    "logType": "ChassisSpeeds",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff8c00"
+                    }
+                  },
+                  {
+                    "type": "states",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/SwerveStates/OptimizedGoalModuleTorques",
+                    "logType": "SwerveModuleState[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff0000",
+                      "arrangement": "0,3,1,2"
+                    }
+                  },
+                  {
+                    "type": "rotation",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/EstimatedPose/rotation",
+                    "logType": "Rotation2d",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "chassisSpeeds",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/GoalVel",
+                    "logType": "ChassisSpeeds",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ffff"
+                    }
+                  },
+                  {
+                    "type": "states",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/GoalStates",
+                    "logType": "SwerveModuleState[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#ffff00",
+                      "arrangement": "0,1,2,3"
+                    }
+                  }
+                ],
+                "maxSpeed": 5.4864,
+                "sizeX": 0.2967,
+                "sizeY": 0.2967,
+                "orientation": 1
+              },
+              "controllerUUID": "rvs08gwx0dxox0s8ooqv5gmpedaets0n",
+              "renderer": null,
+              "controlsHeight": 370
+            },
+            {
+              "type": 3,
+              "title": "Field(Live)",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "robot",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Services/Odometry/Pose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "model": "Sideway"
+                    }
+                  },
+                  {
+                    "type": "swerveStates",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/SwerveStates/GoalModuleStates",
+                    "logType": "SwerveModuleState[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff0000",
+                      "arrangement": "0,3,1,2"
+                    }
+                  },
+                  {
+                    "type": "vision",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Vision/Summary/TagPoses",
+                    "logType": "Pose3d[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ff00",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "component",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Services/Transform Tree/Components",
+                    "logType": "Pose3d[]",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Vision/Summary/RobotPosesAccepted",
+                    "logType": "Pose3d[]",
+                    "visible": false,
+                    "options": {
+                      "model": "Crab Bot",
+                      "color": "#00ff00"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/Odometry/EstimatedPose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "model": "Crab Bot",
+                      "color": "#0000ff"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Swerve/AlignController/GoalPose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "model": "Duck Bot",
+                      "color": "#ffff00"
+                    }
+                  },
+                  {
+                    "type": "gamePiece",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Services/Algae Visualizer/pickableGamePiecePose",
+                    "logType": "Pose3d[]",
+                    "visible": true,
+                    "options": {
+                      "variant": "Algae"
+                    }
+                  },
+                  {
+                    "type": "gamePiece",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Services/Coral Visualizer/pickableGamePiecePose",
+                    "logType": "Pose3d[]",
+                    "visible": true,
+                    "options": {
+                      "variant": "Coral"
+                    }
+                  },
+                  {
+                    "type": "gamePiece",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Services/Algae Visualizer/scoredGamePiecePose",
+                    "logType": "Pose3d[]",
+                    "visible": true,
+                    "options": {
+                      "variant": "Algae"
+                    }
+                  },
+                  {
+                    "type": "gamePiece",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Services/Coral Visualizer/scoredGamePiecePose",
+                    "logType": "Pose3d[]",
+                    "visible": true,
+                    "options": {
+                      "variant": "Coral"
+                    }
+                  },
+                  {
+                    "type": "aprilTag",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Vision/Summary/TagPoses",
+                    "logType": "Pose3d[]",
+                    "visible": true,
+                    "options": {
+                      "family": "36h11"
+                    }
+                  },
+                  {
+                    "type": "cone",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Nodes/Preset",
+                    "logType": "Pose2d[]",
+                    "visible": false,
+                    "options": {
+                      "color": "#00ff00",
+                      "position": "center"
+                    }
+                  }
+                ],
+                "game": "2025 Field (Welded)",
+                "origin": "blue"
+              },
+              "controllerUUID": "1039uu5pmi9tb8r5kmxl2aqwcr3021jc",
+              "renderer": {
+                "cameraIndex": -1,
+                "orbitFov": 50,
+                "cameraPosition": [
+                  8.135070978044284,
+                  3.1554335006438556,
+                  -6.699826681131823
+                ],
+                "cameraTarget": [
+                  4.957593629208446,
+                  0.2623628269106546,
+                  -2.052293462385662
+                ]
+              },
+              "controlsHeight": 270
+            },
+            {
+              "type": 8,
+              "title": "Joysticks",
+              "controller": [
+                "Xbox Controller (Blue)",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "controllerUUID": "hs3m43i7olwvwcvcxlipn5rcpamh0uk9",
+              "renderer": null,
+              "controlsHeight": 85
+            },
+            {
+              "type": 12,
+              "title": "Metadata",
+              "controller": null,
+              "controllerUUID": "aauzc69tkf499sdxxl8439r4gv9mhilm",
+              "renderer": null,
+              "controlsHeight": 0
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "satellites": [],
+  "version": "4.1.0"
+}
