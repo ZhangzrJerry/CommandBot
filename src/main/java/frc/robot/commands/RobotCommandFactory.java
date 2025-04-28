@@ -433,4 +433,24 @@ public class RobotCommandFactory {
               endeffector.setAlgaeGoal(AlgaeEndEffectorGoal.HOLDING);
             }));
   }
+
+  public Command tempAutoCmd() {
+    return Commands.sequence(
+        resetPoseCmd(AllianceFlipUtil.applyPose(new Pose2d(7, 4, Rotation2d.k180deg))),
+        laserReefScoreCmd("E", "4"),
+        coralStationPickCmd(false),
+        Commands.waitUntil(() -> endeffector.hasCoralEndeffectorStoraged()),
+        laserReefScoreCmd("D", "4"),
+        coralStationPickCmd(false),
+        Commands.waitUntil(() -> endeffector.hasCoralEndeffectorStoraged()),
+        laserReefScoreCmd("C", "4"),
+        coralStationPickCmd(false),
+        Commands.waitUntil(() -> endeffector.hasCoralEndeffectorStoraged()),
+        laserReefScoreCmd("B", "4"),
+        coralStationPickCmd(false),
+        Commands.waitUntil(() -> endeffector.hasCoralEndeffectorStoraged()),
+        laserReefScoreCmd("A", "4"),
+        coralStationPickCmd(false),
+        Commands.waitUntil(() -> endeffector.hasCoralEndeffectorStoraged()));
+  }
 }

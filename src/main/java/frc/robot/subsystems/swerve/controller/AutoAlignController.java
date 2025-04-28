@@ -292,29 +292,29 @@ public class AutoAlignController implements SwerveController {
     var goalPose = goalPoseSupplier.get();
     var currentPose = currentPoseSupplier.get();
 
-    // 计算相对位置和距离
+    // calculate relative position and distance
     var offset = currentPose.relativeTo(goalPose);
     var yDistance = Math.abs(offset.getY());
     var xDistance = Math.abs(offset.getX());
     var totalDistance = Math.hypot(xDistance, yDistance);
 
-    // 计算相对角度
+    // calculate relative angle
     var relativeAngle = Math.atan2(offset.getY(), offset.getX());
     var alignmentAngle = Math.toRadians(config.alignmentAngleDegree.get());
 
-    // 计算角度差
+    // calculate angle difference
     var angleDiff = MathUtil.angleModulus(relativeAngle - alignmentAngle);
 
-    // 计算调整因子
+    // calculate adjustment factor
     var distanceFactor = Math.min(1.0, totalDistance / (Field.CoralStation.FACE_LENGTH * 2.0));
     var angleFactor = 1.0 - Math.abs(angleDiff) / Math.PI;
     var shiftFactor = distanceFactor * angleFactor;
 
-    // 计算调整量
+    // calculate adjustment amount
     var shiftX = -shiftFactor * config.maxLineupShiftingXMeter.get() * Math.cos(alignmentAngle);
     var shiftY = shiftFactor * config.maxLineupShiftingYMeter.get() * Math.sin(alignmentAngle);
 
-    // 应用调整
+    // apply adjustment
     var shiftedGoalPose = goalPose.transformBy(GeomUtil.toTransform2d(shiftX, shiftY));
 
     return new Pose2d(shiftedGoalPose.getTranslation(), goalPose.getRotation());
