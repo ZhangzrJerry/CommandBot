@@ -9,9 +9,11 @@ import frc.robot.subsystems.swerve.SwerveConfig;
 import frc.robot.subsystems.swerve.SwerveController;
 import frc.robot.utils.dashboard.TunableGains.TunablePidGains;
 import frc.robot.utils.dashboard.TunableNumber;
+import frc.robot.utils.dashboard.TunableNumbers;
 import frc.robot.utils.math.GeomUtil;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 public class AutoAlignController implements SwerveController {
   public enum AlignType {
@@ -187,13 +189,12 @@ public class AutoAlignController implements SwerveController {
     this.goalPoseSupplier = goalPoseSupplier;
     this.currentPoseSupplier = currentPoseSupplier;
     this.config = getConfigForType(type);
-    // translationController.setPID(
-    // config.translationGains.getKP(),
-    // config.translationGains.getKI(),
-    // config.translationGains.getKD());
-    // rotationController.setPID(
-    // config.rotationGains.getKP(), config.rotationGains.getKI(),
-    // config.rotationGains.getKD());
+    translationController.setPID(
+        config.translationGains.getKP(),
+        config.translationGains.getKI(),
+        config.translationGains.getKD());
+    rotationController.setPID(
+        config.rotationGains.getKP(), config.rotationGains.getKI(), config.rotationGains.getKD());
     rotationController.enableContinuousInput(-Math.PI, Math.PI);
   }
 
@@ -220,6 +221,27 @@ public class AutoAlignController implements SwerveController {
   public ChassisSpeeds getChassisSpeeds() {
     Pose2d currentPose = currentPoseSupplier.get();
     Pose2d goalPose = getShiftedGoalPose();
+    Logger.recordOutput("Swerve/AlignController/ShiftedGoalPose", goalPose);
+
+    TunableNumbers.ifChanged(
+        this.config.hashCode(),
+        () -> {
+          translationController.setPID(
+              config.translationGains.getKP(),
+              config.translationGains.getKI(),
+              config.translationGains.getKD());
+        },
+        config.translationGains);
+
+    TunableNumbers.ifChanged(
+        this.config.hashCode(),
+        () -> {
+          rotationController.setPID(
+              config.rotationGains.getKP(),
+              config.rotationGains.getKI(),
+              config.rotationGains.getKD());
+        },
+        config.rotationGains);
 
     hasHeadingAtGoal =
         Math.abs(

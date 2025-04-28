@@ -182,7 +182,7 @@ public class Arm extends SubsystemBase {
       if (isAlgaePickGoal(this.goal)) {
         needTransition = !needShoulderFall;
       } else {
-        var needMoveElbowAtBottomAndPassSpecificAngle =
+        boolean needMoveElbowAtBottomAndPassSpecificAngle =
             shoulderInputs.appliedPosition
                 < ArmConfig.TRANSITION_ELEVATOR_HEIGHT_METER.getAsDouble();
         needTransition = (needMoveElbowAtBottomAndPassSpecificAngle || needShoulderFall);
