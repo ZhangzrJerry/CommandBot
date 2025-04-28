@@ -1,15 +1,10 @@
-## 3, 2, 1, Let's Dive ~
+# 3, 2, 1, Let's Dive ~
 
 ### A Command-Based Robot Framework for 2025 FRC REEFSCAPE
 
-<br>
 <img width=100% src="./assets/screenshot.png">
 
-<br>
-
 ![](./assets/reefscape.svg) ![](./assets/java.svg) ![](./assets/akit.svg) ![](./assets/ascope.svg)
-
-Please note this is not the official competition code for 8214 or 9635, but rather an experimental rewrite. I encourage you to explore the codebase for inspiration and learning opportunities, though some non-essential parts may not be rigorously optimized.
 
 ### Key Features
 
@@ -19,7 +14,9 @@ Please note this is not the official competition code for 8214 or 9635, but rath
 
 🏭 Factory Pattern Implementation
 
-### Environment Setup
+Please note this is not the official competition code for 8214 or 9635, but rather an experimental rewrite. I encourage you to explore the codebase for inspiration and learning opportunities, though some non-essential parts may not be rigorously optimized.
+
+## Environment Setup
 
 1. **Prerequisites**
 
@@ -46,7 +43,7 @@ Please note this is not the official competition code for 8214 or 9635, but rath
    - Install [Elastic v2025.2.2](https://github.com/Gold872/elastic-dashboard/releases/tag/v2025.2.2)
    - Load layout: `File -> Open Layout` (select `.\src\main\deploy\elastic-layout.json`)
 
-### Quick Start Guide
+## Quick Start Guide
 
 1. Launch Simulation:
 
@@ -62,7 +59,7 @@ Please note this is not the official competition code for 8214 or 9635, but rath
    - Launch Advantage Scope
    - Connect to simulator: `File -> Connect to Simulator`
 
-### Controller Button Mapping
+## Controller Button Mapping
 
 | Button     | Function 1                                 | Function 2                                     |
 | ---------- | ------------------------------------------ | ---------------------------------------------- |
