@@ -6,13 +6,13 @@
 
 ![](./assets/reefscape.svg) ![](./assets/java.svg) ![](./assets/akit.svg) ![](./assets/ascope.svg)
 
-### Key Features
+Command Bot is a framework with standardized hardware **interfaces**, factory-patterned **subsystems** and command-based **control flow**. Enabling flexible hardware abstraction and seamless switching between real and simulated environments.
+
+🔮 Mechanism-level Action Visualization
 
 🕹️ Custom Node Selection Panel
 
 🥏 Advanced Auto Line-up Logic
-
-🏭 Factory Pattern Implementation
 
 Please note this is not the official competition code for 8214 or 9635, but rather an experimental rewrite. I encourage you to explore the codebase for inspiration and learning opportunities, though some non-essential parts may not be rigorously optimized.
 
