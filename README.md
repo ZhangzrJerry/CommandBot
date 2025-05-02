@@ -6,15 +6,23 @@
 
 ![](./assets/reefscape.svg) ![](./assets/java.svg) ![](./assets/akit.svg) ![](./assets/ascope.svg)
 
-Command Bot is a framework with standardized hardware **interfaces**, factory-patterned **subsystems** and command-based **control flow**. Enabling flexible hardware abstraction and seamless switching between real and simulated environments.
+Command Bot represents a paradigm shift in FRC robotics development, introducing a revolutionary hardware abstraction layer and modern control architecture. By redefining the interaction between software and hardware components, this framework eliminates legacy boilerplate while introducing powerful new capabilities.
 
-🔮 Mechanism-level Action Visualization
+#### 🧠 **Intelligent Hardware Abstraction**
 
-🕹️ Custom Node Selection Panel
+- **Unified Hardware Interface**: Consolidates 20+ legacy interfaces (`GenericElevatorIO`, `GenericArmIO`, etc.) into a single **`DCMotorIO`** interface
+- **Automated Unit Conversion**: Seamlessly handles conversions between radians (simulation), rotations (Phoenix), degrees, and meters (subsystem)
+- **Universal Simulation Support**: Single simulation interface compatible with all mechanism types (arms, elevators, flywheels, etc.)
+- **Advanced Hardware Integration**: Native support for TalonFX follower mode and CANCoder fusion mode
 
-🥏 Advanced Auto Line-up Logic
+#### ⚙️ **Modern Architecture**
 
-Please note this is not the official competition code for 8214 or 9635, but rather an experimental rewrite. I encourage you to explore the codebase for inspiration and learning opportunities, though some non-essential parts may not be rigorously optimized.
+- **True Hardware Independence**: Identical code paths for both real hardware and simulation environments
+- **Factory-Patterned Subsystems**: Effortless hardware swapping without logic modifications
+- **Visual Debugging Suite**: Real-time mechanism tracing and analysis tools
+- **Command-Based Control Flow**: Robust and maintainable control architecture
+
+_Note: Command Bot is currently in **beta** as we refine the architecture and expand hardware support. While not yet optimized for competition use, we encourage teams to explore the codebase and adapt these patterns to their robots._
 
 ## Environment Setup
 
@@ -61,18 +69,18 @@ Please note this is not the official competition code for 8214 or 9635, but rath
 
 ## Controller Button Mapping
 
-| Button     | Function 1                                 | Function 2                                     |
+| Button     | Primary Function                           | Secondary Function                             |
 | ---------- | ------------------------------------------ | ---------------------------------------------- |
 | `A`        | **Idle Arm** (short press)                 | **Home Arm** (long press)                      |
-| `B`        | **Algae Processor Score**                  |
-| `X`        | **Algae Ground Pick** (hold)               |
-| `X + RT`   | **Algae Ground Eject** (hold)              |
+| `B`        | **Algae Processor Score**                  | -                                              |
+| `X`        | **Algae Ground Pick** (hold)               | -                                              |
+| `X + RT`   | **Algae Ground Eject** (hold)              | -                                              |
 | `Y`        | **Algae Reef Collect** (no algae)          | **Algae Net Score** (with algae)               |
 | `LB`       | **Coral Left Station Collect** (no coral)  | **Coral Score with NodeSelector** (with coral) |
 | `RB`       | **Coral Right Station Collect** (no coral) | **Coral Score with POV** (with coral)          |
-| `LB + RB`  | **Toggle Arm Forced Elevate Mode**         |
+| `LB + RB`  | **Toggle Arm Forced Elevate Mode**         | -                                              |
 | `LT`       | **Score Coral** (score position)           | **Eject Coral** (other positions)              |
 | `RT`       | **Score Algae** (score position)           | **Eject Algae** (other positions)              |
-| `Back`     | **Enter Climbing Mode**                    |
-| `Start`    | **Home Gyro**                              |
-| `POV Down` | **Climbing** (climbing mode only)          |
+| `Back`     | **Enter Climbing Mode**                    | -                                              |
+| `Start`    | **Home Gyro**                              | -                                              |
+| `POV Down` | **Climbing** (climbing mode only)          | -                                              |
